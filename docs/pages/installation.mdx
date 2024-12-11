@@ -246,7 +246,8 @@ repositories.
    -o /etc/apt/trusted.gpg.d/teleport.asc
    # Add the Teleport APT repository. You'll need to update this file for each
    # major release of Teleport.
-   $ echo "deb https://apt.releases.teleport.dev/${ID?} ${VERSION_CODENAME?} \
+   $ echo "deb [signed-by=/etc/apt/trusted.gpg.d/teleport.asc] \
+   https://apt.releases.teleport.dev/${ID?} ${VERSION_CODENAME?} \
    ${TELEPORT_CHANNEL?}" \
    | sudo tee /etc/apt/sources.list.d/teleport.list > /dev/null
 

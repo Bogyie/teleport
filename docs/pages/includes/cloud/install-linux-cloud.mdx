@@ -10,7 +10,8 @@
   # Source variables about OS version
   $ source /etc/os-release
   # Add the Teleport APT repository for cloud.
-  $ echo "deb https://apt.releases.teleport.dev/${ID?} ${VERSION_CODENAME?} stable/cloud" \
+  $ echo "deb [signed-by=/etc/apt/trusted.gpg.d/teleport.asc] \
+  https://apt.releases.teleport.dev/${ID?} ${VERSION_CODENAME?} stable/cloud" \
   | sudo tee /etc/apt/sources.list.d/teleport.list > /dev/null
 
   # Provide your Teleport domain to query the latest compatible Teleport version
