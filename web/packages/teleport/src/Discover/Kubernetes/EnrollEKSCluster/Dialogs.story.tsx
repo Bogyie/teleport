@@ -41,7 +41,7 @@ import {
 } from 'teleport/services/integrations';
 import { DiscoverEventResource } from 'teleport/services/userEvent';
 
-import { generateCmd } from 'teleport/Discover/Kubernetes/HelmChart/HelmChart';
+import { generateCmd } from 'teleport/Discover/Kubernetes/SelfHosted';
 
 import { EnrollmentDialog } from './EnrollmentDialog';
 import { AgentWaitingDialog } from './AgentWaitingDialog';

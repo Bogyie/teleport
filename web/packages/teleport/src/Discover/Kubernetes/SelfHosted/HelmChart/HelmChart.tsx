@@ -51,9 +51,9 @@ import {
   ResourceKind,
   TextIcon,
   useShowHint,
-} from '../../Shared';
+} from '../../../Shared';
 
-import type { AgentStepProps } from '../../types';
+import type { AgentStepProps } from '../../../types';
 import type { JoinRole, JoinToken } from 'teleport/services/joinToken';
 import type { AgentMeta, KubeMeta } from 'teleport/Discover/useDiscover';
 import type { Kube } from 'teleport/services/kube';

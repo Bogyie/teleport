@@ -53,7 +53,7 @@ import { isIamPermError } from 'teleport/Discover/Shared/Aws/error';
 import { AgentStepProps } from 'teleport/Discover/types';
 import useTeleport from 'teleport/useTeleport';
 
-import { generateCmd } from 'teleport/Discover/Kubernetes/HelmChart/HelmChart';
+import { generateCmd } from 'teleport/Discover/Kubernetes/SelfHosted';
 import { Kube } from 'teleport/services/kube';
 
 import { JoinToken } from 'teleport/services/joinToken';

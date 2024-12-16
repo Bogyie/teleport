@@ -26,7 +26,7 @@ import { EnrollEksCluster } from 'teleport/Discover/Kubernetes/EnrollEKSCluster'
 
 import { KubeWrapper } from './KubeWrapper';
 import { SetupAccess } from './SetupAccess';
-import { HelmChart } from './HelmChart';
+import { HelmChart } from './SelfHosted';
 import { TestConnection } from './TestConnection';
 
 export const KubernetesResource: ResourceViewConfig = {
