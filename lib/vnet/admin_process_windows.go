@@ -18,6 +18,7 @@ package vnet
 
 import (
 	"context"
+	"net"
 	"time"
 
 	"github.com/Microsoft/go-winio"
@@ -74,7 +75,13 @@ func RunAdminProcess(ctx context.Context, cfg AdminProcessConfig) error {
 	}
 	log.InfoContext(ctx, "Created TUN interface", "tun", tunName)
 	conn, err := grpc.DialContext(ctx, pipePath,
-		grpc.WithContextDialer(winio.DialPipeContext),
+		grpc.WithContextDialer(func(ctx context.Context, addr string) (net.Conn, error) {
+			ctx, cancel := context.WithTimeout(ctx, time.Second)
+			defer cancel()
+			conn, err := winio.DialPipeContext(ctx, addr)
+			log.DebugContext(ctx, "Dialing user process", "addr", addr, "conn", conn, "error", err)
+			return conn, err
+		}),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithUnaryInterceptor(interceptors.GRPCClientUnaryErrorInterceptor),
 		grpc.WithStreamInterceptor(interceptors.GRPCClientStreamErrorInterceptor),
