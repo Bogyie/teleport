@@ -24,6 +24,7 @@ import (
 	"github.com/gravitational/trace"
 	"golang.zx2c4.com/wireguard/tun"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/gravitational/teleport/api"
 	vnetv1 "github.com/gravitational/teleport/gen/proto/go/teleport/lib/vnet/v1"
@@ -71,7 +72,10 @@ func RunAdminProcess(ctx context.Context, cfg AdminProcessConfig) error {
 		return trace.Wrap(err, "getting TUN device name")
 	}
 	log.InfoContext(ctx, "Created TUN interface", "tun", tunName)
-	conn, err := grpc.DialContext(ctx, pipePath, grpc.WithContextDialer(winio.DialPipeContext))
+	conn, err := grpc.DialContext(ctx, pipePath,
+		grpc.WithContextDialer(winio.DialPipeContext),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
 	if err != nil {
 		return trace.Wrap(err, "dialing user process gRPC service over named pipe")
 	}
