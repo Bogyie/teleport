@@ -20,10 +20,12 @@ import (
 	"context"
 	"net"
 	"os"
+	"time"
 
 	"github.com/Microsoft/go-winio"
 	"github.com/gravitational/trace"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/gravitational/teleport/api"
 	"github.com/gravitational/teleport/api/profile"
@@ -92,7 +94,9 @@ func RunUserProcess(ctx context.Context, config *UserProcessConfig) (pm *Process
 	// LocalSystem account. We don't leak anything by letting processes owned
 	// by the same user as this process to connect to the pipe, they could read
 	// TELEPORT_HOME anyway.
-	pipe, err := winio.ListenPipe(pipePath, &winio.PipeConfig{})
+	pipe, err := winio.ListenPipe(pipePath, &winio.PipeConfig{
+		MessageMode: true,
+	})
 	if err != nil {
 		return nil, trace.Wrap(err, "listening on named pipe")
 	}
@@ -113,6 +117,7 @@ func RunUserProcess(ctx context.Context, config *UserProcessConfig) (pm *Process
 	pm.AddCriticalBackgroundTask("gRPC service", func() error {
 		log.InfoContext(processCtx, "Starting gRPC service on named pipe", "pipe", pipe.Addr().String())
 		grpcServer := grpc.NewServer(
+			grpc.Creds(insecure.NewCredentials()),
 			grpc.UnaryInterceptor(interceptors.GRPCServerUnaryErrorInterceptor),
 			grpc.StreamInterceptor(interceptors.GRPCServerStreamErrorInterceptor),
 		)
@@ -125,6 +130,33 @@ func RunUserProcess(ctx context.Context, config *UserProcessConfig) (pm *Process
 			return trace.Wrap(err, "serving VNet user process gRPC service")
 		}
 		return nil
+	})
+	pm.AddCriticalBackgroundTask("gRPC test client", func() error {
+		log.InfoContext(processCtx, "Starting gRPC test client")
+		for {
+			select {
+			case <-processCtx.Done():
+				return trace.Wrap(processCtx.Err())
+			case <-time.After(time.Second):
+			}
+			log.DebugContext(processCtx, "attempting in-process ping")
+			clt, err := newUserProcessClient(processCtx)
+			if err != nil {
+				return trace.Wrap(err)
+			}
+			resp, err := clt.Ping(processCtx, &vnetv1.PingRequest{
+				Version: api.Version,
+			})
+			if err != nil {
+				return trace.Wrap(err, "testing in-process ping")
+			}
+			if resp.Version != api.Version {
+				return trace.BadParameter("version mismatch %s != %s",
+					resp.Version, api.Version)
+			}
+			log.DebugContext(ctx, "Completed in-process ping")
+			clt.Close()
+		}
 	})
 	return pm, nil
 }

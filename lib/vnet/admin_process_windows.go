@@ -18,6 +18,7 @@ package vnet
 
 import (
 	"context"
+	"io"
 	"net"
 	"time"
 
@@ -74,7 +75,38 @@ func RunAdminProcess(ctx context.Context, cfg AdminProcessConfig) error {
 		return trace.Wrap(err, "getting TUN device name")
 	}
 	log.InfoContext(ctx, "Created TUN interface", "tun", tunName)
-	conn, err := grpc.DialContext(ctx, pipePath,
+	for {
+		select {
+		case <-time.After(time.Second):
+			clt, err := newUserProcessClient(ctx)
+			if err != nil {
+				return trace.Wrap(err, "creating user process client")
+			}
+			resp, err := clt.Ping(ctx, &vnetv1.PingRequest{
+				Version: api.Version,
+			})
+			if err != nil {
+				return trace.Wrap(err, "pinging user process")
+			}
+			if resp.Version != api.Version {
+				return trace.BadParameter("version mismatch, user process version is %s, admin process version is %s",
+					resp.Version, api.Version)
+			}
+			log.DebugContext(ctx, "Pinged user process")
+			clt.Close()
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+	}
+}
+
+type userProcessClient struct {
+	vnetv1.VnetUserProcessServiceClient
+	closer io.Closer
+}
+
+func newUserProcessClient(ctx context.Context) (*userProcessClient, error) {
+	conn, err := grpc.NewClient(pipePath,
 		grpc.WithContextDialer(func(ctx context.Context, addr string) (net.Conn, error) {
 			ctx, cancel := context.WithTimeout(ctx, time.Second)
 			defer cancel()
@@ -87,28 +119,16 @@ func RunAdminProcess(ctx context.Context, cfg AdminProcessConfig) error {
 		grpc.WithStreamInterceptor(interceptors.GRPCClientStreamErrorInterceptor),
 	)
 	if err != nil {
-		return trace.Wrap(err, "dialing user process gRPC service over named pipe")
+		return nil, trace.Wrap(err, "creating user process gRPC client")
 	}
-	defer conn.Close()
-	clt := vnetv1.NewVnetUserProcessServiceClient(conn)
-	for {
-		select {
-		case <-time.After(time.Second):
-			resp, err := clt.Ping(ctx, &vnetv1.PingRequest{
-				Version: api.Version,
-			})
-			if err != nil {
-				return trace.Wrap(err, "pinging user process")
-			}
-			if resp.Version != api.Version {
-				return trace.BadParameter("version mismatch, user process version is %s, admin process version is %s",
-					resp.Version, api.Version)
-			}
-			log.DebugContext(ctx, "Pinged user process")
-		case <-ctx.Done():
-			return ctx.Err()
-		}
-	}
+	return &userProcessClient{
+		VnetUserProcessServiceClient: vnetv1.NewVnetUserProcessServiceClient(conn),
+		closer:                       conn,
+	}, nil
+}
+
+func (c *userProcessClient) Close() error {
+	return trace.Wrap(c.closer.Close())
 }
 
 var (
