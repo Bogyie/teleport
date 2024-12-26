@@ -38,7 +38,10 @@ import { P } from 'design/Text/Text';
 import { TextSelectCopyMulti } from 'teleport/components/TextSelectCopy';
 import { CommandBox } from 'teleport/Discover/Shared/CommandBox';
 
-import { useJoinTokenSuspender } from 'teleport/Discover/Shared/useJoinTokenSuspender';
+import {
+  clearCachedJoinTokenResult,
+  useJoinTokenSuspender,
+} from 'teleport/Discover/Shared/useJoinTokenSuspender';
 import { ResourceKind, TextIcon } from 'teleport/Discover/Shared';
 import { JoinToken } from 'teleport/services/joinToken';
 import { CatchError } from 'teleport/components/CatchError';
@@ -122,22 +125,28 @@ const FallbackDialog = ({
   );
 };
 
+const resourceKinds = [
+  ResourceKind.Kubernetes,
+  ResourceKind.Application,
+  ResourceKind.Discovery,
+];
+
 export function ManualHelmDialog({
   setJoinTokenAndGetCommand,
   cancel,
   confirmedCommands,
 }: ManualHelmDialogProps) {
-  const { joinToken } = useJoinTokenSuspender([
-    ResourceKind.Kubernetes,
-    ResourceKind.Application,
-    ResourceKind.Discovery,
-  ]);
+  const { joinToken } = useJoinTokenSuspender({
+    resourceKinds,
+  });
   const [command, setCommand] = useState('');
 
   useEffect(() => {
     if (joinToken && !command) {
       setCommand(setJoinTokenAndGetCommand(joinToken));
     }
+
+    return clearCachedJoinTokenResult(resourceKinds);
   }, [joinToken, command, setJoinTokenAndGetCommand]);
 
   return (
