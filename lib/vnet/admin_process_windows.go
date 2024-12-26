@@ -27,6 +27,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/gravitational/teleport/api"
+	"github.com/gravitational/teleport/api/utils/grpc/interceptors"
 	vnetv1 "github.com/gravitational/teleport/gen/proto/go/teleport/lib/vnet/v1"
 )
 
@@ -75,6 +76,8 @@ func RunAdminProcess(ctx context.Context, cfg AdminProcessConfig) error {
 	conn, err := grpc.DialContext(ctx, pipePath,
 		grpc.WithContextDialer(winio.DialPipeContext),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithUnaryInterceptor(interceptors.GRPCClientUnaryErrorInterceptor),
+		grpc.WithStreamInterceptor(interceptors.GRPCClientStreamErrorInterceptor),
 	)
 	if err != nil {
 		return trace.Wrap(err, "dialing user process gRPC service over named pipe")

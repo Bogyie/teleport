@@ -130,7 +130,7 @@ func RunUserProcess(ctx context.Context, config *UserProcessConfig) (pm *Process
 }
 
 type userProcessService struct {
-	vnetv1.UnimplementedVnetUserProcessServiceServer
+	vnetv1.UnsafeVnetUserProcessServiceServer
 }
 
 func newUserProcessService() (*userProcessService, error) {
