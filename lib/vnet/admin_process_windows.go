@@ -23,6 +23,10 @@ import (
 	"github.com/Microsoft/go-winio"
 	"github.com/gravitational/trace"
 	"golang.zx2c4.com/wireguard/tun"
+	"google.golang.org/grpc"
+
+	"github.com/gravitational/teleport/api"
+	vnetv1 "github.com/gravitational/teleport/gen/proto/go/teleport/lib/vnet/v1"
 )
 
 type AdminProcessConfig struct {
@@ -57,15 +61,6 @@ func RunAdminProcess(ctx context.Context, cfg AdminProcessConfig) error {
 		return trace.Wrap(err, "checking admin process config")
 	}
 	log.InfoContext(ctx, "Running VNet admin process", "cfg", cfg)
-
-	dialTimeout := 200 * time.Millisecond
-	conn, err := winio.DialPipe(pipePath, &dialTimeout)
-	if err != nil {
-		return trace.Wrap(err, "dialing named pipe %s", pipePath)
-	}
-	conn.Close()
-	log.InfoContext(ctx, "Successfully connected to user process over named pipe", "pipe", pipePath)
-
 	device, err := tun.CreateTUN("TeleportVNet", mtu)
 	if err != nil {
 		return trace.Wrap(err, "creating TUN device")
@@ -76,17 +71,26 @@ func RunAdminProcess(ctx context.Context, cfg AdminProcessConfig) error {
 		return trace.Wrap(err, "getting TUN device name")
 	}
 	log.InfoContext(ctx, "Created TUN interface", "tun", tunName)
-
-	// TODO(nklaassen): actually run VNet. For now, stay alive as long as we can
-	// dial the pipe.
+	conn, err := grpc.DialContext(ctx, pipePath, grpc.WithContextDialer(winio.DialPipeContext))
+	if err != nil {
+		return trace.Wrap(err, "dialing user process gRPC service over named pipe")
+	}
+	defer conn.Close()
+	clt := vnetv1.NewVnetUserProcessServiceClient(conn)
 	for {
 		select {
 		case <-time.After(time.Second):
-			conn, err := winio.DialPipe(pipePath, &dialTimeout)
+			resp, err := clt.Ping(ctx, &vnetv1.PingRequest{
+				Version: api.Version,
+			})
 			if err != nil {
-				return trace.Wrap(err, "failed to dial pipe, assuming user process has terminated")
+				return trace.Wrap(err, "pinging user process")
 			}
-			conn.Close()
+			if resp.Version != api.Version {
+				return trace.BadParameter("version mismatch, user process version is %s, admin process version is %s",
+					resp.Version, api.Version)
+			}
+			log.DebugContext(ctx, "Pinged user process")
 		case <-ctx.Done():
 			return ctx.Err()
 		}

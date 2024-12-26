@@ -23,9 +23,13 @@ import (
 
 	"github.com/Microsoft/go-winio"
 	"github.com/gravitational/trace"
+	"google.golang.org/grpc"
 
+	"github.com/gravitational/teleport/api"
 	"github.com/gravitational/teleport/api/profile"
 	"github.com/gravitational/teleport/api/types"
+	"github.com/gravitational/teleport/api/utils/grpc/interceptors"
+	vnetv1 "github.com/gravitational/teleport/gen/proto/go/teleport/lib/vnet/v1"
 )
 
 const (
@@ -106,19 +110,40 @@ func RunUserProcess(ctx context.Context, config *UserProcessConfig) (pm *Process
 		}
 		return trace.Wrap(execAdminProcess(processCtx, adminConfig))
 	})
-	pm.AddCriticalBackgroundTask("ipc service", func() error {
-		// TODO(nklaassen): wrap [config.AppProvider] with a gRPC service to expose
-		// the necessary methods to the admin process over [pipe].
-		// For now just accept and drop any connections to prove the admin
-		// process can dial the pipe. The pipe will be closed when the process
-		// context completes and any blocked Accept call will return with an error.
-		slog.InfoContext(processCtx, "Listening on named pipe", "pipe", pipe.Addr().String())
-		for {
-			_, err := pipe.Accept()
-			if err != nil {
-				return trace.Wrap(err)
-			}
+	pm.AddCriticalBackgroundTask("gRPC service", func() error {
+		slog.InfoContext(processCtx, "Starting gRPC service on named pipe", "pipe", pipe.Addr().String())
+		grpcServer := grpc.NewServer(
+			grpc.UnaryInterceptor(interceptors.GRPCServerUnaryErrorInterceptor),
+			grpc.StreamInterceptor(interceptors.GRPCServerStreamErrorInterceptor),
+		)
+		svc, err := newUserProcessService()
+		if err != nil {
+			return trace.Wrap(err)
 		}
+		vnetv1.RegisterVnetUserProcessServiceServer(grpcServer, svc)
+		if err := grpcServer.Serve(pipe); err != nil {
+			return trace.Wrap(err, "serving VNet user process gRPC service")
+		}
+		return nil
 	})
 	return pm, nil
+}
+
+type userProcessService struct {
+	vnetv1.UnimplementedVnetUserProcessServiceServer
+}
+
+func newUserProcessService() (*userProcessService, error) {
+	return &userProcessService{}, nil
+}
+
+func (s *userProcessService) Ping(ctx context.Context, req *vnetv1.PingRequest) (*vnetv1.PingResponse, error) {
+	log.DebugContext(ctx, "Received ping from admin process")
+	if req.Version != api.Version {
+		return nil, trace.BadParameter("version mismatch, user process version is %s, admin process version is %s",
+			api.Version, req.Version)
+	}
+	return &vnetv1.PingResponse{
+		Version: api.Version,
+	}, nil
 }

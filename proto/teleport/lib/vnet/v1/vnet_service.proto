@@ -1,0 +1,42 @@
+// Teleport
+// Copyright (C) 2024 Gravitational, Inc.
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+syntax = "proto3";
+
+package teleport.lib.vnet.v1;
+
+option go_package = "github.com/gravitational/teleport/gen/proto/go/teleport/lib/vnet/v1;vnetv1";
+
+// VnetUserProcessService is a service the VNet user process provides to the
+// VNet admin process.
+service VnetUserProcessService {
+  // Ping is used by the admin process to regularly poll that the user process
+  // is still running, and to share the Teleport version between the two
+  // processes to make sure they are compatible.
+  rpc Ping(PingRequest) returns (PingResponse);
+}
+
+// PingRequest is a request for the Ping rpc.
+message PingRequest {
+  // Version admin process version.
+  string version = 1;
+}
+
+// PingResponse is a response for the Ping rpc.
+message PingResponse {
+  // Version is the user process version.
+  string version = 1;
+}
