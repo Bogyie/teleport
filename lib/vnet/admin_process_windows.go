@@ -20,6 +20,7 @@ import (
 	"context"
 	"io"
 	"net"
+	"strings"
 	"time"
 
 	"github.com/Microsoft/go-winio"
@@ -106,11 +107,11 @@ type userProcessClient struct {
 }
 
 func newUserProcessClient(ctx context.Context) (*userProcessClient, error) {
-	conn, err := grpc.NewClient(pipePath,
+	conn, err := grpc.NewClient("npipe:"+pipePath,
 		grpc.WithContextDialer(func(ctx context.Context, addr string) (net.Conn, error) {
 			ctx, cancel := context.WithTimeout(ctx, time.Second)
 			defer cancel()
-			conn, err := winio.DialPipeContext(ctx, addr)
+			conn, err := winio.DialPipeContext(ctx, strings.TrimPrefix(addr, "npipe:"))
 			log.DebugContext(ctx, "Dialing user process", "addr", addr, "conn", conn, "error", err)
 			return conn, err
 		}),
