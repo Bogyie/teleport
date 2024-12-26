@@ -18,7 +18,7 @@ package vnet
 
 import (
 	"context"
-	"log/slog"
+	"net"
 	"os"
 
 	"github.com/Microsoft/go-winio"
@@ -111,7 +111,7 @@ func RunUserProcess(ctx context.Context, config *UserProcessConfig) (pm *Process
 		return trace.Wrap(execAdminProcess(processCtx, adminConfig))
 	})
 	pm.AddCriticalBackgroundTask("gRPC service", func() error {
-		slog.InfoContext(processCtx, "Starting gRPC service on named pipe", "pipe", pipe.Addr().String())
+		log.InfoContext(processCtx, "Starting gRPC service on named pipe", "pipe", pipe.Addr().String())
 		grpcServer := grpc.NewServer(
 			grpc.UnaryInterceptor(interceptors.GRPCServerUnaryErrorInterceptor),
 			grpc.StreamInterceptor(interceptors.GRPCServerStreamErrorInterceptor),
@@ -121,7 +121,7 @@ func RunUserProcess(ctx context.Context, config *UserProcessConfig) (pm *Process
 			return trace.Wrap(err)
 		}
 		vnetv1.RegisterVnetUserProcessServiceServer(grpcServer, svc)
-		if err := grpcServer.Serve(pipe); err != nil {
+		if err := grpcServer.Serve(&loggingListener{pipe}); err != nil {
 			return trace.Wrap(err, "serving VNet user process gRPC service")
 		}
 		return nil
@@ -146,4 +146,26 @@ func (s *userProcessService) Ping(ctx context.Context, req *vnetv1.PingRequest) 
 	return &vnetv1.PingResponse{
 		Version: api.Version,
 	}, nil
+}
+
+type loggingListener struct {
+	lis net.Listener
+}
+
+func (l *loggingListener) Accept() (net.Conn, error) {
+	conn, err := l.lis.Accept()
+	log.DebugContext(context.Background(), "Pipe listener Accept", "conn", conn, "error", err)
+	return conn, err
+}
+
+func (l *loggingListener) Close() error {
+	err := l.lis.Close()
+	log.DebugContext(context.Background(), "Pipe listener Close", "error", err)
+	return err
+}
+
+func (l *loggingListener) Addr() net.Addr {
+	addr := l.lis.Addr()
+	log.DebugContext(context.Background(), "Pipe listener Addr", "addr", addr)
+	return addr
 }
