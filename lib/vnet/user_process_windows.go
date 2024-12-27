@@ -22,7 +22,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/Microsoft/go-winio"
 	"github.com/gravitational/trace"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -32,10 +31,6 @@ import (
 	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/api/utils/grpc/interceptors"
 	vnetv1 "github.com/gravitational/teleport/gen/proto/go/teleport/lib/vnet/v1"
-)
-
-const (
-	pipePath = `\\.\pipe\vnet`
 )
 
 // UserProcessConfig provides the necessary configuration to run VNet.
@@ -61,9 +56,9 @@ func (c *UserProcessConfig) CheckAndSetDefaults() error {
 }
 
 // RunUserProcess launches a Windows service in the background that in turn
-// calls [RunAdminProcess]. The user process exposes a gRPC interface on a named
-// pipe that the admin process uses to query application names and get user
-// certificates for apps.
+// calls [RunAdminProcess]. The user process exposes a gRPC service that the
+// admin process uses to query application names and get user certificates for
+// apps.
 //
 // RunUserProcess returns a [ProcessManager] which controls the lifecycle of
 // both the user and admin processes.
@@ -84,38 +79,23 @@ func RunUserProcess(ctx context.Context, config *UserProcessConfig) (pm *Process
 	if err := config.CheckAndSetDefaults(); err != nil {
 		return nil, trace.Wrap(err)
 	}
-	ipv6Prefix, err := NewIPv6Prefix()
+	listener, err := net.Listen("tcp", ":0")
 	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-	dnsIPv6 := ipv6WithSuffix(ipv6Prefix, []byte{2})
-	// By default only the LocalSystem account, administrators, and the owner of
-	// the current process can access the pipe. The admin service runs as the
-	// LocalSystem account. We don't leak anything by letting processes owned
-	// by the same user as this process to connect to the pipe, they could read
-	// TELEPORT_HOME anyway.
-	pipe, err := winio.ListenPipe(pipePath, &winio.PipeConfig{
-		MessageMode: true,
-	})
-	if err != nil {
-		return nil, trace.Wrap(err, "listening on named pipe")
+		return nil, trace.Wrap(err, "listening on tcp socket")
 	}
 	pm, processCtx := newProcessManager()
-	pm.AddCriticalBackgroundTask("pipe closer", func() error {
+	pm.AddCriticalBackgroundTask("socket closer", func() error {
 		<-processCtx.Done()
-		return trace.Wrap(pipe.Close())
+		return trace.Wrap(listener.Close())
 	})
 	pm.AddCriticalBackgroundTask("admin process", func() error {
 		adminConfig := AdminProcessConfig{
-			NamedPipe:  pipePath,
-			IPv6Prefix: ipv6Prefix.String(),
-			DNSAddr:    dnsIPv6.String(),
-			HomePath:   config.HomePath,
+			UserProcessServiceAddr: listener.Addr().String(),
 		}
 		return trace.Wrap(execAdminProcess(processCtx, adminConfig))
 	})
 	pm.AddCriticalBackgroundTask("gRPC service", func() error {
-		log.InfoContext(processCtx, "Starting gRPC service on named pipe", "pipe", pipe.Addr().String())
+		log.InfoContext(processCtx, "Starting gRPC service", "addr", listener.Addr().String())
 		grpcServer := grpc.NewServer(
 			grpc.Creds(insecure.NewCredentials()),
 			grpc.UnaryInterceptor(interceptors.GRPCServerUnaryErrorInterceptor),
@@ -126,7 +106,7 @@ func RunUserProcess(ctx context.Context, config *UserProcessConfig) (pm *Process
 			return trace.Wrap(err)
 		}
 		vnetv1.RegisterVnetUserProcessServiceServer(grpcServer, svc)
-		if err := grpcServer.Serve(&loggingListener{pipe}); err != nil {
+		if err := grpcServer.Serve(&loggingListener{listener}); err != nil {
 			return trace.Wrap(err, "serving VNet user process gRPC service")
 		}
 		return nil
@@ -140,7 +120,7 @@ func RunUserProcess(ctx context.Context, config *UserProcessConfig) (pm *Process
 			case <-time.After(time.Second):
 			}
 			log.DebugContext(processCtx, "attempting in-process ping")
-			clt, err := newUserProcessClient(processCtx)
+			clt, err := newUserProcessClient(processCtx, listener.Addr().String())
 			if err != nil {
 				return trace.Wrap(err)
 			}
@@ -186,18 +166,18 @@ type loggingListener struct {
 
 func (l *loggingListener) Accept() (net.Conn, error) {
 	conn, err := l.lis.Accept()
-	log.DebugContext(context.Background(), "Pipe listener Accept", "conn", conn, "error", err)
+	log.DebugContext(context.Background(), "Listener Accept", "conn", conn, "error", err)
 	return conn, err
 }
 
 func (l *loggingListener) Close() error {
 	err := l.lis.Close()
-	log.DebugContext(context.Background(), "Pipe listener Close", "error", err)
+	log.DebugContext(context.Background(), "Listener Close", "error", err)
 	return err
 }
 
 func (l *loggingListener) Addr() net.Addr {
 	addr := l.lis.Addr()
-	log.DebugContext(context.Background(), "Pipe listener Addr", "addr", addr)
+	log.DebugContext(context.Background(), "Listener Addr", "addr", addr)
 	return addr
 }

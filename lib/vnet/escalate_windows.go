@@ -94,7 +94,7 @@ func startService(ctx context.Context, cfg AdminProcessConfig) (*mgr.Service, er
 		Name:   serviceName,
 		Handle: serviceHandle,
 	}
-	if err := service.Start("vnet-service", "--pipe", cfg.NamedPipe); err != nil {
+	if err := service.Start("vnet-service", "--addr", cfg.UserProcessServiceAddr); err != nil {
 		return nil, trace.Wrap(err, "starting Windows service %s", serviceName)
 	}
 	return service, nil
@@ -113,37 +113,29 @@ func escalateAndRunSubcommand(args ...string) error {
 	if err != nil {
 		return trace.Wrap(err, "getting executable path")
 	}
-	argPtrs, err := ptrsFromStrings(
-		"runas",
-		shsprintf.EscapeDefaultContext(tshPath),
-		escapeAndJoinArgs(args...),
-	)
+	verbPtr, err := syscall.UTF16PtrFromString("runas")
 	if err != nil {
-		return trace.Wrap(err)
+		return trace.Wrap(err, "converting string to UTF16")
+	}
+	filePtr, err := syscall.UTF16PtrFromString(shsprintf.EscapeDefaultContext(tshPath))
+	if err != nil {
+		return trace.Wrap(err, "converting string to UTF16")
+	}
+	argsPtr, err := syscall.UTF16PtrFromString(escapeAndJoinArgs(args...))
+	if err != nil {
+		return trace.Wrap(err, "converting string to UTF16")
 	}
 	if err := windows.ShellExecute(
-		0,          // parent window handle (default is no window)
-		argPtrs[0], // verb
-		argPtrs[1], // file
-		argPtrs[2], // args
-		nil,        // cwd (default is current directory)
-		1,          // showCmd (1 is normal)
+		0,       // parent window handle (default is no window)
+		verbPtr, // verb
+		filePtr, // file
+		argsPtr, // args
+		nil,     // cwd (default is current directory)
+		1,       // showCmd (1 is normal)
 	); err != nil {
 		return trace.Wrap(err, "running subcommand as administrator via runas")
 	}
 	return nil
-}
-
-func ptrsFromStrings(strs ...string) ([]*uint16, error) {
-	ptrs := make([]*uint16, len(strs))
-	for i := range ptrs {
-		var err error
-		ptrs[i], err = syscall.UTF16PtrFromString(strs[i])
-		if err != nil {
-			return nil, trace.Wrap(err, "converting string to UTF16")
-		}
-	}
-	return ptrs, nil
 }
 
 func escapeAndJoinArgs(args ...string) string {
@@ -333,10 +325,10 @@ loop:
 }
 
 func (s *windowsService) run(ctx context.Context, args []string) error {
-	var pipePath string
+	var userProcessServiceAddr string
 	app := kingpin.New(serviceName, "Teleport Windows Service")
 	serviceCmd := app.Command("vnet-service", "Start the VNet service.")
-	serviceCmd.Flag("pipe", "pipe path").Required().StringVar(&pipePath)
+	serviceCmd.Flag("addr", "user process service address").Required().StringVar(&userProcessServiceAddr)
 	cmd, err := app.Parse(args[1:])
 	if err != nil {
 		return trace.Wrap(err, "parsing arguments")
@@ -345,7 +337,7 @@ func (s *windowsService) run(ctx context.Context, args []string) error {
 		return trace.BadParameter("executed arguments did not match vnet-service")
 	}
 	cfg := AdminProcessConfig{
-		NamedPipe: pipePath,
+		UserProcessServiceAddr: userProcessServiceAddr,
 	}
 	if err := RunAdminProcess(ctx, cfg); err != nil {
 		return trace.Wrap(err, "running admin process")

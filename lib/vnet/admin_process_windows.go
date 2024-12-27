@@ -19,11 +19,8 @@ package vnet
 import (
 	"context"
 	"io"
-	"net"
-	"strings"
 	"time"
 
-	"github.com/Microsoft/go-winio"
 	"github.com/gravitational/trace"
 	"golang.zx2c4.com/wireguard/tun"
 	"google.golang.org/grpc"
@@ -35,9 +32,9 @@ import (
 )
 
 type AdminProcessConfig struct {
-	// NamedPipe is the name of a pipe used for IPC between the user process and
-	// the admin service.
-	NamedPipe string
+	// UserProcessServiceAddr is the address of the gRPC service the user
+	// process provides to the admin service.
+	UserProcessServiceAddr string
 
 	// TODO(nklaassen): delete these, the admin process will decide them, they
 	// don't need to be passed from the user process. Keeping them until I
@@ -48,8 +45,8 @@ type AdminProcessConfig struct {
 }
 
 func (c *AdminProcessConfig) CheckAndSetDefaults() error {
-	if c.NamedPipe == "" {
-		return trace.BadParameter("missing pipe path")
+	if c.UserProcessServiceAddr == "" {
+		return trace.BadParameter("missing user process service addr")
 	}
 	return nil
 }
@@ -79,7 +76,7 @@ func RunAdminProcess(ctx context.Context, cfg AdminProcessConfig) error {
 	for {
 		select {
 		case <-time.After(time.Second):
-			clt, err := newUserProcessClient(ctx)
+			clt, err := newUserProcessClient(ctx, cfg.UserProcessServiceAddr)
 			if err != nil {
 				return trace.Wrap(err, "creating user process client")
 			}
@@ -106,15 +103,8 @@ type userProcessClient struct {
 	closer io.Closer
 }
 
-func newUserProcessClient(ctx context.Context) (*userProcessClient, error) {
-	conn, err := grpc.NewClient("npipe:"+pipePath,
-		grpc.WithContextDialer(func(ctx context.Context, addr string) (net.Conn, error) {
-			ctx, cancel := context.WithTimeout(ctx, time.Second)
-			defer cancel()
-			conn, err := winio.DialPipeContext(ctx, strings.TrimPrefix(addr, "npipe:"))
-			log.DebugContext(ctx, "Dialing user process", "addr", addr, "conn", conn, "error", err)
-			return conn, err
-		}),
+func newUserProcessClient(ctx context.Context, addr string) (*userProcessClient, error) {
+	conn, err := grpc.NewClient(addr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithUnaryInterceptor(interceptors.GRPCClientUnaryErrorInterceptor),
 		grpc.WithStreamInterceptor(interceptors.GRPCClientStreamErrorInterceptor),
