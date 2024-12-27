@@ -23,6 +23,7 @@ import Validation, { Validator } from 'shared/components/Validation';
 import FieldInput from 'shared/components/FieldInput';
 import { requiredField } from 'shared/components/Validation/rules';
 import TextEditor from 'shared/components/TextEditor';
+import { ResourceLabelTooltip } from 'teleport/Discover/Shared/ResourceLabelTooltip';
 
 import { P } from 'design/Text/Text';
 
@@ -164,13 +165,13 @@ export function CreateDatabaseView({
                     />
                   </Flex>
                   <Box mt={3}>
-                    <Text bold>Labels (optional)</Text>
-                    <Text mb={2}>
-                      Labels make this new database discoverable by the database
-                      service. <br />
-                      Not defining labels is equivalent to asterisks (any
-                      database service can discover this database).
-                    </Text>
+                    <Flex alignItems="center" gap={1} mb={2}>
+                      <Text bold>Labels (optional)</Text>
+                      <ResourceLabelTooltip
+                        toolTipPosition="top"
+                        resourceKind="db"
+                      />
+                    </Flex>
                     <LabelsCreater
                       labels={labels}
                       setLabels={setLabels}
