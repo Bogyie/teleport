@@ -124,7 +124,6 @@ func newUserProcessService() (*userProcessService, error) {
 }
 
 func (s *userProcessService) Ping(ctx context.Context, req *vnetv1.PingRequest) (*vnetv1.PingResponse, error) {
-	log.DebugContext(ctx, "Received ping from admin process")
 	if req.Version != api.Version {
 		return nil, trace.BadParameter("version mismatch, user process version is %s, admin process version is %s",
 			api.Version, req.Version)
@@ -155,26 +154,4 @@ func (s *userProcessService) AuthenticateProcess(ctx context.Context, req *vnetv
 	defer windows.CloseHandle(handle)
 	log.DebugContext(ctx, "Connected to named pipe")
 	return &vnetv1.AuthenticateProcessResponse{}, nil
-}
-
-type loggingListener struct {
-	lis net.Listener
-}
-
-func (l *loggingListener) Accept() (net.Conn, error) {
-	conn, err := l.lis.Accept()
-	log.DebugContext(context.Background(), "Listener Accept", "conn", conn, "error", err)
-	return conn, err
-}
-
-func (l *loggingListener) Close() error {
-	err := l.lis.Close()
-	log.DebugContext(context.Background(), "Listener Close", "error", err)
-	return err
-}
-
-func (l *loggingListener) Addr() net.Addr {
-	addr := l.lis.Addr()
-	log.DebugContext(context.Background(), "Listener Addr", "addr", addr)
-	return addr
 }

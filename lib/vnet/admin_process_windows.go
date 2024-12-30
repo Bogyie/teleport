@@ -103,7 +103,6 @@ func RunAdminProcess(ctx context.Context, cfg AdminProcessConfig) error {
 				return trace.BadParameter("version mismatch, user process version is %s, admin process version is %s",
 					resp.Version, api.Version)
 			}
-			log.DebugContext(ctx, "Pinged user process")
 		case <-ctx.Done():
 			return ctx.Err()
 		}
