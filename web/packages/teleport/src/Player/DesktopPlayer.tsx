@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Alert, Box, Flex, Indicator } from 'design';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import styled from 'styled-components';
 
+import { Alert, Box, Flex, Indicator } from 'design';
 import TdpClientCanvas from 'teleport/components/TdpClientCanvas';
 import cfg from 'teleport/config';
 import { formatDisplayTime, StatusEnum } from 'teleport/lib/player';

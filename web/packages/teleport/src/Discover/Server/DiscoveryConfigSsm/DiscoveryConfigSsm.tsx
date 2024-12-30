@@ -16,6 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import React, { useRef, useState } from 'react';
+import styled from 'styled-components';
+
 import {
   Box,
   ButtonSecondary,
@@ -26,9 +29,6 @@ import {
   Subtitle3,
   Text,
 } from 'design';
-import React, { useRef, useState } from 'react';
-import styled from 'styled-components';
-
 import { Danger, Info } from 'design/Alert';
 import { P } from 'design/Text/Text';
 import { IconTooltip } from 'design/Tooltip';

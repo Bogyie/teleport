@@ -16,6 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import React, { forwardRef, useEffect, useRef, useState } from 'react';
+import type { TransitionStatus } from 'react-transition-group';
+import styled from 'styled-components';
+
 import {
   Alert,
   Box,
@@ -33,10 +37,6 @@ import {
   Subtitle2,
   Text,
 } from 'design';
-import React, { forwardRef, useEffect, useRef, useState } from 'react';
-import type { TransitionStatus } from 'react-transition-group';
-import styled from 'styled-components';
-
 import { Danger } from 'design/Alert';
 import Table, { Cell } from 'design/DataTable';
 import { ArrowBack, ChevronDown, ChevronRight, Warning } from 'design/Icon';

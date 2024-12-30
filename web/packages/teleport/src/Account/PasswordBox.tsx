@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, Flex } from 'design';
 import { useState } from 'react';
 
+import { Box, Flex } from 'design';
 import * as Icon from 'design/Icon';
 import { SingleRowBox } from 'design/MultiRowBox';
 import cfg from 'teleport/config';

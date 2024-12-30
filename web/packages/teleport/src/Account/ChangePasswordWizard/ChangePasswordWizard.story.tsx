@@ -16,10 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { ContextProvider } from 'teleport';
-
 import Dialog from 'design/Dialog';
 import { makeEmptyAttempt } from 'shared/hooks/useAsync';
+import { ContextProvider } from 'teleport';
 import { ReauthState } from 'teleport/components/ReAuthenticate/useReAuthenticate';
 import { createTeleportContext } from 'teleport/mocks/contexts';
 import {

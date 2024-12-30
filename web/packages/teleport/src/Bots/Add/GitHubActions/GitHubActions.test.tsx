@@ -17,9 +17,9 @@
  */
 
 import { MemoryRouter } from 'react-router';
-import { ContextProvider } from 'teleport';
 
 import { render, screen, userEvent } from 'design/utils/testing';
+import { ContextProvider } from 'teleport';
 import { allAccessAcl, noAccess } from 'teleport/mocks/contexts';
 import * as botService from 'teleport/services/bot/bot';
 import TeleportContext from 'teleport/teleportContext';

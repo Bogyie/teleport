@@ -15,10 +15,10 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Box, Indicator } from 'design';
 import { useEffect, useRef } from 'react';
 import { useTheme } from 'styled-components';
 
+import { Box, Indicator } from 'design';
 import AuthnDialog from 'teleport/components/AuthnDialog';
 import Document from 'teleport/Console/Document';
 import useKubeExecSession from 'teleport/Console/DocumentKubeExec/useKubeExecSession';

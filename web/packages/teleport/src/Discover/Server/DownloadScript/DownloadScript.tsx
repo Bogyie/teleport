@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, Indicator, Mark, Text } from 'design';
 import React, { Suspense, useEffect, useState } from 'react';
 
+import { Box, Indicator, Mark, Text } from 'design';
 import * as Icons from 'design/Icon';
 import { P } from 'design/Text/Text';
 import { CatchError } from 'teleport/components/CatchError';

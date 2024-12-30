@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, ButtonLink, Flex, Label, Text } from 'design';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import styled, { css } from 'styled-components';
 
+import { Box, ButtonLink, Flex, Label, Text } from 'design';
 import { CheckboxInput } from 'design/Checkbox';
 import { ResourceIcon } from 'design/ResourceIcon';
 import { HoverTooltip } from 'design/Tooltip';

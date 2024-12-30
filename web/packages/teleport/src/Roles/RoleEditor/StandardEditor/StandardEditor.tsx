@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, Flex } from 'design';
 import { useId, useState } from 'react';
 import styled from 'styled-components';
 
+import { Box, Flex } from 'design';
 import * as Icon from 'design/Icon';
 import { SlideTabs } from 'design/SlideTabs';
 import { MenuButton, MenuItem } from 'shared/components/MenuAction';

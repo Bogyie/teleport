@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Flex, Link } from 'design';
 import React, { useState } from 'react';
 
+import { Flex, Link } from 'design';
 import { Danger } from 'design/Alert';
 import { CheckboxInput } from 'design/Checkbox';
 import Table, { Cell } from 'design/DataTable';

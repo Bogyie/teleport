@@ -18,8 +18,8 @@
 
 import { createMemoryHistory } from 'history';
 import { Router } from 'react-router';
-import { Context, ContextProvider } from 'teleport';
 
+import { Context, ContextProvider } from 'teleport';
 import { makeRecording } from 'teleport/services/recordings/makeRecording';
 
 import { RecordingsContainer as Recordings } from './Recordings';

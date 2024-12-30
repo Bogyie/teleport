@@ -17,7 +17,6 @@
  */
 
 import { Context as TeleportContext } from 'teleport';
-
 import { makeAcl } from 'teleport/services/user/makeAcl';
 import makeUserContext from 'teleport/services/user/makeUserContext';
 import type { Access, Acl } from 'teleport/services/user/types';

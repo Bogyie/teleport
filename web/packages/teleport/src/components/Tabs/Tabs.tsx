@@ -16,8 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, Flex } from 'design';
 import { Fragment, useState } from 'react';
+
+import { Box, Flex } from 'design';
 
 export function Tabs({ tabs }: Props) {
   const [currContentIndex, setCurrContentIndex] = useState(0);

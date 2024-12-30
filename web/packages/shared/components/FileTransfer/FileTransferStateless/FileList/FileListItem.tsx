@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { ButtonIcon, Flex, Text } from 'design';
 import { FC, PropsWithChildren, useEffect } from 'react';
 import styled from 'styled-components';
 
+import { ButtonIcon, Flex, Text } from 'design';
 import { CircleCheck, Cross, Warning } from 'design/Icon';
 
 import { TransferredFile } from '../types';

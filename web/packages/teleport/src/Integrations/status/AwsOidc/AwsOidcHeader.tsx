@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { ButtonIcon, Flex, Label, Text } from 'design';
 import { Link as InternalLink } from 'react-router-dom';
 
+import { ButtonIcon, Flex, Label, Text } from 'design';
 import { ArrowLeft } from 'design/Icon';
 import { HoverTooltip } from 'design/Tooltip';
 import cfg from 'teleport/config';

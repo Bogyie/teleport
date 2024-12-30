@@ -17,7 +17,6 @@
  */
 
 import { ButtonPrimary } from 'design';
-
 import Table, { Cell, TextCell } from 'design/DataTable';
 import * as Icons from 'design/Icon';
 import { dateTimeMatcher } from 'design/utils/match';

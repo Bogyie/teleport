@@ -17,7 +17,6 @@
  */
 
 import { Text } from 'design';
-
 import Table from 'design/DataTable';
 import { FetchStatus } from 'design/DataTable/types';
 import { Attempt } from 'shared/hooks/useAttemptNext';

@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { ButtonPrimary, Link } from 'design';
 import React from 'react';
 import styled from 'styled-components';
 
+import { ButtonPrimary, Link } from 'design';
 import Flex from 'design/Flex';
 import { Unlock } from 'design/Icon';
 import cfg from 'teleport/config';

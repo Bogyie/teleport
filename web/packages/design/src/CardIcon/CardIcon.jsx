@@ -17,7 +17,6 @@
  */
 
 import { H1 } from 'design';
-
 import Card from 'design/Card';
 
 export default function CardIcon({ title, icon, children }) {

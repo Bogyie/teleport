@@ -16,13 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, Flex, Link, P3, Text } from 'design';
-import { Resource } from 'gen-proto-ts/teleport/userpreferences/v1/onboard_pb';
-import { UserPreferences } from 'gen-proto-ts/teleport/userpreferences/v1/userpreferences_pb';
 import { useEffect, useState, type ComponentPropsWithoutRef } from 'react';
 import { useHistory, useLocation } from 'react-router';
 import styled from 'styled-components';
 
+import { Box, Flex, Link, P3, Text } from 'design';
 import * as Icons from 'design/Icon';
 import { NewTab } from 'design/Icon';
 import { getPlatform, Platform } from 'design/platform';
@@ -44,6 +42,9 @@ import { storageService } from 'teleport/services/storageService';
 import { Acl, AuthType, OnboardDiscover } from 'teleport/services/user';
 import { useUser } from 'teleport/User/UserContext';
 import useTeleport from 'teleport/useTeleport';
+
+import { Resource } from 'gen-proto-ts/teleport/userpreferences/v1/onboard_pb';
+import { UserPreferences } from 'gen-proto-ts/teleport/userpreferences/v1/userpreferences_pb';
 
 import { getMarketingTermMatches } from './getMarketingTermMatches';
 import { DiscoverIcon } from './icons';

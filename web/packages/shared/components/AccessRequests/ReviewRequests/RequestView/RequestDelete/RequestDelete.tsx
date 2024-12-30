@@ -17,7 +17,6 @@
  */
 
 import { Alert, ButtonSecondary, ButtonWarning, Flex } from 'design';
-
 import Dialog, {
   DialogContent,
   DialogFooter,

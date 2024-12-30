@@ -17,7 +17,6 @@
  */
 
 import { Flex } from 'design';
-
 import TextEditor from 'shared/components/TextEditor';
 import { RoleWithYaml } from 'teleport/services/resources';
 

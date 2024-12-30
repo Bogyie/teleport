@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, Indicator } from 'design';
 import { useEffect, useState } from 'react';
 
+import { Box, Indicator } from 'design';
 import { Danger } from 'design/Alert';
 import useAttempt from 'shared/hooks/useAttemptNext';
 import {

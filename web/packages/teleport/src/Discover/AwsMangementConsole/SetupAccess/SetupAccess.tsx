@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { LabelInput, Link, Mark } from 'design';
 import React, { useEffect, useState } from 'react';
 import { useTheme } from 'styled-components';
 
+import { LabelInput, Link, Mark } from 'design';
 import { OutlineInfo } from 'design/Alert/Alert';
 import { Cross } from 'design/Icon';
 import { P } from 'design/Text/Text';

@@ -16,6 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import React, { ReactNode, useState } from 'react';
+import styled from 'styled-components';
+
 import {
   ButtonPrimary,
   ButtonSecondary,
@@ -24,9 +27,6 @@ import {
   MenuItem,
   Text,
 } from 'design';
-import React, { ReactNode, useState } from 'react';
-import styled from 'styled-components';
-
 import { CheckboxInput } from 'design/Checkbox';
 import { ChevronDown } from 'design/Icon';
 import { HoverTooltip } from 'design/Tooltip';

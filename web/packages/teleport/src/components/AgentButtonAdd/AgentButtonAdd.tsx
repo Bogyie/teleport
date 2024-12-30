@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Button } from 'design';
 import { Link } from 'react-router-dom';
 
+import { Button } from 'design';
 import cfg from 'teleport/config';
 import { SearchResource } from 'teleport/Discover/SelectResource';
 

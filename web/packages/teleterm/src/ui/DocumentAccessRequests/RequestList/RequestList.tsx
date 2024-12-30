@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Alert, Box, ButtonBorder, ButtonPrimary, Flex, Label } from 'design';
 import styled from 'styled-components';
 
+import { Alert, Box, ButtonBorder, ButtonPrimary, Flex, Label } from 'design';
 import Table, { Cell } from 'design/DataTable';
 import { requestMatcher } from 'shared/components/AccessRequests/NewRequest/matcher';
 import {

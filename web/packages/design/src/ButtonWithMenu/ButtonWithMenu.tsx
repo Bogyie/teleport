@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { ButtonBorder, Flex, Menu, MenuItem } from 'design';
 import {
   ComponentPropsWithoutRef,
   ComponentType,
@@ -26,6 +25,7 @@ import {
   useState,
 } from 'react';
 
+import { ButtonBorder, Flex, Menu, MenuItem } from 'design';
 import { ButtonSize } from 'design/Button';
 import * as icons from 'design/Icon';
 import { IconProps } from 'design/Icon/Icon';

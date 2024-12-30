@@ -17,9 +17,9 @@
  */
 import userEvent from '@testing-library/user-event';
 import selectEvent from 'react-select-event';
-import { ContextProvider } from 'teleport';
 
 import { act, fireEvent, render, screen, tick } from 'design/utils/testing';
+import { ContextProvider } from 'teleport';
 import { createTeleportContext } from 'teleport/mocks/contexts';
 import makeJoinToken from 'teleport/services/joinToken/makeJoinToken';
 

@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, ButtonIcon, ButtonPrimary, Menu, Text } from 'design';
 import { useState } from 'react';
 
+import { Box, ButtonIcon, ButtonPrimary, Menu, Text } from 'design';
 import { displayDateWithPrefixedTime } from 'design/datetime';
 import { Info } from 'design/Icon';
 import { HoverTooltip } from 'design/Tooltip';

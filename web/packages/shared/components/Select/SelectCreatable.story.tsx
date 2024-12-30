@@ -16,8 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, Flex } from 'design';
 import { useState } from 'react';
+
+import { Box, Flex } from 'design';
 
 import { Option, SelectCreatable } from '../Select';
 

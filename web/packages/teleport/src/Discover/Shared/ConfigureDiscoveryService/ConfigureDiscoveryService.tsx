@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, Mark, Text } from 'design';
 import { useState } from 'react';
 import { Link as InternalLink } from 'react-router-dom';
 
+import { Box, Mark, Text } from 'design';
 import { OutlineInfo } from 'design/Alert/Alert';
 import useAttempt from 'shared/hooks/useAttemptNext';
 import { getErrMessage } from 'shared/utils/errorType';

@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { ButtonBorder, Flex, Indicator } from 'design';
 import React, {
   ChangeEvent,
   useImperativeHandle,
@@ -26,6 +25,7 @@ import React, {
 import { NavLink } from 'react-router-dom';
 import styled from 'styled-components';
 
+import { ButtonBorder, Flex, Indicator } from 'design';
 import { ChevronDown } from 'design/Icon';
 import Menu, { MenuItem } from 'design/Menu';
 import { space, SpaceProps } from 'design/system';

@@ -15,9 +15,9 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Box, Flex, H3, Input, Mark, Subtitle3, Text } from 'design';
 import styled from 'styled-components';
 
+import { Box, Flex, H3, Input, Mark, Subtitle3, Text } from 'design';
 import { P } from 'design/Text/Text';
 import { IconTooltip } from 'design/Tooltip';
 import { Tabs } from 'teleport/components/Tabs';

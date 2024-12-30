@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, Flex, rotate360 } from 'design';
 import { useEffect, useState } from 'react';
 import styled from 'styled-components';
 
+import { Box, Flex, rotate360 } from 'design';
 import { Spinner } from 'design/Icon';
 import HeadlessRequestDialog from 'teleport/components/HeadlessRequestDialog/HeadlessRequestDialog';
 import { useParams } from 'teleport/components/Router';

@@ -17,7 +17,6 @@
  */
 
 import { ButtonIcon, ButtonWarning, H2 } from 'design';
-
 import DialogConfirmation, {
   DialogContent,
   DialogFooter,

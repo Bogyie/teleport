@@ -16,11 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, ButtonSecondary, Flex, Menu, MenuItem, Text } from 'design';
 import React, { useEffect, useState } from 'react';
 import { useHistory } from 'react-router';
 import styled from 'styled-components';
 
+import { Box, ButtonSecondary, Flex, Menu, MenuItem, Text } from 'design';
 import { ChevronDown } from 'design/Icon';
 import { HoverTooltip } from 'design/Tooltip';
 import cfg from 'teleport/config';

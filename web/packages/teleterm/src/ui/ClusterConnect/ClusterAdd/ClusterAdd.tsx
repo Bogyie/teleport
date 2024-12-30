@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, ButtonPrimary, ButtonSecondary, Flex, H2 } from 'design';
 import { useState } from 'react';
 import { useAppContext } from 'teleterm/ui/appContextProvider';
 
+import { Box, ButtonPrimary, ButtonSecondary, Flex, H2 } from 'design';
 import * as Alerts from 'design/Alert';
 import { DialogContent, DialogHeader } from 'design/Dialog';
 import FieldInput from 'shared/components/FieldInput';

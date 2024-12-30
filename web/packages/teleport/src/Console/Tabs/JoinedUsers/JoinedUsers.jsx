@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box } from 'design';
 import { useMemo, useRef, useState } from 'react';
 import styled from 'styled-components';
 
+import { Box } from 'design';
 import Popover from 'design/Popover';
 import { debounce } from 'shared/utils/highbar';
 

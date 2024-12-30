@@ -16,9 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Alert, Card, H1, P1 } from 'design';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
+
+import { Alert, Card, H1, P1 } from 'design';
 
 export default function CardError(props) {
   return (

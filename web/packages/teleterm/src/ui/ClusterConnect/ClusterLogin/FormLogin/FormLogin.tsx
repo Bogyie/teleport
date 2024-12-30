@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, ButtonText, Flex } from 'design';
 import styled from 'styled-components';
 import * as types from 'teleterm/ui/services/clusters/types';
 
+import { Box, ButtonText, Flex } from 'design';
 import * as Alerts from 'design/Alert';
 import { StepSlider, type StepComponentProps } from 'design/StepSlider';
 import { Attempt } from 'shared/hooks/useAsync';

@@ -16,12 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box } from 'design';
 import { forwardRef } from 'react';
 import { ConnectionStatusIndicator } from 'teleterm/ui/TopBar/Connections/ConnectionsFilterableList/ConnectionStatusIndicator';
 import { DeviceTrustStatus } from 'teleterm/ui/TopBar/Identity/Identity';
 import { TopBarButton } from 'teleterm/ui/TopBar/TopBarButton';
 import { getUserWithClusterName } from 'teleterm/ui/utils';
+
+import { Box } from 'design';
 
 import { PamIcon } from './PamIcon';
 import { UserIcon } from './UserIcon';

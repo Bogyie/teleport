@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, ButtonSecondary, H3, Link, Mark, Subtitle3, Text } from 'design';
 import { Suspense, useState } from 'react';
 import styled from 'styled-components';
 
+import { Box, ButtonSecondary, H3, Link, Mark, Subtitle3, Text } from 'design';
 import * as Icons from 'design/Icon';
 import { P } from 'design/Text/Text';
 import FieldInput from 'shared/components/FieldInput';

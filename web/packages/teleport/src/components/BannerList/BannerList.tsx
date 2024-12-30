@@ -16,8 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box } from 'design';
 import { useEffect, useState, type ReactNode } from 'react';
+
+import { Box } from 'design';
 
 import { StandardBanner, type Severity } from './StandardBanner';
 

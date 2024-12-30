@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Flex } from 'design';
 import { ReactNode } from 'react';
 
+import { Flex } from 'design';
 import { FieldRadio } from 'design/FieldRadio';
 import { FlexProps } from 'design/Flex';
 import { RadioButton, RadioButtonSize } from 'design/RadioButton';

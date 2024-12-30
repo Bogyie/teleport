@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, ButtonSecondary, Flex, H1, H2, Link, Text } from 'design';
 import { useMemo, useRef } from 'react';
 
+import { Box, ButtonSecondary, Flex, H1, H2, Link, Text } from 'design';
 import * as Alerts from 'design/Alert';
 import Validation from 'shared/components/Validation';
 import { debounce } from 'shared/utils/highbar';

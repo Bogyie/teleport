@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { ButtonSecondary } from 'design';
 import PropTypes from 'prop-types';
 
+import { ButtonSecondary } from 'design';
 import Dialog, {
   DialogContent,
   DialogFooter,

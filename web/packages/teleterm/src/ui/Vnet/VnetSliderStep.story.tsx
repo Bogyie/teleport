@@ -15,12 +15,12 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Box } from 'design';
 import { useEffect } from 'react';
 import { MockedUnaryCall } from 'teleterm/services/tshd/cloneableClient';
 import { MockAppContextProvider } from 'teleterm/ui/fixtures/MockAppContextProvider';
 import { MockAppContext } from 'teleterm/ui/fixtures/mocks';
 
+import { Box } from 'design';
 import { usePromiseRejectedOnUnmount } from 'shared/utils/wait';
 
 import { useVnetContext, VnetContextProvider } from './vnetContext';

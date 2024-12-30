@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Text } from 'design';
 import React, { useRef, useState } from 'react';
 import styled from 'styled-components';
 
+import { Text } from 'design';
 import { NoteAdded } from 'design/Icon';
 
 import { Form, PathInput } from '../CommonElements';

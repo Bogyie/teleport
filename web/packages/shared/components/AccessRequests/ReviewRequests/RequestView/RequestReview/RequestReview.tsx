@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Alert, Box, ButtonPrimary, Flex, H3, Label, Text } from 'design';
 import React, { useState } from 'react';
 import styled from 'styled-components';
 
+import { Alert, Box, ButtonPrimary, Flex, H3, Label, Text } from 'design';
 import { Warning } from 'design/Icon';
 import { Radio } from 'design/RadioGroup';
 import { HoverTooltip } from 'design/Tooltip';

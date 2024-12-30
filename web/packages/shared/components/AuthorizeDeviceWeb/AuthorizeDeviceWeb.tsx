@@ -16,12 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, ButtonLink, ButtonPrimary, Flex, Text } from 'design';
 import { useEffect } from 'react';
 import { useLocation, useParams } from 'react-router';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 
+import { Box, ButtonLink, ButtonPrimary, Flex, Text } from 'design';
 import { getPlatform } from 'design/platform';
 import {
   DownloadConnect,

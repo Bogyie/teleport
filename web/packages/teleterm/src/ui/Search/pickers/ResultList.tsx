@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Flex } from 'design';
 import React, {
   ReactElement,
   useCallback,
@@ -27,6 +26,7 @@ import React, {
 import styled, { css } from 'styled-components';
 import { LinearProgress } from 'teleterm/ui/components/LinearProgress';
 
+import { Flex } from 'design';
 import { IconProps } from 'design/Icon/Icon';
 import { Attempt } from 'shared/hooks/useAsync';
 

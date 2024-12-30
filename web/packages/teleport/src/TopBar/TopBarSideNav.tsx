@@ -16,12 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Flex, Image, TopNav } from 'design';
 import React from 'react';
 import { matchPath, useHistory } from 'react-router';
 import { Link } from 'react-router-dom';
 import styled, { useTheme } from 'styled-components';
 
+import { Flex, Image, TopNav } from 'design';
 import { Theme } from 'design/theme/themes/types';
 import { HoverTooltip } from 'design/Tooltip';
 import { logos } from 'teleport/components/LogoHero/LogoHero';

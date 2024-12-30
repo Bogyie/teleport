@@ -17,7 +17,6 @@
  */
 
 import { ButtonSecondary, Flex, Text } from 'design';
-
 import Dialog, {
   DialogContent,
   DialogFooter,

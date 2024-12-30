@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, H3, Link, Mark } from 'design';
 import { useState } from 'react';
 
+import { Box, H3, Link, Mark } from 'design';
 import { OutlineInfo } from 'design/Alert/Alert';
 import { P } from 'design/Text/Text';
 import Select, { type Option } from 'shared/components/Select';

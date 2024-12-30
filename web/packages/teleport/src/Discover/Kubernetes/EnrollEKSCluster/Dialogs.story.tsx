@@ -19,8 +19,8 @@
 import { delay, http, HttpResponse } from 'msw';
 import { useEffect, useState } from 'react';
 import { MemoryRouter } from 'react-router';
-import { ContextProvider } from 'teleport';
 
+import { ContextProvider } from 'teleport';
 import cfg from 'teleport/config';
 import { generateCmd } from 'teleport/Discover/Kubernetes/HelmChart/HelmChart';
 import { ResourceKind } from 'teleport/Discover/Shared';

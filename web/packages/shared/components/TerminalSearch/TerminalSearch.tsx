@@ -17,10 +17,10 @@
  */
 
 import { SearchAddon } from '@xterm/addon-search';
-import { Box, ButtonIcon, Flex, Input, P2 } from 'design';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import styled, { useTheme } from 'styled-components';
 
+import { Box, ButtonIcon, Flex, Input, P2 } from 'design';
 import { ChevronDown, ChevronUp, Cross } from 'design/Icon';
 
 export interface TerminalSearcher {

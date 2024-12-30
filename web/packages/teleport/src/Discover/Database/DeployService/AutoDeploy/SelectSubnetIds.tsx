@@ -16,6 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import React, { useEffect, useState } from 'react';
+
 import {
   Box,
   ButtonSecondary,
@@ -25,8 +27,6 @@ import {
   Subtitle3,
   Text,
 } from 'design';
-import React, { useEffect, useState } from 'react';
-
 import { FetchStatus } from 'design/DataTable/types';
 import * as Icons from 'design/Icon';
 import { HoverTooltip, IconTooltip } from 'design/Tooltip';

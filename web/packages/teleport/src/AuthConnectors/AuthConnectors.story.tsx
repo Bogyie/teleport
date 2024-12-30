@@ -17,7 +17,6 @@
  */
 
 import { ContextProvider } from 'teleport';
-
 import { createTeleportContext } from 'teleport/mocks/contexts';
 
 import { AuthConnectors } from './AuthConnectors';

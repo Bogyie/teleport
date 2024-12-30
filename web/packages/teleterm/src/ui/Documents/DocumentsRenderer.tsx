@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Text } from 'design';
 import { useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import styled from 'styled-components';
@@ -41,6 +40,8 @@ import {
   Workspace,
 } from 'teleterm/ui/services/workspacesService';
 import { isAppUri, isDatabaseUri, RootClusterUri } from 'teleterm/ui/uri';
+
+import { Text } from 'design';
 
 import { KeyboardShortcutsPanel } from './KeyboardShortcutsPanel';
 import { WorkspaceContextProvider } from './workspaceContext';

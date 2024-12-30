@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Popover, Text } from 'design';
 import React, { PropsWithChildren, useState } from 'react';
 import styled, { useTheme } from 'styled-components';
 
+import { Popover, Text } from 'design';
 import * as Icons from 'design/Icon';
 import { Position } from 'design/Popover/Popover';
 

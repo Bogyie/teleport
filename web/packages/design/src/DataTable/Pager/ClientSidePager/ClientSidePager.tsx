@@ -17,7 +17,6 @@
  */
 
 import { Flex } from 'design';
-
 import { PageIndicatorText } from 'design/DataTable/Pager/PageIndicatorText';
 import { CircleArrowLeft, CircleArrowRight } from 'design/Icon';
 

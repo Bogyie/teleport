@@ -16,6 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { useEffect, useState } from 'react';
+import styled, { useTheme } from 'styled-components';
+
 import {
   Box,
   ButtonSecondary,
@@ -27,9 +30,6 @@ import {
   Subtitle3,
   Text,
 } from 'design';
-import { useEffect, useState } from 'react';
-import styled, { useTheme } from 'styled-components';
-
 import * as Icons from 'design/Icon';
 import { P } from 'design/Text/Text';
 import FieldInput from 'shared/components/FieldInput';

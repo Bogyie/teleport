@@ -17,7 +17,6 @@
  */
 
 import { ButtonSecondary, ButtonWarning, H2, P1, Text } from 'design';
-
 import { Danger } from 'design/Alert';
 import Dialog, { DialogContent, DialogFooter } from 'design/DialogConfirmation';
 import useAttempt from 'shared/hooks/useAttemptNext';

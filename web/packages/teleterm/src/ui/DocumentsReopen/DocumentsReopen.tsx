@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { ButtonIcon, ButtonPrimary, ButtonSecondary, H2 } from 'design';
 import { useAppContext } from 'teleterm/ui/appContextProvider';
 import { RootClusterUri, routing } from 'teleterm/ui/uri';
 
+import { ButtonIcon, ButtonPrimary, ButtonSecondary, H2 } from 'design';
 import DialogConfirmation, {
   DialogContent,
   DialogFooter,

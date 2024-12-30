@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Flex, Text } from 'design';
 import React, { PropsWithChildren } from 'react';
 import { useTheme } from 'styled-components';
 
+import { Flex, Text } from 'design';
 import { ResourceIcon } from 'design/ResourceIcon';
 
 import { iconNames } from './resourceIconSpecs';

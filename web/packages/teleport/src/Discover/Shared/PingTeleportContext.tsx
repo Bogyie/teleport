@@ -17,8 +17,8 @@
  */
 
 import React, { useCallback, useContext, useEffect, useState } from 'react';
-import { useTeleport } from 'teleport';
 
+import { useTeleport } from 'teleport';
 import { ResourceKind } from 'teleport/Discover/Shared/ResourceKind';
 import { usePoll } from 'teleport/Discover/Shared/usePoll';
 import {

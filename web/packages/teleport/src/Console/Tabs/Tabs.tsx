@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, ButtonIcon } from 'design';
 import styled from 'styled-components';
 
+import { Box, ButtonIcon } from 'design';
 import * as Icons from 'design/Icon';
 import { typography } from 'design/system';
 import { TypographyProps } from 'design/system/typography';

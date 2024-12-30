@@ -16,10 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, ButtonPrimary, ButtonSecondary, Flex, Indicator } from 'design';
 import { useCallback, useEffect, useState } from 'react';
-import { useTeleport } from 'teleport';
 
+import { Box, ButtonPrimary, ButtonSecondary, Flex, Indicator } from 'design';
 import { Danger } from 'design/Alert';
 import Dialog, {
   DialogContent,
@@ -35,6 +34,7 @@ import { Option } from 'shared/components/Select';
 import Validation from 'shared/components/Validation';
 import { requiredField } from 'shared/components/Validation/rules';
 import { useAsync } from 'shared/hooks/useAsync';
+import { useTeleport } from 'teleport';
 import { DbConnectData } from 'teleport/lib/term/tty';
 import { Database } from 'teleport/services/databases';
 

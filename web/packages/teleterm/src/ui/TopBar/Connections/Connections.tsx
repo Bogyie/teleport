@@ -16,12 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, StepSlider } from 'design';
 import { useMemo, useRef } from 'react';
 import { useAppContext } from 'teleterm/ui/appContextProvider';
 import { useKeyboardShortcuts } from 'teleterm/ui/services/keyboardShortcuts';
 import { useVnetContext, VnetSliderStep } from 'teleterm/ui/Vnet';
 
+import { Box, StepSlider } from 'design';
 import Popover from 'design/Popover';
 
 import { Step, useConnectionsContext } from './connectionsContext';

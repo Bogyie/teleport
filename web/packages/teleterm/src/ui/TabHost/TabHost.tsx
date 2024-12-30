@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Flex } from 'design';
 import React, { useCallback } from 'react';
 import styled from 'styled-components';
 import { Shell } from 'teleterm/mainProcess/shell';
@@ -28,6 +27,8 @@ import * as types from 'teleterm/ui/services/workspacesService/documentsService/
 import { canDocChangeShell } from 'teleterm/ui/services/workspacesService/documentsService/types';
 import { Tabs } from 'teleterm/ui/Tabs';
 import { IAppContext } from 'teleterm/ui/types';
+
+import { Flex } from 'design';
 
 import { useStoreSelector } from '../hooks/useStoreSelector';
 import { ClusterConnectPanel } from './ClusterConnectPanel/ClusterConnectPanel';

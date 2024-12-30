@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { BackgroundItemStatus } from 'gen-proto-ts/teleport/lib/teleterm/vnet/v1/vnet_service_pb';
 import {
   createContext,
   FC,
@@ -34,6 +33,8 @@ import { useStoreSelector } from 'teleterm/ui/hooks/useStoreSelector';
 import { IAppContext } from 'teleterm/ui/types';
 
 import { Attempt, useAsync } from 'shared/hooks/useAsync';
+
+import { BackgroundItemStatus } from 'gen-proto-ts/teleport/lib/teleterm/vnet/v1/vnet_service_pb';
 
 /**
  * VnetContext manages the VNet instance.

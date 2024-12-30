@@ -16,12 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Resource } from 'gen-proto-ts/teleport/userpreferences/v1/onboard_pb';
-import { UserPreferences } from 'gen-proto-ts/teleport/userpreferences/v1/userpreferences_pb';
 import React from 'react';
 import { MemoryRouter } from 'react-router';
-import { ContextProvider } from 'teleport';
 
+import { ContextProvider } from 'teleport';
 import {
   createTeleportContext,
   getAcl,
@@ -30,6 +28,9 @@ import {
 import { Acl } from 'teleport/services/user';
 import { makeDefaultUserPreferences } from 'teleport/services/userPreferences/userPreferences';
 import { UserContext } from 'teleport/User/UserContext';
+
+import { Resource } from 'gen-proto-ts/teleport/userpreferences/v1/onboard_pb';
+import { UserPreferences } from 'gen-proto-ts/teleport/userpreferences/v1/userpreferences_pb';
 
 import { SelectResource } from './SelectResource';
 

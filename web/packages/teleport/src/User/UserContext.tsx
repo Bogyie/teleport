@@ -16,9 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Indicator } from 'design';
-import { ClusterUserPreferences } from 'gen-proto-ts/teleport/userpreferences/v1/cluster_preferences_pb';
-import { UserPreferences } from 'gen-proto-ts/teleport/userpreferences/v1/userpreferences_pb';
 import {
   createContext,
   PropsWithChildren,
@@ -29,12 +26,16 @@ import {
   useState,
 } from 'react';
 
+import { Indicator } from 'design';
 import useAttempt from 'shared/hooks/useAttemptNext';
 import cfg from 'teleport/config';
 import { StyledIndicator } from 'teleport/Main';
 import { KeysEnum, storageService } from 'teleport/services/storageService';
 import * as service from 'teleport/services/userPreferences';
 import { makeDefaultUserPreferences } from 'teleport/services/userPreferences/userPreferences';
+
+import { ClusterUserPreferences } from 'gen-proto-ts/teleport/userpreferences/v1/cluster_preferences_pb';
+import { UserPreferences } from 'gen-proto-ts/teleport/userpreferences/v1/userpreferences_pb';
 
 export interface UserContextValue {
   preferences: UserPreferences;

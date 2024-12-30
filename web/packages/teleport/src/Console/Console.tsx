@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, Flex, Indicator } from 'design';
 import { useEffect, useMemo } from 'react';
 import styled from 'styled-components';
 
+import { Box, Flex, Indicator } from 'design';
 import { Danger } from 'design/Alert';
 import useAttempt from 'shared/hooks/useAttemptNext';
 import AjaxPoller from 'teleport/components/AjaxPoller';

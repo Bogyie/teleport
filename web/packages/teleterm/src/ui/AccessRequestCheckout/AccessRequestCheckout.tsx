@@ -16,6 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { useRef } from 'react';
+import { Transition } from 'react-transition-group';
+
 import {
   Box,
   ButtonIcon,
@@ -25,9 +28,6 @@ import {
   Label,
   Text,
 } from 'design';
-import { useRef } from 'react';
-import { Transition } from 'react-transition-group';
-
 import * as Icon from 'design/Icon';
 import { RequestCheckoutWithSlider } from 'shared/components/AccessRequests/NewRequest';
 import { isKubeClusterWithNamespaces } from 'shared/components/AccessRequests/NewRequest/kube';

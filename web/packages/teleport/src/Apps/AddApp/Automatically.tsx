@@ -16,6 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { KeyboardEvent, useEffect, useState } from 'react';
+
 import {
   Alert,
   ButtonPrimary,
@@ -24,8 +26,6 @@ import {
   Link,
   Text,
 } from 'design';
-import { KeyboardEvent, useEffect, useState } from 'react';
-
 import { DialogContent, DialogFooter } from 'design/Dialog';
 import FieldInput from 'shared/components/FieldInput';
 import Validation, { Validator } from 'shared/components/Validation';

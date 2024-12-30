@@ -16,8 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { H3 } from 'design';
 import styled from 'styled-components';
+
+import { H3 } from 'design';
 
 export default function TabIcon({ Icon, ...props }: Props) {
   return (

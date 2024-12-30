@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, ButtonBorder, ButtonSecondary, Flex, Text } from 'design';
 import React, {
   Children,
   PropsWithChildren,
@@ -28,18 +27,11 @@ import React, {
 } from 'react';
 import styled from 'styled-components';
 
+import { Box, ButtonBorder, ButtonSecondary, Flex, Text } from 'design';
 import { Danger } from 'design/Alert';
 import { Icon, Magnifier, PushPin } from 'design/Icon';
 
 import './unifiedStyles.css';
-
-import {
-  AvailableResourceMode,
-  DefaultTab,
-  LabelsViewMode,
-  UnifiedResourcePreferences,
-  ViewMode,
-} from 'gen-proto-ts/teleport/userpreferences/v1/unified_resource_preferences_pb';
 
 import { HoverTooltip } from 'design/Tooltip';
 import {
@@ -56,6 +48,14 @@ import {
 } from 'shared/hooks/useInfiniteScroll';
 import { makeAdvancedSearchQueryForLabel } from 'shared/utils/advancedSearchLabelQuery';
 import { ResourcesResponse } from 'teleport/services/agents';
+
+import {
+  AvailableResourceMode,
+  DefaultTab,
+  LabelsViewMode,
+  UnifiedResourcePreferences,
+  ViewMode,
+} from 'gen-proto-ts/teleport/userpreferences/v1/unified_resource_preferences_pb';
 
 import { CardsView } from './CardsView/CardsView';
 import { FilterPanel } from './FilterPanel';

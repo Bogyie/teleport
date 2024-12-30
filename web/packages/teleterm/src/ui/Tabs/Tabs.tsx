@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box } from 'design';
 import styled from 'styled-components';
 import { Document } from 'teleterm/ui/services/workspacesService';
 
+import { Box } from 'design';
 import { typography } from 'design/system';
 import { TypographyProps } from 'design/system/typography';
 

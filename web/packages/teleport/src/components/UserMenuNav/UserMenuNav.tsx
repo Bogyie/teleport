@@ -16,14 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, Text } from 'design';
-import { Theme } from 'gen-proto-ts/teleport/userpreferences/v1/theme_pb';
 import { useRef, useState } from 'react';
 import styled, { useTheme } from 'styled-components';
-import { useTeleport } from 'teleport';
 
+import { Box, Text } from 'design';
 import { ChevronDown, Logout as LogoutIcon, Moon, Sun } from 'design/Icon';
 import { useRefClickOutside } from 'shared/hooks/useRefClickOutside';
+import { useTeleport } from 'teleport';
 import {
   Dropdown,
   DropdownDivider,
@@ -40,6 +39,8 @@ import session from 'teleport/services/websession';
 import { getCurrentTheme, getNextTheme } from 'teleport/ThemeProvider';
 import { DeviceTrustStatus } from 'teleport/TopBar/DeviceTrustStatus';
 import { useUser } from 'teleport/User/UserContext';
+
+import { Theme } from 'gen-proto-ts/teleport/userpreferences/v1/theme_pb';
 
 interface UserMenuNavProps {
   username: string;

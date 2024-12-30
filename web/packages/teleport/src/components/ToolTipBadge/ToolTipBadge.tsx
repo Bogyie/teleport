@@ -16,9 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, Popover } from 'design';
 import React, { PropsWithChildren, useState } from 'react';
 import styled, { useTheme } from 'styled-components';
+
+import { Box, Popover } from 'design';
 
 type Props = {
   borderRadius?: number;

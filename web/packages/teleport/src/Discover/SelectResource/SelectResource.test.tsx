@@ -16,14 +16,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { Platform, UserAgent } from 'design/platform';
+import { OnboardDiscover } from 'teleport/services/user';
+import { makeDefaultUserPreferences } from 'teleport/services/userPreferences/userPreferences';
+
 import {
   OnboardUserPreferences,
   Resource,
 } from 'gen-proto-ts/teleport/userpreferences/v1/onboard_pb';
-
-import { Platform, UserAgent } from 'design/platform';
-import { OnboardDiscover } from 'teleport/services/user';
-import { makeDefaultUserPreferences } from 'teleport/services/userPreferences/userPreferences';
 
 import { ResourceKind } from '../Shared';
 import { resourceKindToPreferredResource } from '../Shared/ResourceKind';

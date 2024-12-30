@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Alert, Box, Button, Indicator } from 'design';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
+import { Alert, Box, Button, Indicator } from 'design';
 import { HoverTooltip } from 'design/Tooltip';
 import { useAttemptNext } from 'shared/hooks';
 import { BotList } from 'teleport/Bots/List/BotList';

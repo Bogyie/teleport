@@ -16,6 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { useMemo, useRef } from 'react';
+import { Gateway } from 'teleterm/services/tshd/types';
+
 import {
   Alert,
   Box,
@@ -26,9 +29,6 @@ import {
   Link,
   Text,
 } from 'design';
-import { useMemo, useRef } from 'react';
-import { Gateway } from 'teleterm/services/tshd/types';
-
 import { TextSelectCopy } from 'shared/components/TextSelectCopy';
 import Validation from 'shared/components/Validation';
 import { Attempt } from 'shared/hooks/useAsync';

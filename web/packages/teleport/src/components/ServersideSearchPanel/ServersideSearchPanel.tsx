@@ -17,7 +17,6 @@
  */
 
 import { Flex } from 'design';
-
 import { AdvancedSearchToggle } from 'shared/components/AdvancedSearchToggle';
 import useServersideSearchPanel, {
   HookProps,

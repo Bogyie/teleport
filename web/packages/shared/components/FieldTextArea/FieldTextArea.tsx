@@ -16,13 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, LabelInput, TextArea } from 'design';
 import React, {
   forwardRef,
   HTMLInputAutoCompleteAttribute,
   useId,
 } from 'react';
 
+import { Box, LabelInput, TextArea } from 'design';
 import { BoxProps } from 'design/Box';
 import { TextAreaSize } from 'design/TextArea';
 import { IconTooltip } from 'design/Tooltip';

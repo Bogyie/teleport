@@ -16,6 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import React, { Suspense, useEffect, useState } from 'react';
+import styled from 'styled-components';
+
 import {
   Box,
   ButtonPrimary,
@@ -25,9 +28,6 @@ import {
   H3,
   Indicator,
 } from 'design';
-import React, { Suspense, useEffect, useState } from 'react';
-import styled from 'styled-components';
-
 import Dialog, { DialogContent, DialogFooter } from 'design/DialogConfirmation';
 import * as Icons from 'design/Icon';
 import { P } from 'design/Text/Text';

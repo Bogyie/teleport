@@ -16,6 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { useCallback, useState } from 'react';
+import styled from 'styled-components';
+
 import {
   Box,
   ButtonPrimary,
@@ -25,9 +28,6 @@ import {
   Text,
   Toggle,
 } from 'design';
-import { useCallback, useState } from 'react';
-import styled from 'styled-components';
-
 import { Danger } from 'design/Alert';
 import { FetchStatus } from 'design/DataTable/types';
 import { IconTooltip } from 'design/Tooltip';

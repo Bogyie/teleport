@@ -16,9 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, Text } from 'design';
 import React from 'react';
 import styled from 'styled-components';
+
+import { Box, Text } from 'design';
 
 export const Container = styled(Box)`
   max-width: 1000px;

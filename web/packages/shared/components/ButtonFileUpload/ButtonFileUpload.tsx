@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { ButtonBorder, Flex, LabelInput } from 'design';
 import React, { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 
+import { ButtonBorder, Flex, LabelInput } from 'design';
 import type { ButtonSize } from 'design/Button';
 import { Upload } from 'design/Icon';
 import type { IconSize } from 'design/Icon/Icon';

@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { ButtonIcon, ButtonWarning, H2 } from 'design';
 import { RootClusterUri } from 'teleterm/ui/uri';
 
+import { ButtonIcon, ButtonWarning, H2 } from 'design';
 import * as Alerts from 'design/Alert';
 import DialogConfirmation, {
   DialogContent,

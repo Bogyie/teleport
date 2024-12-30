@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Flex, Popover, Text } from 'design';
 import React, { PropsWithChildren, useState } from 'react';
 import styled, { useTheme } from 'styled-components';
 
+import { Flex, Popover, Text } from 'design';
 import { Origin } from 'design/Popover';
 import { Position } from 'design/Popover/Popover';
 import { FlexBasisProps, JustifyContentProps } from 'design/system';

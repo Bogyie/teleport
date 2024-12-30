@@ -16,14 +16,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, Flex, Link } from 'design';
-import { ShowResources } from 'gen-proto-ts/teleport/lib/teleterm/v1/cluster_pb';
 import { useAppContext } from 'teleterm/ui/appContextProvider';
 import { useWorkspaceContext } from 'teleterm/ui/Documents';
 
+import { Box, Flex, Link } from 'design';
 import { Info } from 'design/Alert';
 import { Roles } from 'shared/components/AccessRequests/NewRequest';
 import { useAsync } from 'shared/hooks/useAsync';
+
+import { ShowResources } from 'gen-proto-ts/teleport/lib/teleterm/v1/cluster_pb';
 
 /**
  * Only allows requesting roles (resources can be requested through the unified

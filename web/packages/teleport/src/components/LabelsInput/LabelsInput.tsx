@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, ButtonIcon, ButtonSecondary, Flex } from 'design';
 import styled from 'styled-components';
 
+import { Box, ButtonIcon, ButtonSecondary, Flex } from 'design';
 import * as Icons from 'design/Icon';
 import { inputGeometry } from 'design/Input/Input';
 import FieldInput from 'shared/components/FieldInput';

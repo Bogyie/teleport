@@ -16,6 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { useState } from 'react';
+import styled from 'styled-components';
+
 import {
   Alert,
   Box,
@@ -25,9 +28,6 @@ import {
   Link,
   Text,
 } from 'design';
-import { useState } from 'react';
-import styled from 'styled-components';
-
 import { OutlineInfo, OutlineWarn } from 'design/Alert/Alert';
 import Dialog, {
   DialogContent,

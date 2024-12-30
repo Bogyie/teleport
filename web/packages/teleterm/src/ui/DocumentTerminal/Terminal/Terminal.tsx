@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, Flex } from 'design';
 import React, { useEffect, useRef, useState } from 'react';
 import styled, { useTheme } from 'styled-components';
 import { ConfigService } from 'teleterm/services/config';
@@ -25,6 +24,7 @@ import { IPtyProcess } from 'teleterm/sharedProcess/ptyHost';
 import { KeyboardShortcutsService } from 'teleterm/ui/services/keyboardShortcuts';
 import { DocumentTerminal } from 'teleterm/ui/services/workspacesService';
 
+import { Box, Flex } from 'design';
 import {
   Attempt,
   makeEmptyAttempt,

@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Resource } from 'gen-proto-ts/teleport/userpreferences/v1/onboard_pb';
 import { MemoryRouter } from 'react-router';
 
 import { render, screen } from 'design/utils/testing';
@@ -41,6 +40,8 @@ import { makeDefaultUserPreferences } from 'teleport/services/userPreferences/us
 import TeleportContextProvider from 'teleport/TeleportContextProvider';
 import { makeTestUserContext } from 'teleport/User/testHelpers/makeTestUserContext';
 import { mockUserContextProviderWith } from 'teleport/User/testHelpers/mockUserContextWith';
+
+import { Resource } from 'gen-proto-ts/teleport/userpreferences/v1/onboard_pb';
 
 import { ResourceKind } from './Shared';
 import { DiscoverUpdateProps, useDiscover } from './useDiscover';

@@ -16,11 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { ButtonSecondary } from 'design';
 import { forwardRef } from 'react';
 import styled from 'styled-components';
 import { useKeyboardShortcutFormatters } from 'teleterm/ui/services/keyboardShortcuts';
 
+import { ButtonSecondary } from 'design';
 import { Cluster } from 'design/Icon';
 
 import { ConnectionsIconStatusIndicator } from './ConnectionsIconStatusIndicator';

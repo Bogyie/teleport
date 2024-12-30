@@ -17,7 +17,6 @@
  */
 
 import { Flex, Text } from 'design';
-
 import { IconTooltip } from 'design/Tooltip';
 import { AccessRequest } from 'shared/services/accessRequests';
 

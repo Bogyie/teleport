@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, H3, LabelInput, Subtitle3 } from 'design';
 import { useState } from 'react';
 
+import { Box, H3, LabelInput, Subtitle3 } from 'design';
 import { P } from 'design/Text/Text';
 import Select, { Option } from 'shared/components/Select';
 import Validation, { Validator } from 'shared/components/Validation';

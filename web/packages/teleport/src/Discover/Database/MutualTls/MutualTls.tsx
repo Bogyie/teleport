@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, Flex, Link, Mark, Text } from 'design';
 import { useState } from 'react';
 
+import { Box, Flex, Link, Mark, Text } from 'design';
 import { Danger } from 'design/Alert';
 import { Info } from 'design/Icon';
 import { FieldTextArea } from 'shared/components/FieldTextArea';

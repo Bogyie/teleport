@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { ButtonBorder, Text } from 'design';
 import styled from 'styled-components';
 
+import { ButtonBorder, Text } from 'design';
 import Table, { Cell } from 'design/DataTable';
 import { displayDate } from 'design/datetime';
 import { dateMatcher } from 'design/utils/match';

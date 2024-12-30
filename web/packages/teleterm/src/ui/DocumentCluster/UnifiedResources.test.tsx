@@ -17,13 +17,6 @@
  */
 
 import { act } from '@testing-library/react';
-import { ShowResources } from 'gen-proto-ts/teleport/lib/teleterm/v1/cluster_pb';
-import {
-  AvailableResourceMode,
-  DefaultTab,
-  LabelsViewMode,
-  ViewMode,
-} from 'gen-proto-ts/teleport/userpreferences/v1/unified_resource_preferences_pb';
 import { mockIntersectionObserver } from 'jsdom-testing-mocks';
 import { createRef, forwardRef, useImperativeHandle } from 'react';
 import { MockedUnaryCall } from 'teleterm/services/tshd/cloneableClient';
@@ -46,6 +39,14 @@ import { makeDocumentCluster } from 'teleterm/ui/services/workspacesService/docu
 import * as uri from 'teleterm/ui/uri';
 
 import { render, screen } from 'design/utils/testing';
+
+import { ShowResources } from 'gen-proto-ts/teleport/lib/teleterm/v1/cluster_pb';
+import {
+  AvailableResourceMode,
+  DefaultTab,
+  LabelsViewMode,
+  ViewMode,
+} from 'gen-proto-ts/teleport/userpreferences/v1/unified_resource_preferences_pb';
 
 const mio = mockIntersectionObserver();
 

@@ -17,7 +17,6 @@
  */
 
 import { Box, ButtonPrimary, ButtonSecondary, Flex, H3, Text } from 'design';
-
 import Dialog, {
   DialogContent,
   DialogFooter,

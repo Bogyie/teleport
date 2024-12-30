@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, Flex, Indicator } from 'design';
 import { useCallback, useEffect } from 'react';
 import styled from 'styled-components';
 
+import { Box, Flex, Indicator } from 'design';
 import { Danger } from 'design/Alert';
 import { makeSuccessAttempt, useAsync } from 'shared/hooks/useAsync';
 import { useLocation, useParams } from 'teleport/components/Router';

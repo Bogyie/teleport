@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, Card, Flex, H2, Image, Link, Subtitle2, Text } from 'design';
 import React from 'react';
 import styled from 'styled-components';
 
+import { Box, Card, Flex, H2, Image, Link, Subtitle2, Text } from 'design';
 import { ButtonLockedFeature } from 'teleport/components/ButtonLockedFeature';
 import {
   FeatureBox,

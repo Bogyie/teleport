@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, Indicator } from 'design';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTheme } from 'styled-components';
 
+import { Box, Indicator } from 'design';
 import {
   FileTransfer,
   FileTransferActionBar,

@@ -16,9 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Image } from 'design';
 import { ComponentProps } from 'react';
 import { useTheme } from 'styled-components';
+
+import { Image } from 'design';
 
 import {
   iconNames,

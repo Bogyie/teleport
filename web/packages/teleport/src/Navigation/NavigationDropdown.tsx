@@ -21,9 +21,9 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { matchPath, useHistory } from 'react-router';
 import { NavLink } from 'react-router-dom';
 import styled from 'styled-components';
-import { useTeleport } from 'teleport';
 
 import { ChevronRight } from 'design/Icon';
+import { useTeleport } from 'teleport';
 import { useFeatures } from 'teleport/FeaturesContext';
 import {
   commonNavigationItemStyles,

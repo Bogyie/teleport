@@ -17,9 +17,9 @@
  */
 
 import { MemoryRouter } from 'react-router-dom';
-import { ContextProvider } from 'teleport';
 
 import { render, screen } from 'design/utils/testing';
+import { ContextProvider } from 'teleport';
 import cfg from 'teleport/config';
 import TeleportContext from 'teleport/teleportContext';
 

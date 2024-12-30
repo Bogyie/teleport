@@ -16,6 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { useState } from 'react';
+import type * as tsh from 'teleterm/services/tshd/types';
+import svgHardwareKey from 'teleterm/ui/ClusterConnect/ClusterLogin/FormLogin/PromptPasswordless/hardware.svg';
+import { LinearProgress } from 'teleterm/ui/components/LinearProgress';
+
 import {
   Box,
   ButtonIcon,
@@ -25,11 +30,6 @@ import {
   Image,
   Text,
 } from 'design';
-import { useState } from 'react';
-import type * as tsh from 'teleterm/services/tshd/types';
-import svgHardwareKey from 'teleterm/ui/ClusterConnect/ClusterLogin/FormLogin/PromptPasswordless/hardware.svg';
-import { LinearProgress } from 'teleterm/ui/components/LinearProgress';
-
 import * as Alerts from 'design/Alert';
 import DialogConfirmation, {
   DialogContent,

@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Text } from 'design';
 import { ReactElement, useCallback, useEffect } from 'react';
 
+import { Text } from 'design';
 import * as icons from 'design/Icon';
 import { Highlight } from 'shared/components/Highlight';
 import {

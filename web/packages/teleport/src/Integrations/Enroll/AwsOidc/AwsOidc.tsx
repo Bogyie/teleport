@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, ButtonPrimary, ButtonSecondary, Flex, Link, Text } from 'design';
 import { Link as InternalRouteLink } from 'react-router-dom';
 import styled from 'styled-components';
 
+import { Box, ButtonPrimary, ButtonSecondary, Flex, Link, Text } from 'design';
 import * as Icons from 'design/Icon';
 import FieldInput from 'shared/components/FieldInput';
 import Validation from 'shared/components/Validation';

@@ -16,6 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { FC, useEffect, useState } from 'react';
+import { useAppContext } from 'teleterm/ui/appContextProvider';
+import svgHardwareKey from 'teleterm/ui/ClusterConnect/ClusterLogin/FormLogin/PromptPasswordless/hardware.svg';
+import PromptSsoStatus from 'teleterm/ui/ClusterConnect/ClusterLogin/FormLogin/PromptSsoStatus';
+import { LinearProgress } from 'teleterm/ui/components/LinearProgress';
+import { routing } from 'teleterm/ui/uri';
+
 import {
   Box,
   ButtonIcon,
@@ -26,14 +33,6 @@ import {
   Image,
   Text,
 } from 'design';
-import { PromptMFARequest } from 'gen-proto-ts/teleport/lib/teleterm/v1/tshd_events_service_pb';
-import { FC, useEffect, useState } from 'react';
-import { useAppContext } from 'teleterm/ui/appContextProvider';
-import svgHardwareKey from 'teleterm/ui/ClusterConnect/ClusterLogin/FormLogin/PromptPasswordless/hardware.svg';
-import PromptSsoStatus from 'teleterm/ui/ClusterConnect/ClusterLogin/FormLogin/PromptSsoStatus';
-import { LinearProgress } from 'teleterm/ui/components/LinearProgress';
-import { routing } from 'teleterm/ui/uri';
-
 import DialogConfirmation, {
   DialogContent,
   DialogFooter,
@@ -45,6 +44,8 @@ import { FieldSelect } from 'shared/components/FieldSelect';
 import { Option } from 'shared/components/Select';
 import Validation from 'shared/components/Validation';
 import { requiredToken } from 'shared/components/Validation/rules';
+
+import { PromptMFARequest } from 'gen-proto-ts/teleport/lib/teleterm/v1/tshd_events_service_pb';
 
 export const ReAuthenticate: FC<{
   promptMfaRequest: PromptMFARequest;

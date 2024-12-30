@@ -15,6 +15,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+import { useEffect } from 'react';
+
 import {
   AnimatedProgressBar,
   Box,
@@ -23,8 +25,6 @@ import {
   Mark,
   Text,
 } from 'design';
-import { useEffect } from 'react';
-
 import Dialog, { DialogContent } from 'design/DialogConfirmation';
 import * as Icons from 'design/Icon';
 import { TextIcon, useShowHint } from 'teleport/Discover/Shared';

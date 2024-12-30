@@ -16,6 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { Fragment } from 'react';
+import styled from 'styled-components';
+
 import {
   Alert,
   Box,
@@ -28,9 +31,6 @@ import {
   LabelState,
   Text,
 } from 'design';
-import { Fragment } from 'react';
-import styled from 'styled-components';
-
 import Table from 'design/DataTable';
 import { displayDateWithPrefixedTime } from 'design/datetime';
 import {

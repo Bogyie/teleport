@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Flex } from 'design';
 import styled from 'styled-components';
 
+import { Flex } from 'design';
 import { ButtonLockedFeature } from 'teleport/components/ButtonLockedFeature';
 
 export const LockedFeatureContainer = styled(Flex)`

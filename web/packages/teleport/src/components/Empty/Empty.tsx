@@ -16,6 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { Link } from 'react-router-dom';
+
 import {
   Box,
   ButtonBorder,
@@ -25,8 +27,6 @@ import {
   ResourceIcon,
   Text,
 } from 'design';
-import { Link } from 'react-router-dom';
-
 import cfg from 'teleport/config';
 
 export default function Empty(props: Props) {

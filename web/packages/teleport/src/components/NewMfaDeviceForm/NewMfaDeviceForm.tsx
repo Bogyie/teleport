@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, ButtonPrimary, Flex, Image, Text } from 'design';
 import React, { useState } from 'react';
 
+import { Box, ButtonPrimary, Flex, Image, Text } from 'design';
 import { Danger } from 'design/Alert';
 import { ArrowBack } from 'design/Icon';
 import { RadioGroup } from 'design/RadioGroup';

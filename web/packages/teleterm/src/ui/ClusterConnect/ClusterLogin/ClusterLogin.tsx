@@ -16,6 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import React from 'react';
+import { publicAddrWithTargetPort } from 'teleterm/services/tshd/app';
+import { getTargetNameFromUri } from 'teleterm/services/tshd/gateway';
+import { AuthSettings } from 'teleterm/ui/services/clusters/types';
+import { ClusterConnectReason } from 'teleterm/ui/services/modals';
+
 import {
   Box,
   ButtonIcon,
@@ -25,12 +31,6 @@ import {
   Indicator,
   Text,
 } from 'design';
-import React from 'react';
-import { publicAddrWithTargetPort } from 'teleterm/services/tshd/app';
-import { getTargetNameFromUri } from 'teleterm/services/tshd/gateway';
-import { AuthSettings } from 'teleterm/ui/services/clusters/types';
-import { ClusterConnectReason } from 'teleterm/ui/services/modals';
-
 import * as Alerts from 'design/Alert';
 import { DialogContent, DialogHeader } from 'design/Dialog';
 import * as Icons from 'design/Icon';

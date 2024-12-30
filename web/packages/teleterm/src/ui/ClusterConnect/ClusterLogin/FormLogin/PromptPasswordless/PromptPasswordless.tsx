@@ -16,11 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, ButtonPrimary, ButtonSecondary, Flex, Image, Text } from 'design';
 import { useState } from 'react';
 import styled from 'styled-components';
 import { LinearProgress } from 'teleterm/ui/components/LinearProgress';
 
+import { Box, ButtonPrimary, ButtonSecondary, Flex, Image, Text } from 'design';
 import FieldInput from 'shared/components/FieldInput';
 import Validation from 'shared/components/Validation';
 

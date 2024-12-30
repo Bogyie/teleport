@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { ButtonPrimary, Flex, Text } from 'design';
 import type * as types from 'teleterm/ui/services/workspacesService';
 import { assertUnreachable } from 'teleterm/ui/utils';
 
+import { ButtonPrimary, Flex, Text } from 'design';
 import { Danger } from 'design/Alert';
 import { Attempt } from 'shared/hooks/useAsync';
 

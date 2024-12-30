@@ -16,10 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { OnboardUserPreferences } from 'gen-proto-ts/teleport/userpreferences/v1/onboard_pb';
-import { Theme } from 'gen-proto-ts/teleport/userpreferences/v1/theme_pb';
-import { UserPreferences } from 'gen-proto-ts/teleport/userpreferences/v1/userpreferences_pb';
-
 import { RecentHistoryItem } from 'teleport/Navigation/RecentHistory';
 import { OnboardDiscover } from 'teleport/services/user';
 import {
@@ -30,6 +26,10 @@ import {
 import { BearerToken } from 'teleport/services/websession';
 import { getPrefersDark } from 'teleport/ThemeProvider';
 import type { RecommendFeature } from 'teleport/types';
+
+import { OnboardUserPreferences } from 'gen-proto-ts/teleport/userpreferences/v1/onboard_pb';
+import { Theme } from 'gen-proto-ts/teleport/userpreferences/v1/theme_pb';
+import { UserPreferences } from 'gen-proto-ts/teleport/userpreferences/v1/userpreferences_pb';
 
 import { CloudUserInvites, KeysEnum, LocalStorageSurvey } from './types';
 

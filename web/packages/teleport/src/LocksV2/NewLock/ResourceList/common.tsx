@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, ButtonBorder, ButtonPrimary } from 'design';
 import styled from 'styled-components';
 
+import { Box, ButtonBorder, ButtonPrimary } from 'design';
 import Table, { Cell } from 'design/DataTable';
 import {
   CustomSort,

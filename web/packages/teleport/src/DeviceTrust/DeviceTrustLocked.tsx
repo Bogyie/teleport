@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, Flex, Link } from 'design';
 import styled from 'styled-components';
 
+import { Box, Flex, Link } from 'design';
 import Table, { Cell } from 'design/DataTable';
 import { Apple, Linux, Lock, Windows } from 'design/Icon';
 import { IconCircle } from 'design/Icon/IconCircle';

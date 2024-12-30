@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, ButtonIcon, Flex, LabelInput, Link } from 'design';
 import { components } from 'react-select';
 
+import { Box, ButtonIcon, Flex, LabelInput, Link } from 'design';
 import { NewTab } from 'design/Icon';
 import Select from 'shared/components/Select';
 import { Regions, Vpc } from 'teleport/services/integrations';

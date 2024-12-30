@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, Indicator } from 'design';
 import React, { useState } from 'react';
 import styled from 'styled-components';
 
+import { Box, Indicator } from 'design';
 import { Danger } from 'design/Alert';
 import { ClusterDropdown } from 'shared/components/ClusterDropdown/ClusterDropdown';
 import ErrorMessage from 'teleport/components/AgentErrorMessage';

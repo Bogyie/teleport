@@ -16,8 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box } from 'design';
 import { useEffect, useState } from 'react';
+
+import { Box } from 'design';
 
 import { ButtonFileUpload as ButtonFileUploadComponent } from './ButtonFileUpload';
 

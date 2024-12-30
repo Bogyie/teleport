@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { ButtonPrimary, ButtonSecondary, Flex, H2, Image, Text } from 'design';
 import styled from 'styled-components';
 
+import { ButtonPrimary, ButtonSecondary, Flex, H2, Image, Text } from 'design';
 import cfg from 'teleport/config';
 import history from 'teleport/services/history';
 

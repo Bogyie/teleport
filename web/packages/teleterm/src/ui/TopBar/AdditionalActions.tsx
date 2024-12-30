@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Flex, Popover, Text } from 'design';
 import React, { useRef, useState } from 'react';
 import styled from 'styled-components';
 import { KeyboardShortcutAction } from 'teleterm/services/config';
@@ -29,6 +28,7 @@ import { useNewTabOpener } from 'teleterm/ui/TabHost';
 import { TopBarButton } from 'teleterm/ui/TopBar/TopBarButton';
 import { IAppContext } from 'teleterm/ui/types';
 
+import { Flex, Popover, Text } from 'design';
 import * as icons from 'design/Icon';
 
 type MenuItem = {

@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, Flex, Indicator } from 'design';
 import React from 'react';
 import styled from 'styled-components';
 
+import { Box, Flex, Indicator } from 'design';
 import * as Icons from 'design/Icon';
 import { P } from 'design/Text/Text';
 import {

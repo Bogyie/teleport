@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, Flex, Indicator } from 'design';
 import React, {
   createContext,
   ReactNode,
@@ -30,6 +29,7 @@ import React, {
 import { matchPath, useHistory } from 'react-router';
 import styled from 'styled-components';
 
+import { Box, Flex, Indicator } from 'design';
 import { Failed } from 'design/CardError';
 import Dialog from 'design/Dialog';
 import useAttempt from 'shared/hooks/useAttemptNext';

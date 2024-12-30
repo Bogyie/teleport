@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { ButtonIcon, ButtonPrimary, ButtonSecondary, H2, Input } from 'design';
 import { useRef, useState } from 'react';
 import styled from 'styled-components';
 
+import { ButtonIcon, ButtonPrimary, ButtonSecondary, H2, Input } from 'design';
 import DialogConfirmation, {
   DialogContent,
   DialogFooter,

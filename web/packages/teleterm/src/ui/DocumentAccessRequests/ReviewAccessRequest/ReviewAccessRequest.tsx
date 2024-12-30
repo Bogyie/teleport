@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Alert, Box, Flex, H1, Text } from 'design';
 import styled from 'styled-components';
 
+import { Alert, Box, Flex, H1, Text } from 'design';
 import { ArrowBack } from 'design/Icon';
 import {
   RequestDelete,

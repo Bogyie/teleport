@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, ButtonPrimary, ButtonSecondary, Flex, Indicator } from 'design';
 import { useEffect, useState } from 'react';
 
+import { Box, ButtonPrimary, ButtonSecondary, Flex, Indicator } from 'design';
 import { Info } from 'design/Alert';
 import Dialog, {
   DialogContent,

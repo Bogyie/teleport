@@ -17,7 +17,6 @@
  */
 
 import { Box, Button, ButtonPrimary, Flex, H3, Indicator, Link } from 'design';
-
 import { Danger } from 'design/Alert';
 import Card from 'design/Card';
 import Image from 'design/Image';

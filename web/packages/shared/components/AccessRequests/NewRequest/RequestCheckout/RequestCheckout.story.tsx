@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, ButtonPrimary, ButtonText } from 'design';
 import { useState } from 'react';
 import { Link, MemoryRouter } from 'react-router-dom';
 
+import { Box, ButtonPrimary, ButtonText } from 'design';
 import { Option } from 'shared/components/Select';
 
 import { dryRunResponse } from '../../fixtures';

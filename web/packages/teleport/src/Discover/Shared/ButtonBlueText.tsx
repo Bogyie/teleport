@@ -16,8 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { ButtonText } from 'design';
 import styled from 'styled-components';
+
+import { ButtonText } from 'design';
 
 // TODO(bl-nero): These buttons are used in a situation where there's an error
 // message and the button is responsible for retrying the operation. Convert

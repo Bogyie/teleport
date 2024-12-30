@@ -17,7 +17,6 @@
  */
 
 import { Flex } from 'design';
-
 import * as Icons from 'design/Icon';
 import { MenuIcon, MenuItem, MenuItemIcon } from 'shared/components/MenuAction';
 

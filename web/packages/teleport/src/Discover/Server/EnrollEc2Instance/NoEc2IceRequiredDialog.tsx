@@ -17,7 +17,6 @@
  */
 
 import { ButtonPrimary, Flex, Mark, Text } from 'design';
-
 import Dialog, { DialogContent } from 'design/DialogConfirmation';
 import * as Icons from 'design/Icon';
 import { NodeMeta, useDiscover } from 'teleport/Discover/useDiscover';

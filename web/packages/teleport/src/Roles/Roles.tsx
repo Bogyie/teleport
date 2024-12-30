@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Alert, Box, Button, Flex, H3, Link } from 'design';
 import { useEffect, useState } from 'react';
 import styled from 'styled-components';
 
+import { Alert, Box, Button, Flex, H3, Link } from 'design';
 import { P } from 'design/Text/Text';
 import { MissingPermissionsTooltip } from 'shared/components/MissingPermissionsTooltip';
 import {

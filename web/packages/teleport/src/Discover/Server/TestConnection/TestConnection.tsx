@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, ButtonSecondary, H3, LabelInput, Subtitle3 } from 'design';
 import { useState } from 'react';
 
+import { Box, ButtonSecondary, H3, LabelInput, Subtitle3 } from 'design';
 import Select, { type Option } from 'shared/components/Select';
 import ReAuthenticate from 'teleport/components/ReAuthenticate';
 import cfg from 'teleport/config';

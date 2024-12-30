@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, Flex } from 'design';
 import styled from 'styled-components';
 
+import { Box, Flex } from 'design';
 import cloudCity from 'design/assets/images/backgrounds/cloud-city.png';
 import { LogoHero } from 'teleport/components/LogoHero';
 

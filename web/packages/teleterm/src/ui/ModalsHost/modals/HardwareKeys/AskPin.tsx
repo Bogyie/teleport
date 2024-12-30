@@ -16,10 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { ButtonPrimary, Flex, P2 } from 'design';
-import { PromptHardwareKeyPINRequest } from 'gen-proto-ts/teleport/lib/teleterm/v1/tshd_events_service_pb';
 import { useState } from 'react';
 
+import { ButtonPrimary, Flex, P2 } from 'design';
 import DialogConfirmation, {
   DialogContent,
   DialogFooter,
@@ -27,6 +26,8 @@ import DialogConfirmation, {
 import FieldInput from 'shared/components/FieldInput';
 import Validation from 'shared/components/Validation';
 import { requiredField } from 'shared/components/Validation/rules';
+
+import { PromptHardwareKeyPINRequest } from 'gen-proto-ts/teleport/lib/teleterm/v1/tshd_events_service_pb';
 
 import { CommonHeader } from './CommonHeader';
 

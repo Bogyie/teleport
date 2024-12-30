@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, ButtonSecondary, Flex, Input, Text } from 'design';
 import React, { useState } from 'react';
 
+import { Box, ButtonSecondary, Flex, Input, Text } from 'design';
 import Table from 'design/DataTable';
 
 import { LoginsProps, renderActionCell } from './common';

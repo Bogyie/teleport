@@ -17,7 +17,6 @@
  */
 
 import { ButtonIcon, ButtonSecondary, Flex, H2, Text } from 'design';
-
 import { Danger } from 'design/Alert';
 import Dialog, { DialogContent } from 'design/Dialog';
 import { Cross, FingerprintSimple } from 'design/Icon';

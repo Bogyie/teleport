@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, Link as ExternalLink, Flex, ResourceIcon, Text } from 'design';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 
+import { Box, Link as ExternalLink, Flex, ResourceIcon, Text } from 'design';
 import { Server } from 'design/Icon';
 import { P } from 'design/Text/Text';
 import { FeatureHeader, FeatureHeaderTitle } from 'teleport/components/Layout';

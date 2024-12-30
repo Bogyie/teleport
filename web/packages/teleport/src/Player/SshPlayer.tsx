@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, Flex, Indicator } from 'design';
 import { useEffect, useMemo, useState } from 'react';
 import styled from 'styled-components';
 
+import { Box, Flex, Indicator } from 'design';
 import { Danger } from 'design/Alert';
 import cfg from 'teleport/config';
 import { formatDisplayTime, StatusEnum } from 'teleport/lib/player';

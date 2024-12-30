@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, Text } from 'design';
 import { useState } from 'react';
 
+import { Box, Text } from 'design';
 import { displayDateTime } from 'design/datetime';
 import { Option } from 'shared/components/Select';
 

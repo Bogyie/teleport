@@ -16,13 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, Flex, Label, P3, Text } from 'design';
 import { JSX } from 'react';
 import styled from 'styled-components';
 import { LoggedInUser } from 'teleterm/services/tshd/types';
 import { KeyboardArrowsNavigation } from 'teleterm/ui/components/KeyboardArrowsNavigation';
 import { DeviceTrustStatus } from 'teleterm/ui/TopBar/Identity/Identity';
 
+import { Box, Flex, Label, P3, Text } from 'design';
 import { ShieldCheck, ShieldWarning } from 'design/Icon';
 import Link from 'design/Link';
 

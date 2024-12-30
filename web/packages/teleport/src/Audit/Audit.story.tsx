@@ -18,6 +18,7 @@
 
 import { createMemoryHistory } from 'history';
 import { Router } from 'react-router';
+
 import { Context, ContextProvider } from 'teleport';
 
 import { AuditContainer as Audit } from './Audit';

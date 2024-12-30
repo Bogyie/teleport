@@ -16,6 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+
 import {
   Box,
   ButtonPrimary,
@@ -27,8 +29,6 @@ import {
   Subtitle3,
   Text,
 } from 'design';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-
 import * as Icons from 'design/Icon';
 import { P } from 'design/Text/Text';
 import Select, { type Option } from 'shared/components/Select';

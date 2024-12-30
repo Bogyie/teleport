@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { UnifiedResourcePreferences } from 'gen-proto-ts/teleport/userpreferences/v1/unified_resource_preferences_pb';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { cloneAbortSignal } from 'teleterm/services/tshd/cloneableClient';
 import { UserPreferences } from 'teleterm/services/tshd/types';
@@ -35,6 +34,8 @@ import {
   mapAttempt,
   useAsync,
 } from 'shared/hooks/useAsync';
+
+import { UnifiedResourcePreferences } from 'gen-proto-ts/teleport/userpreferences/v1/unified_resource_preferences_pb';
 
 export function useUserPreferences(clusterUri: ClusterUri): {
   userPreferencesAttempt: Attempt<void>;

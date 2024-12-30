@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Flex, Text } from 'design';
 import { Link } from 'react-router-dom';
 
+import { Flex, Text } from 'design';
 import {
   BadgeTitle,
   ToolTipNoPermBadge,

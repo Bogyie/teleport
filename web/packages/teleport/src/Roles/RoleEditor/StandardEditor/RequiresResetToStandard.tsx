@@ -17,7 +17,6 @@
  */
 
 import { Text } from 'design';
-
 import { Info } from 'design/Alert/Alert';
 
 export const RequiresResetToStandard = () => (

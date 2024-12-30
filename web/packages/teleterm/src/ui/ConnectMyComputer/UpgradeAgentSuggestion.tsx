@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Alert, Text } from 'design';
 import { RuntimeSettings } from 'teleterm/mainProcess/types';
 
+import { Alert, Text } from 'design';
 import Link from 'design/Link';
 import { compareSemVers } from 'shared/utils/semVer';
 

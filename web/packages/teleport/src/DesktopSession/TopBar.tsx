@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Flex, Text, TopNav } from 'design';
 import { useTheme } from 'styled-components';
 
+import { Flex, Text, TopNav } from 'design';
 import { Clipboard, FolderShared } from 'design/Icon';
 import { HoverTooltip } from 'design/Tooltip';
 import type { NotificationItem } from 'shared/components/Notification';

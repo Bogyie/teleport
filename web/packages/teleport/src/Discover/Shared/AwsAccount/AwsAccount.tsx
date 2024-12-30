@@ -16,6 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { useCallback, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+
 import {
   Alert,
   Box,
@@ -25,9 +28,6 @@ import {
   Indicator,
   Text,
 } from 'design';
-import { useCallback, useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-
 import { FieldSelect } from 'shared/components/FieldSelect';
 import { Option as BaseOption } from 'shared/components/Select';
 import TextEditor from 'shared/components/TextEditor';

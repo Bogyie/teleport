@@ -16,9 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Timestamp } from 'gen-proto-ts/google/protobuf/timestamp_pb';
-import { SubmitConnectEventRequest } from 'gen-proto-ts/prehog/v1alpha/connect_pb';
-import { Cluster } from 'gen-proto-ts/teleport/lib/teleterm/v1/cluster_pb';
 import Logger from 'teleterm/logger';
 import { RuntimeSettings } from 'teleterm/mainProcess/types';
 import { ConfigService } from 'teleterm/services/config';
@@ -27,6 +24,10 @@ import { staticConfig } from 'teleterm/staticConfig';
 import { NotificationsService } from 'teleterm/ui/services/notifications';
 import { DocumentOrigin } from 'teleterm/ui/services/workspacesService';
 import { ClusterOrResourceUri, ClusterUri, routing } from 'teleterm/ui/uri';
+
+import { Timestamp } from 'gen-proto-ts/google/protobuf/timestamp_pb';
+import { SubmitConnectEventRequest } from 'gen-proto-ts/prehog/v1alpha/connect_pb';
+import { Cluster } from 'gen-proto-ts/teleport/lib/teleterm/v1/cluster_pb';
 
 type PrehogEventReq = Omit<
   SubmitConnectEventRequest,

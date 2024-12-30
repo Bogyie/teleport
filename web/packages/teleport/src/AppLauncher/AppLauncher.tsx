@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Flex, Indicator } from 'design';
 import { useCallback, useEffect } from 'react';
 import { useLocation, useParams } from 'react-router';
 
+import { Flex, Indicator } from 'design';
 import { AccessDenied } from 'design/CardError';
 import useAttempt from 'shared/hooks/useAttemptNext';
 import AuthnDialog from 'teleport/components/AuthnDialog';

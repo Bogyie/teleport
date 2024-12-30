@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, ButtonIcon, Flex, Text } from 'design';
 import React from 'react';
 
+import { Box, ButtonIcon, Flex, Text } from 'design';
 import * as Icons from 'design/Icon';
 import { inputGeometry } from 'design/Input/Input';
 import { ButtonTextWithAddIcon } from 'shared/components/ButtonTextWithAddIcon';

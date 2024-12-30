@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { App } from 'gen-proto-ts/teleport/lib/teleterm/v1/app_pb';
 import {
   getAwsAppLaunchUrl,
   getSamlAppSsoUrl,
@@ -25,6 +24,8 @@ import {
 } from 'teleterm/services/tshd/app';
 import { IAppContext } from 'teleterm/ui/types';
 import { routing } from 'teleterm/ui/uri';
+
+import { App } from 'gen-proto-ts/teleport/lib/teleterm/v1/app_pb';
 
 import { DocumentOrigin } from './types';
 

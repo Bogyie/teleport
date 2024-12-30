@@ -16,6 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { forwardRef, useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import type { TransitionStatus } from 'react-transition-group';
+import styled from 'styled-components';
+
 import {
   Alert,
   Box,
@@ -28,11 +33,6 @@ import {
   Subtitle2,
   Text,
 } from 'design';
-import { forwardRef, useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
-import type { TransitionStatus } from 'react-transition-group';
-import styled from 'styled-components';
-
 import Table, { Cell } from 'design/DataTable';
 import { ArrowBack } from 'design/Icon';
 import useAttempt from 'shared/hooks/useAttemptNext';

@@ -17,6 +17,9 @@
  */
 
 import { addHours, isAfter } from 'date-fns';
+import { useEffect, useState } from 'react';
+import styled from 'styled-components';
+
 import {
   Alert,
   Box,
@@ -30,10 +33,6 @@ import {
   MenuItem,
   Text,
 } from 'design';
-import { useEffect, useState } from 'react';
-import styled from 'styled-components';
-import { useTeleport } from 'teleport';
-
 import Table, { Cell } from 'design/DataTable';
 import Dialog, {
   DialogContent,
@@ -46,6 +45,7 @@ import { HoverTooltip } from 'design/Tooltip';
 import { MenuButton } from 'shared/components/MenuAction';
 import { CopyButton } from 'shared/components/UnifiedResources/shared/CopyButton';
 import { Attempt, useAsync } from 'shared/hooks/useAsync';
+import { useTeleport } from 'teleport';
 import {
   FeatureBox,
   FeatureHeader,

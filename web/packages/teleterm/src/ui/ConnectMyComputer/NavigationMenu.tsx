@@ -16,12 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { blink, Box, Button, Indicator, Menu, MenuItem } from 'design';
 import { forwardRef, useRef, useState } from 'react';
 import styled, { css } from 'styled-components';
 import { useWorkspaceContext } from 'teleterm/ui/Documents';
 import { assertUnreachable } from 'teleterm/ui/utils';
 
+import { blink, Box, Button, Indicator, Menu, MenuItem } from 'design';
 import { Laptop, Warning } from 'design/Icon';
 import { Attempt, AttemptStatus } from 'shared/hooks/useAsync';
 

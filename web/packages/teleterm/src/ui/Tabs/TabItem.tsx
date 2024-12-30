@@ -16,11 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { ButtonIcon, Text } from 'design';
 import { useRef } from 'react';
 import styled from 'styled-components';
 import { LinearProgress } from 'teleterm/ui/components/LinearProgress';
 
+import { ButtonIcon, Text } from 'design';
 import * as Icons from 'design/Icon';
 
 import { useTabDnD } from './useTabDnD';

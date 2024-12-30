@@ -16,8 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Flex } from 'design';
 import styled from 'styled-components';
+
+import { Flex } from 'design';
 
 export const StyledDateRange = styled(Flex)`
   position: relative;

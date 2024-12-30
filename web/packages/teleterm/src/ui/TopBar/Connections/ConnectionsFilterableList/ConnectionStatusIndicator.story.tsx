@@ -16,9 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, Flex, H2, Text } from 'design';
 import styled from 'styled-components';
 import { StaticListItem } from 'teleterm/ui/components/ListItem';
+
+import { Box, Flex, H2, Text } from 'design';
 
 import { ConnectionStatusIndicator } from './ConnectionStatusIndicator';
 

@@ -17,12 +17,12 @@
  */
 
 import { ButtonPrimary, ButtonSecondary, Flex, P2 } from 'design';
-import { ConfirmHardwareKeySlotOverwriteRequest } from 'gen-proto-ts/teleport/lib/teleterm/v1/tshd_events_service_pb';
-
 import DialogConfirmation, {
   DialogContent,
   DialogFooter,
 } from 'design/DialogConfirmation';
+
+import { ConfirmHardwareKeySlotOverwriteRequest } from 'gen-proto-ts/teleport/lib/teleterm/v1/tshd_events_service_pb';
 
 import { CommonHeader } from './CommonHeader';
 

@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, Flex, H3, Link, Mark, Text } from 'design';
 import React, { useEffect, useState } from 'react';
 
+import { Box, Flex, H3, Link, Mark, Text } from 'design';
 import { Info as InfoIcon } from 'design/Icon';
 import { Tabs } from 'teleport/components/Tabs';
 import { TextSelectCopyMulti } from 'teleport/components/TextSelectCopy';

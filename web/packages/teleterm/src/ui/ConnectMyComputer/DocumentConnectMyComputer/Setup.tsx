@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Alert, Box, ButtonPrimary, Flex, H1, Text } from 'design';
 import { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { isTshdRpcError } from 'teleterm/services/tshd/cloneableClient';
@@ -32,6 +31,7 @@ import { DocumentConnectMyComputer } from 'teleterm/ui/services/workspacesServic
 import { assertUnreachable, retryWithRelogin } from 'teleterm/ui/utils';
 import { codeOrSignal } from 'teleterm/ui/utils/process';
 
+import { Alert, Box, ButtonPrimary, Flex, H1, Text } from 'design';
 import * as Alerts from 'design/Alert';
 import { Attempt, makeEmptyAttempt, useAsync } from 'shared/hooks/useAsync';
 import { wait } from 'shared/utils/wait';

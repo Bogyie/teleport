@@ -16,6 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import React, { useMemo, useState } from 'react';
+import styled from 'styled-components';
+
 import {
   Box,
   Button,
@@ -27,9 +30,6 @@ import {
   Flex,
   Text,
 } from 'design';
-import React, { useMemo, useState } from 'react';
-import styled from 'styled-components';
-
 import * as Alerts from 'design/Alert';
 import { StepComponentProps, StepSlider } from 'design/StepSlider';
 import { P } from 'design/Text/Text';

@@ -16,12 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, ButtonPrimary, ButtonSecondary, Flex, Text } from 'design';
 import { useRef, useState } from 'react';
 import { Prompt } from 'react-router';
 import { Link } from 'react-router-dom';
 import { Transition } from 'react-transition-group';
 
+import { Box, ButtonPrimary, ButtonSecondary, Flex, Text } from 'design';
 import { ArrowBack } from 'design/Icon';
 import Select from 'shared/components/Select';
 import useAttempt from 'shared/hooks/useAttemptNext';

@@ -19,9 +19,9 @@
 import React, { useCallback, useMemo } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import styled, { css, keyframes } from 'styled-components';
-import { useTeleport } from 'teleport';
 
 import { ArrowSquareOut } from 'design/Icon';
+import { useTeleport } from 'teleport';
 import {
   commonNavigationItemStyles,
   LinkContent,

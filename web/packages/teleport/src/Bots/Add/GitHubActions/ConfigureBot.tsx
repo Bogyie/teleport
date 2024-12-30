@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { H2, Text } from 'design';
 import { useState } from 'react';
 import styled from 'styled-components';
 
+import { H2, Text } from 'design';
 import { Alert } from 'design/Alert';
 import Box from 'design/Box';
 import FieldInput from 'shared/components/FieldInput';

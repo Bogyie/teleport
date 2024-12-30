@@ -17,7 +17,6 @@
  */
 
 import { ContextProvider } from 'teleport';
-
 import { TestLayout } from 'teleport/Console/Console.story';
 import ConsoleCtx from 'teleport/Console/consoleContext';
 import * as stores from 'teleport/Console/stores/types';

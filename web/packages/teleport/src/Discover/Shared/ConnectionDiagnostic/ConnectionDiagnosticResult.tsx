@@ -16,6 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { useState } from 'react';
+import styled from 'styled-components';
+
 import {
   Box,
   ButtonSecondary,
@@ -26,9 +29,6 @@ import {
   Subtitle3,
   Text,
 } from 'design';
-import { useState } from 'react';
-import styled from 'styled-components';
-
 import * as Icons from 'design/Icon';
 import type { Attempt } from 'shared/hooks/useAttemptNext';
 import { YamlReader } from 'teleport/Discover/Shared/SetupAccess/AccessInfo';

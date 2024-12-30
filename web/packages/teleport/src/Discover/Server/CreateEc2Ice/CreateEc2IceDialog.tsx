@@ -16,6 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { useEffect, useState } from 'react';
+
 import {
   AnimatedProgressBar,
   Box,
@@ -25,8 +27,6 @@ import {
   Mark,
   Text,
 } from 'design';
-import { useEffect, useState } from 'react';
-
 import Dialog, { DialogContent } from 'design/DialogConfirmation';
 import * as Icons from 'design/Icon';
 import useAttempt, { Attempt } from 'shared/hooks/useAttemptNext';

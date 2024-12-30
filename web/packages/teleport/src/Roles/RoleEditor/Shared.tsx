@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, ButtonPrimary, ButtonSecondary, Flex } from 'design';
 import { useTheme } from 'styled-components';
 
+import { Box, ButtonPrimary, ButtonSecondary, Flex } from 'design';
 import { HoverTooltip } from 'design/Tooltip';
 import useTeleport from 'teleport/useTeleport';
 

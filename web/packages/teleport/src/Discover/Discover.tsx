@@ -16,11 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box } from 'design';
 import React from 'react';
 import { useLocation } from 'react-router';
 import { Prompt } from 'react-router-dom';
 
+import { Box } from 'design';
 import { FeatureBox } from 'teleport/components/Layout';
 import { findViewAtIndex } from 'teleport/components/Wizard/flow';
 import { Navigation } from 'teleport/components/Wizard/Navigation';

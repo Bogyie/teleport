@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { ButtonBorder } from 'design';
 import React, { PropsWithChildren } from 'react';
 
+import { ButtonBorder } from 'design';
 import { ChevronDown } from 'design/Icon';
 import Menu from 'design/Menu';
 

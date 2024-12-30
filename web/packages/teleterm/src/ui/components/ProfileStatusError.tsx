@@ -17,7 +17,6 @@
  */
 
 import { Flex, P3 } from 'design';
-
 import { Warning } from 'design/Icon';
 
 export function ProfileStatusError(props: {

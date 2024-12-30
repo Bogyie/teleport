@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, Flex, H3, Link } from 'design';
 import styled from 'styled-components';
 
+import { Box, Flex, H3, Link } from 'design';
 import { P } from 'design/Text/Text';
 import { IconTooltip } from 'design/Tooltip';
 import TextEditor from 'shared/components/TextEditor';

@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { ButtonIcon, Flex, H1, H2, Subtitle1 } from 'design';
 import React, { PropsWithChildren } from 'react';
 
+import { ButtonIcon, Flex, H1, H2, Subtitle1 } from 'design';
 import { ArrowBack } from 'design/Icon';
 
 export const Header: React.FC<PropsWithChildren<unknown>> = ({ children }) => (

@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Mark } from 'design';
 import { Link as InternalLink } from 'react-router-dom';
 
+import { Mark } from 'design';
 import { OutlineInfo } from 'design/Alert/Alert';
 import cfg from 'teleport/config';
 

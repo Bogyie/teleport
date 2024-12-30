@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Button, ButtonIcon, Card, Flex, H3 } from 'design';
 import { useRef, useState } from 'react';
 import styled, { useTheme } from 'styled-components';
 
+import { Button, ButtonIcon, Card, Flex, H3 } from 'design';
 import { Cross, Warning } from 'design/Icon';
 import {
   Notification,

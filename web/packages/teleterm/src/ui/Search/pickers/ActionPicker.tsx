@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, ButtonBorder, Label as DesignLabel, Flex, Text } from 'design';
 import React, { ReactElement, useCallback, useMemo } from 'react';
 import styled from 'styled-components';
 import { isWebApp } from 'teleterm/services/tshd/app';
@@ -42,6 +41,7 @@ import { assertUnreachable } from 'teleterm/ui/utils';
 import { isRetryable } from 'teleterm/ui/utils/retryWithRelogin';
 import { useVnetContext } from 'teleterm/ui/Vnet';
 
+import { Box, ButtonBorder, Label as DesignLabel, Flex, Text } from 'design';
 import * as icons from 'design/Icon';
 import { Cross as CloseIcon } from 'design/Icon';
 import { AdvancedSearchToggle } from 'shared/components/AdvancedSearchToggle';

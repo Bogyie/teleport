@@ -16,12 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Flex, Label, Text } from 'design';
 import { useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { Cluster } from 'teleterm/services/tshd/types';
 import { useKeyboardArrowsNavigation } from 'teleterm/ui/components/KeyboardArrowsNavigation';
 import { ListItem } from 'teleterm/ui/components/ListItem';
+
+import { Flex, Label, Text } from 'design';
 
 interface ClusterItemProps {
   index: number;

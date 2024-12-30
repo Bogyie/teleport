@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Flex, H3, Subtitle3, Text } from 'design';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
+import { Flex, H3, Subtitle3, Text } from 'design';
 import { ButtonSecondary } from 'design/Button';
 import * as Icons from 'design/Icon';
 import { getPlatform } from 'design/platform';

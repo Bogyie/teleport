@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Timestamp } from 'gen-proto-ts/google/protobuf/timestamp_pb';
 import { useEffect, useState } from 'react';
 import {
   CreateAccessRequestRequest,
@@ -44,6 +43,8 @@ import {
 import { useSpecifiableFields } from 'shared/components/AccessRequests/NewRequest/useSpecifiableFields';
 import { CreateRequest } from 'shared/components/AccessRequests/Shared/types';
 import useAttempt from 'shared/hooks/useAttemptNext';
+
+import { Timestamp } from 'gen-proto-ts/google/protobuf/timestamp_pb';
 
 import { makeUiAccessRequest } from '../DocumentAccessRequests/useAccessRequests';
 

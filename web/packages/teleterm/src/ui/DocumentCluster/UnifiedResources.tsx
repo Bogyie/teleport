@@ -16,13 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { ButtonPrimary, Flex, H1, Link, ResourceIcon, Text } from 'design';
-import { ShowResources } from 'gen-proto-ts/teleport/lib/teleterm/v1/cluster_pb';
-import {
-  ListUnifiedResourcesRequest,
-  UserPreferences,
-} from 'gen-proto-ts/teleport/lib/teleterm/v1/service_pb';
-import { DefaultTab } from 'gen-proto-ts/teleport/userpreferences/v1/unified_resource_preferences_pb';
 import { memo, useCallback, useEffect, useMemo } from 'react';
 import { getAppAddrWithProtocol } from 'teleterm/services/tshd/app';
 import { useAppContext } from 'teleterm/ui/appContextProvider';
@@ -39,6 +32,7 @@ import {
 import * as uri from 'teleterm/ui/uri';
 import { retryWithRelogin } from 'teleterm/ui/utils';
 
+import { ButtonPrimary, Flex, H1, Link, ResourceIcon, Text } from 'design';
 import * as icons from 'design/Icon';
 import {
   getResourceAvailabilityFilter,
@@ -57,6 +51,13 @@ import {
   formatDatabaseInfo,
 } from 'shared/services/databases';
 import { waitForever } from 'shared/utils/wait';
+
+import { ShowResources } from 'gen-proto-ts/teleport/lib/teleterm/v1/cluster_pb';
+import {
+  ListUnifiedResourcesRequest,
+  UserPreferences,
+} from 'gen-proto-ts/teleport/lib/teleterm/v1/service_pb';
+import { DefaultTab } from 'gen-proto-ts/teleport/userpreferences/v1/unified_resource_preferences_pb';
 
 import {
   AccessRequestButton,

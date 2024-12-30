@@ -19,6 +19,7 @@
 import { action } from '@storybook/addon-actions';
 import { useArgs } from '@storybook/preview-api';
 import type { Meta, StoryFn, StoryObj } from '@storybook/react';
+
 import { Flex } from 'design';
 
 import { SortMenu } from './SortMenu';

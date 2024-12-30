@@ -18,8 +18,8 @@
 
 import { createMemoryHistory } from 'history';
 import { Router } from 'react-router';
-import * as teleport from 'teleport';
 
+import * as teleport from 'teleport';
 import { getOSSFeatures } from 'teleport/features';
 import { FeaturesContextProvider } from 'teleport/FeaturesContext';
 

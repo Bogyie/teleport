@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { ButtonPrimary, Flex, Text } from 'design';
 import styled, { useTheme } from 'styled-components';
 
+import { ButtonPrimary, Flex, Text } from 'design';
 import AGPLLogoDark from 'design/assets/images/agpl-dark.svg';
 import AGPLLogoLight from 'design/assets/images/agpl-light.svg';
 import { P } from 'design/Text/Text';

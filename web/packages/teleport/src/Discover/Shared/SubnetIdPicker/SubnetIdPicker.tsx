@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { ButtonIcon, Flex, Link } from 'design';
 import React from 'react';
 
+import { ButtonIcon, Flex, Link } from 'design';
 import { Danger } from 'design/Alert';
 import { CheckboxInput } from 'design/Checkbox';
 import Table, { Cell } from 'design/DataTable';

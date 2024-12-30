@@ -17,9 +17,9 @@
  */
 
 import { MemoryRouter } from 'react-router';
-import { ContextProvider } from 'teleport';
 
 import { render, screen, userEvent } from 'design/utils/testing';
+import { ContextProvider } from 'teleport';
 import cfg from 'teleport/config';
 import { app } from 'teleport/Discover/AwsMangementConsole/fixtures';
 import { ResourceKind } from 'teleport/Discover/Shared';

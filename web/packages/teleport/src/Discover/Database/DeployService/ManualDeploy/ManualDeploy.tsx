@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, ButtonSecondary, H3, Mark, Text } from 'design';
 import { Suspense, useEffect, useState } from 'react';
 
+import { Box, ButtonSecondary, H3, Mark, Text } from 'design';
 import * as Icons from 'design/Icon';
 import Validation, { Validator } from 'shared/components/Validation';
 import { CatchError } from 'teleport/components/CatchError';

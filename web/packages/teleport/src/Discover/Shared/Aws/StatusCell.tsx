@@ -17,7 +17,6 @@
  */
 
 import { Flex } from 'design';
-
 import { DisableableCell as Cell } from 'teleport/Discover/Shared';
 
 import { ItemStatus, StatusLight } from '../StatusLight';

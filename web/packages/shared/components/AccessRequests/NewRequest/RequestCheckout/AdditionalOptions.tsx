@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, ButtonIcon, Flex, LabelInput, Text } from 'design';
 import { useState } from 'react';
 
+import { Box, ButtonIcon, Flex, LabelInput, Text } from 'design';
 import * as Icon from 'design/Icon';
 import { IconTooltip } from 'design/Tooltip';
 import Select, { Option } from 'shared/components/Select';

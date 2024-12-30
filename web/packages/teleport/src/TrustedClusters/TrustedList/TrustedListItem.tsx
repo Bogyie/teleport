@@ -17,7 +17,6 @@
  */
 
 import { ButtonPrimary, Flex, Text } from 'design';
-
 import * as Icons from 'design/Icon';
 import { MenuIcon, MenuItem } from 'shared/components/MenuAction';
 

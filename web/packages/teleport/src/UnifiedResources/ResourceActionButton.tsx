@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { ButtonBorder, ButtonWithMenu, MenuItem } from 'design';
 import React, { useState } from 'react';
 
+import { ButtonBorder, ButtonWithMenu, MenuItem } from 'design';
 import { AwsLaunchButton } from 'shared/components/AwsLaunchButton';
 import {
   LoginItem,

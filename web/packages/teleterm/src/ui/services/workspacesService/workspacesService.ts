@@ -17,13 +17,6 @@
  */
 
 import {
-  AvailableResourceMode,
-  DefaultTab,
-  LabelsViewMode,
-  UnifiedResourcePreferences,
-  ViewMode,
-} from 'gen-proto-ts/teleport/userpreferences/v1/unified_resource_preferences_pb';
-import {
   identitySelector,
   useStoreSelector,
 } from 'teleterm/ui/hooks/useStoreSelector';
@@ -45,6 +38,14 @@ import {
 import { z } from 'zod';
 
 import { arrayObjectIsEqual } from 'shared/utils/highbar';
+
+import {
+  AvailableResourceMode,
+  DefaultTab,
+  LabelsViewMode,
+  UnifiedResourcePreferences,
+  ViewMode,
+} from 'gen-proto-ts/teleport/userpreferences/v1/unified_resource_preferences_pb';
 
 import {
   AccessRequestsService,

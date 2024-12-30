@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Timestamp } from 'gen-proto-ts/google/protobuf/timestamp_pb';
 import { useCallback, useEffect, useState } from 'react';
 import * as tsh from 'teleterm/services/tshd/types';
 import { useAppContext } from 'teleterm/ui/appContextProvider';
@@ -31,6 +30,8 @@ import {
 } from 'shared/components/AccessRequests/ReviewRequests';
 import { useAsync } from 'shared/hooks/useAsync';
 import { AccessRequest } from 'shared/services/accessRequests';
+
+import { Timestamp } from 'gen-proto-ts/google/protobuf/timestamp_pb';
 
 import { makeUiAccessRequest } from '../useAccessRequests';
 

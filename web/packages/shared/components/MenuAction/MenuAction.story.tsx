@@ -17,7 +17,6 @@
  */
 
 import { Flex } from 'design';
-
 import { Cog } from 'design/Icon';
 
 import { MenuButton, MenuIcon, MenuItem } from '.';

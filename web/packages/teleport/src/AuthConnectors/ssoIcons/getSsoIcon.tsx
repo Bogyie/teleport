@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, Flex, ResourceIcon } from 'design';
 import styled from 'styled-components';
 
+import { Box, Flex, ResourceIcon } from 'design';
 import { AuthProviderType } from 'shared/services';
 
 export default function getSsoIcon(kind: AuthProviderType) {

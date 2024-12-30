@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Flex } from 'design';
 import { useState } from 'react';
 
+import { Flex } from 'design';
 import { Option } from 'shared/components/Select';
 import Validation from 'shared/components/Validation';
 import { wait } from 'shared/utils/wait';

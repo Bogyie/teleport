@@ -17,7 +17,6 @@
  */
 
 import { ButtonIcon, ButtonPrimary, Flex, H2, Link } from 'design';
-
 import * as Alerts from 'design/Alert';
 import { Cross } from 'design/Icon';
 import Validation from 'shared/components/Validation';

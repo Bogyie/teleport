@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, Flex, Mark, Text } from 'design';
 import { useEffect, useState } from 'react';
 
+import { Box, Flex, Mark, Text } from 'design';
 import { P } from 'design/Text/Text';
 import FieldInput from 'shared/components/FieldInput';
 import TextEditor from 'shared/components/TextEditor';

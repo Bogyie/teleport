@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Alert, Box, Flex } from 'design';
 import { useId, useState } from 'react';
 
+import { Alert, Box, Flex } from 'design';
 import Validation, { Validator } from 'shared/components/Validation';
 import { useAsync } from 'shared/hooks/useAsync';
 import { Role, RoleWithYaml } from 'teleport/services/resources';

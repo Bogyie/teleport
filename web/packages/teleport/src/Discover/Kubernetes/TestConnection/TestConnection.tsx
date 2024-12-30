@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, H3, Subtitle3 } from 'design';
 import { useState } from 'react';
 
+import { Box, H3, Subtitle3 } from 'design';
 import FieldInput from 'shared/components/FieldInput';
 import FieldSelect from 'shared/components/FieldSelect';
 import { Option } from 'shared/components/Select';

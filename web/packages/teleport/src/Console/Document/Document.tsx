@@ -16,8 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Flex } from 'design';
 import React from 'react';
+
+import { Flex } from 'design';
 
 const Document: React.FC<{ visible: boolean; [x: string]: any }> = ({
   visible,

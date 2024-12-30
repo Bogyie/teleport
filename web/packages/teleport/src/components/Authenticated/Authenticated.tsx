@@ -16,10 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, Indicator } from 'design';
-import { TrustedDeviceRequirement } from 'gen-proto-ts/teleport/legacy/types/trusted_device_requirement_pb';
 import React, { PropsWithChildren, useEffect } from 'react';
 
+import { Box, Indicator } from 'design';
 import useAttempt from 'shared/hooks/useAttemptNext';
 import Logger from 'shared/libs/logger';
 import { getErrMessage } from 'shared/utils/errorType';
@@ -28,6 +27,8 @@ import { StyledIndicator } from 'teleport/Main';
 import { ApiError } from 'teleport/services/api/parseError';
 import { storageService } from 'teleport/services/storageService';
 import session from 'teleport/services/websession';
+
+import { TrustedDeviceRequirement } from 'gen-proto-ts/teleport/legacy/types/trusted_device_requirement_pb';
 
 import { ErrorDialog } from './ErrorDialogue';
 

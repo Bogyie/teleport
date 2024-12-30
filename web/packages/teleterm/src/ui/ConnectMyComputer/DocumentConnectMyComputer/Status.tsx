@@ -16,17 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {
-  Alert,
-  Box,
-  ButtonPrimary,
-  ButtonSecondary,
-  Flex,
-  H1,
-  Label,
-  MenuItem,
-  Text,
-} from 'design';
 import React, { useCallback, useRef } from 'react';
 import { Transition } from 'react-transition-group';
 import styled, { css } from 'styled-components';
@@ -43,6 +32,17 @@ import { connectToServer } from 'teleterm/ui/services/workspacesService';
 import { assertUnreachable } from 'teleterm/ui/utils';
 import { codeOrSignal } from 'teleterm/ui/utils/process';
 
+import {
+  Alert,
+  Box,
+  ButtonPrimary,
+  ButtonSecondary,
+  Flex,
+  H1,
+  Label,
+  MenuItem,
+  Text,
+} from 'design';
 import * as icons from 'design/Icon';
 import type { IconProps } from 'design/Icon/Icon';
 import Indicator from 'design/Indicator';

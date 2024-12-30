@@ -16,11 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box } from 'design';
 import { useState } from 'react';
 import { useAppContext } from 'teleterm/ui/appContextProvider';
 import { KeyboardArrowsNavigation } from 'teleterm/ui/components/KeyboardArrowsNavigation';
 
+import { Box } from 'design';
 import { StepComponentProps } from 'design/StepSlider';
 
 import { useConnectionsContext } from './connectionsContext';

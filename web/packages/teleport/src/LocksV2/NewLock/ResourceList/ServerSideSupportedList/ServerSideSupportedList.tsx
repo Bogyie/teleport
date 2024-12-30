@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Flex } from 'design';
 import { useEffect, useMemo, useState } from 'react';
 
+import { Flex } from 'design';
 import { StyledArrowBtn } from 'design/DataTable/Pager/StyledPager';
 import { StyledPanel } from 'design/DataTable/StyledTable';
 import { SortType } from 'design/DataTable/types';

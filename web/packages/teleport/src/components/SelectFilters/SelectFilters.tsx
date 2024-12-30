@@ -16,11 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, ButtonBorder, ButtonIcon, Flex, Text } from 'design';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { components } from 'react-select';
 import styled from 'styled-components';
 
+import { Box, ButtonBorder, ButtonIcon, Flex, Text } from 'design';
 import { Add, Cross } from 'design/Icon';
 import Select, {
   ActionMeta,

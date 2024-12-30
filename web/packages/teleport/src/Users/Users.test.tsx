@@ -17,9 +17,9 @@
  */
 
 import { MemoryRouter } from 'react-router';
-import { ContextProvider } from 'teleport';
 
 import { fireEvent, render, screen, userEvent } from 'design/utils/testing';
+import { ContextProvider } from 'teleport';
 import { createTeleportContext } from 'teleport/mocks/contexts';
 import { Access } from 'teleport/services/user';
 

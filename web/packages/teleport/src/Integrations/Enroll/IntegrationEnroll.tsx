@@ -17,7 +17,6 @@
  */
 
 import { Flex } from 'design';
-
 import {
   FeatureBox,
   FeatureHeader,

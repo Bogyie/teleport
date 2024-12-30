@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, ButtonBorder, Flex, H3, Menu, MenuItem, Text } from 'design';
 import React, { useState } from 'react';
 
+import { Box, ButtonBorder, Flex, H3, Menu, MenuItem, Text } from 'design';
 import { ChevronDown, Warning } from 'design/Icon';
 import { ButtonLockedFeature } from 'teleport/components/ButtonLockedFeature';
 import cfg from 'teleport/config';

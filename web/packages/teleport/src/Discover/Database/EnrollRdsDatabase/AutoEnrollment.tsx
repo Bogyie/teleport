@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Text } from 'design';
 import { useEffect, useState } from 'react';
 
+import { Text } from 'design';
 import { Alert } from 'design/Alert/Alert';
 import { FetchStatus } from 'design/DataTable/types';
 import useAttempt, { Attempt } from 'shared/hooks/useAttemptNext';

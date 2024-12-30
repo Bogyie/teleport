@@ -17,8 +17,8 @@
  */
 
 import { Meta, StoryObj } from '@storybook/react';
-import { ButtonBorder, Flex } from 'design';
 
+import { ButtonBorder, Flex } from 'design';
 import { apps } from 'teleport/Apps/fixtures';
 import { databases } from 'teleport/Databases/fixtures';
 import { desktops } from 'teleport/Desktops/fixtures';

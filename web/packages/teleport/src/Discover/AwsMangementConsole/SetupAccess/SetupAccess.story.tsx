@@ -19,9 +19,9 @@
 import { http, HttpResponse } from 'msw';
 import React from 'react';
 import { MemoryRouter } from 'react-router';
-import { ContextProvider } from 'teleport';
 
 import { AwsRole } from 'shared/services/apps';
+import { ContextProvider } from 'teleport';
 import cfg from 'teleport/config';
 import { ResourceKind } from 'teleport/Discover/Shared';
 import {

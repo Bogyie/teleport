@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, ButtonPrimary, Flex, Indicator } from 'design';
 import { useEffect, useState } from 'react';
 import styled from 'styled-components';
 
+import { Box, ButtonPrimary, Flex, Indicator } from 'design';
 import { fade } from 'design/theme/utils/colorManipulator';
 
 interface CliCommandProps {

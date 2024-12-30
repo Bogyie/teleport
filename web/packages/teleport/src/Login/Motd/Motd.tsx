@@ -16,8 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, ButtonPrimary, Card, Text } from 'design';
 import styled from 'styled-components';
+
+import { Box, ButtonPrimary, Card, Text } from 'design';
 
 export function Motd({ message, onClick }: Props) {
   return (

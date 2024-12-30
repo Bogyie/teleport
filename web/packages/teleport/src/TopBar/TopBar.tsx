@@ -16,13 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Flex, Image, Text, TopNav } from 'design';
 import type * as history from 'history';
 import React, { useCallback, useEffect, useState } from 'react';
 import { matchPath, useHistory } from 'react-router';
 import { Link } from 'react-router-dom';
 import styled, { useTheme } from 'styled-components';
 
+import { Flex, Image, Text, TopNav } from 'design';
 import { ArrowLeft, Download, Server, SlidersVertical } from 'design/Icon';
 import { Theme } from 'design/theme/themes/types';
 import { HoverTooltip } from 'design/Tooltip';

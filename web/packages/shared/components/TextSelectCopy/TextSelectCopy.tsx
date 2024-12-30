@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, ButtonPrimary, Flex } from 'design';
 import { useRef, useState } from 'react';
 import { useTheme } from 'styled-components';
 
+import { Box, ButtonPrimary, Flex } from 'design';
 import { copyToClipboard } from 'design/utils/copyToClipboard';
 import selectElementContent from 'design/utils/selectElementContent';
 import { wait } from 'shared/utils/wait';

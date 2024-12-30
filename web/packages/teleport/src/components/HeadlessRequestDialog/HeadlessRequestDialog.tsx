@@ -17,7 +17,6 @@
  */
 
 import { ButtonPrimary, ButtonSecondary, Text } from 'design';
-
 import { Danger } from 'design/Alert';
 import Dialog, {
   DialogContent,

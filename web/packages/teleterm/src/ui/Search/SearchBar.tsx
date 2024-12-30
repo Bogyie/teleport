@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, Flex } from 'design';
 import React, { useCallback, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { KeyboardShortcutAction } from 'teleterm/services/config';
@@ -28,6 +27,8 @@ import {
   useKeyboardShortcutFormatters,
   useKeyboardShortcuts,
 } from 'teleterm/ui/services/keyboardShortcuts';
+
+import { Box, Flex } from 'design';
 
 import { useAppContext } from '../appContextProvider';
 import { useStoreSelector } from '../hooks/useStoreSelector';

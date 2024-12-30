@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, Flex, H3, Link, Mark } from 'design';
 import styled from 'styled-components';
 
+import { Box, Flex, H3, Link, Mark } from 'design';
 import { Danger } from 'design/Alert';
 import { P } from 'design/Text/Text';
 import { IconTooltip } from 'design/Tooltip';

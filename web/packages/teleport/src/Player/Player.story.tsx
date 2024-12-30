@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Flex } from 'design';
 import { createMemoryHistory } from 'history';
 
+import { Flex } from 'design';
 import { Route, Router } from 'teleport/components/Router';
 
 import { Player } from './Player';

@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, ButtonBorder, ButtonIcon, Flex, Text } from 'design';
 import { Dispatch, SetStateAction } from 'react';
 
+import { Box, ButtonBorder, ButtonIcon, Flex, Text } from 'design';
 import { Add, Trash } from 'design/Icon';
 import { FieldSelectCreatable } from 'shared/components/FieldSelect';
 import { Option } from 'shared/components/Select';

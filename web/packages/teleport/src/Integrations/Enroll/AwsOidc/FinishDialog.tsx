@@ -16,12 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { ButtonPrimary, ButtonSecondary, Flex, Text } from 'design';
 import { Location } from 'history';
 import React from 'react';
 import { useLocation } from 'react-router';
 import { Link } from 'react-router-dom';
 
+import { ButtonPrimary, ButtonSecondary, Flex, Text } from 'design';
 import Dialog, {
   DialogContent,
   DialogFooter,

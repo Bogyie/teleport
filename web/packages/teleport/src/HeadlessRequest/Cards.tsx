@@ -17,7 +17,6 @@
  */
 
 import { Card, CardSuccess, H1 } from 'design';
-
 import { CircleStop } from 'design/Icon';
 
 export function CardDenied({ title, children }) {

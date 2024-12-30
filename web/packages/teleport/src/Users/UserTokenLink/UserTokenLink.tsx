@@ -17,8 +17,8 @@
  */
 
 import { formatDistanceStrict } from 'date-fns';
-import { ButtonSecondary, Text } from 'design';
 
+import { ButtonSecondary, Text } from 'design';
 import Dialog, {
   DialogContent,
   DialogFooter,

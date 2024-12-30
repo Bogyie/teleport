@@ -17,7 +17,6 @@
  */
 
 import { Alert, ButtonSecondary, ButtonWarning, Text } from 'design';
-
 import Dialog, {
   DialogContent,
   DialogFooter,

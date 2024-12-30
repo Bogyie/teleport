@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, Flex, rotate360 } from 'design';
 import React from 'react';
 import styled, { useTheme } from 'styled-components';
 
+import { Box, Flex, rotate360 } from 'design';
 import * as icons from 'design/Icon';
 import { decomposeColor, emphasize } from 'design/theme/utils/colorManipulator';
 import { AttemptStatus } from 'shared/hooks/useAsync';

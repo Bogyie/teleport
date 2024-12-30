@@ -16,8 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Image } from 'design';
 import styled from 'styled-components';
+
+import { Image } from 'design';
 
 import pam from './pam.svg';
 

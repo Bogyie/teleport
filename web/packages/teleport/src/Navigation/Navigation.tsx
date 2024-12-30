@@ -16,11 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, Flex, Text } from 'design';
 import type * as history from 'history';
 import { matchPath, useHistory, useLocation } from 'react-router';
 import styled, { useTheme } from 'styled-components';
 
+import { Box, Flex, Text } from 'design';
 import { IconTooltip } from 'design/Tooltip';
 import cfg from 'teleport/config';
 import { useFeatures } from 'teleport/FeaturesContext';

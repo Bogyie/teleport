@@ -16,6 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { useState } from 'react';
+
 import {
   Box,
   ButtonPrimary,
@@ -24,8 +26,6 @@ import {
   Text,
   Toggle,
 } from 'design';
-import { useState } from 'react';
-
 import Dialog, {
   DialogContent,
   DialogFooter,

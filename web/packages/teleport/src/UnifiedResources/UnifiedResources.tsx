@@ -16,11 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Flex } from 'design';
-import { DefaultTab } from 'gen-proto-ts/teleport/userpreferences/v1/unified_resource_preferences_pb';
 import { useCallback, useMemo, useState } from 'react';
-import { useTeleport } from 'teleport';
 
+import { Flex } from 'design';
 import { Danger } from 'design/Alert';
 import { ClusterDropdown } from 'shared/components/ClusterDropdown/ClusterDropdown';
 import {
@@ -32,6 +30,7 @@ import {
   UnifiedResourcesPinning,
   useUnifiedResourcesFetch,
 } from 'shared/components/UnifiedResources';
+import { useTeleport } from 'teleport';
 import AgentButtonAdd from 'teleport/components/AgentButtonAdd';
 import Empty, { EmptyStateInfo } from 'teleport/components/Empty';
 import { useUrlFiltering } from 'teleport/components/hooks';
@@ -51,6 +50,8 @@ import { UnifiedResource } from 'teleport/services/agents';
 import { FeatureFlags } from 'teleport/types';
 import { useUser } from 'teleport/User/UserContext';
 import useStickyClusterId from 'teleport/useStickyClusterId';
+
+import { DefaultTab } from 'gen-proto-ts/teleport/userpreferences/v1/unified_resource_preferences_pb';
 
 import { ResourceActionButton } from './ResourceActionButton';
 

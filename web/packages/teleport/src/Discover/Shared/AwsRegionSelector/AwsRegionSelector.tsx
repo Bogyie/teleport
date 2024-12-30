@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Box, ButtonSecondary, Flex, LabelInput } from 'design';
 import React, { useState } from 'react';
 
+import { Box, ButtonSecondary, Flex, LabelInput } from 'design';
 import { Refresh as RefreshIcon } from 'design/Icon';
 import Select, { Option } from 'shared/components/Select';
 import { awsRegionMap, Regions } from 'teleport/services/integrations';
