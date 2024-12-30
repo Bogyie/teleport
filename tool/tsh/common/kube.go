@@ -23,6 +23,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net"
 	"net/url"
 	"os"
@@ -37,7 +38,6 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/gravitational/trace"
 	dockerterm "github.com/moby/term"
-	"github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -1050,7 +1050,7 @@ func (c *kubeLSCommand) runAllClusters(cf *CLIConf) error {
 		group.Go(func() error {
 			kc, err := kubeutils.ListKubeClustersWithFilters(groupCtx, cluster.auth, cluster.req)
 			if err != nil {
-				logrus.Errorf("Failed to get kube clusters: %v.", err)
+				slog.ErrorContext(groupCtx, "Failed to get kube clusters", "error", err)
 				mu.Lock()
 				errors = append(errors, trace.ConnectionProblem(err, "failed to list kube clusters for cluster %s: %v", cluster.name, err))
 				mu.Unlock()
