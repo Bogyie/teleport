@@ -129,7 +129,6 @@ func authenticateUserProcess(ctx context.Context, clt *userProcessClient) error 
 	if err != nil {
 		return trace.Wrap(err, "creating named pipe")
 	}
-	defer windows.CloseHandle(pipe)
 	log.DebugContext(ctx, "Created named pipe")
 
 	g, ctx := errgroup.WithContext(ctx)
@@ -145,6 +144,10 @@ func authenticateUserProcess(ctx context.Context, clt *userProcessClient) error 
 		}
 		log.DebugContext(ctx, "Got connection on named pipe")
 		return nil
+	})
+	g.Go(func() error {
+		<-ctx.Done()
+		return trace.Wrap(windows.CloseHandle(pipe), "closing pipe")
 	})
 	if err := g.Wait(); err != nil {
 		return trace.Wrap(err)

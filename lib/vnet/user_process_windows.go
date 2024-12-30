@@ -21,7 +21,6 @@ import (
 	"net"
 	"os"
 	"syscall"
-	"time"
 
 	"github.com/gravitational/trace"
 	"golang.org/x/sys/windows"
@@ -108,37 +107,10 @@ func RunUserProcess(ctx context.Context, config *UserProcessConfig) (pm *Process
 			return trace.Wrap(err)
 		}
 		vnetv1.RegisterVnetUserProcessServiceServer(grpcServer, svc)
-		if err := grpcServer.Serve(&loggingListener{listener}); err != nil {
+		if err := grpcServer.Serve(listener); err != nil {
 			return trace.Wrap(err, "serving VNet user process gRPC service")
 		}
 		return nil
-	})
-	pm.AddCriticalBackgroundTask("gRPC test client", func() error {
-		log.InfoContext(processCtx, "Starting gRPC test client")
-		for {
-			select {
-			case <-processCtx.Done():
-				return trace.Wrap(processCtx.Err())
-			case <-time.After(time.Second):
-			}
-			log.DebugContext(processCtx, "attempting in-process ping")
-			clt, err := newUserProcessClient(processCtx, listener.Addr().String())
-			if err != nil {
-				return trace.Wrap(err)
-			}
-			resp, err := clt.Ping(processCtx, &vnetv1.PingRequest{
-				Version: api.Version,
-			})
-			if err != nil {
-				return trace.Wrap(err, "testing in-process ping")
-			}
-			if resp.Version != api.Version {
-				return trace.BadParameter("version mismatch %s != %s",
-					resp.Version, api.Version)
-			}
-			log.DebugContext(ctx, "Completed in-process ping")
-			clt.Close()
-		}
 	})
 	return pm, nil
 }
