@@ -23,6 +23,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log/slog"
 	"os"
 	"sort"
 	"strings"
@@ -32,7 +33,6 @@ import (
 	"github.com/alecthomas/kingpin/v2"
 	"github.com/ghodss/yaml"
 	"github.com/gravitational/trace"
-	log "github.com/sirupsen/logrus"
 
 	"github.com/gravitational/teleport"
 	"github.com/gravitational/teleport/api/types"
@@ -345,7 +345,7 @@ func (c *TokensCommand) Add(ctx context.Context, client *authclient.Client) erro
 
 		pingResponse, err := client.Ping(ctx)
 		if err != nil {
-			log.Debugf("unable to ping auth client: %s.", err.Error())
+			slog.DebugContext(ctx, "unable to ping auth client", "error", err)
 		}
 
 		if err == nil && pingResponse.GetServerFeatures().Cloud {
