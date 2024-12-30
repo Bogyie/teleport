@@ -16,11 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { ReactNode } from 'react';
-
-import styled from 'styled-components';
-
 import { Box } from 'design';
+import { ReactNode } from 'react';
+import styled from 'styled-components';
 
 type MultiRowBoxProps = {
   children: ReactNode;

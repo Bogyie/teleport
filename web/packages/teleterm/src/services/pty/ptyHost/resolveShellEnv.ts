@@ -42,12 +42,11 @@
 
 // Based on https://github.com/microsoft/vscode/blob/1.66.0/src/vs/platform/shell/node/shellEnv.ts
 
-import { spawn } from 'child_process';
-
 import { memoize } from 'shared/utils/highbar';
-
 import Logger from 'teleterm/logger';
 import { unique } from 'teleterm/ui/utils/uid';
+
+import { spawn } from 'child_process';
 
 const logger = new Logger('resolveShellEnv()');
 const resolveShellMaxTime = 10_000; // 10s

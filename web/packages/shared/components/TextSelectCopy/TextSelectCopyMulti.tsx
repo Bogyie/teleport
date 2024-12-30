@@ -16,15 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useRef } from 'react';
-import styled from 'styled-components';
-
+import { Box, ButtonSecondary, Flex } from 'design';
+import { Check, Copy, Download } from 'design/Icon';
 import { copyToClipboard } from 'design/utils/copyToClipboard';
 import selectElementContent from 'design/utils/selectElementContent';
-import { ButtonSecondary, Box, Flex } from 'design';
-import { Copy, Check, Download } from 'design/Icon';
-
+import { useRef } from 'react';
 import { saveOnDisk } from 'shared/utils/saveOnDisk';
+import styled from 'styled-components';
 
 const ONE_SECOND_IN_MS = 1000;
 

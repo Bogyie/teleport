@@ -16,30 +16,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {
-  forwardRef,
-  useCallback,
-  useMemo,
-  useRef,
-  useState,
-  useImperativeHandle,
-} from 'react';
-import styled from 'styled-components';
 import { Box } from 'design';
 import Popover from 'design/Popover';
 import { TrustedDeviceRequirement } from 'gen-proto-ts/teleport/legacy/types/trusted_device_requirement_pb';
-
 import {
-  useKeyboardShortcuts,
+  forwardRef,
+  useCallback,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import styled from 'styled-components';
+import * as tshd from 'teleterm/services/tshd/types';
+import {
   useKeyboardShortcutFormatters,
+  useKeyboardShortcuts,
 } from 'teleterm/ui/services/keyboardShortcuts';
 
-import * as tshd from 'teleterm/services/tshd/types';
-
-import { IdentityRootCluster, useIdentity } from './useIdentity';
+import { EmptyIdentityList } from './EmptyIdentityList/EmptyIdentityList';
 import { IdentityList } from './IdentityList/IdentityList';
 import { IdentitySelector } from './IdentitySelector/IdentitySelector';
-import { EmptyIdentityList } from './EmptyIdentityList/EmptyIdentityList';
+import { IdentityRootCluster, useIdentity } from './useIdentity';
 
 export function IdentityContainer() {
   const {

@@ -16,14 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { Indicator } from 'design';
 import { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { Indicator } from 'design';
-
-import { useLogger } from 'teleterm/ui/hooks/useLogger';
 import { useAppContext } from 'teleterm/ui/appContextProvider';
-import ModalsHost from 'teleterm/ui/ModalsHost';
+import { useLogger } from 'teleterm/ui/hooks/useLogger';
 import { LayoutManager } from 'teleterm/ui/LayoutManager';
+import ModalsHost from 'teleterm/ui/ModalsHost';
 
 import { showStartupModalsAndNotifications } from './showStartupModalsAndNotifications';
 

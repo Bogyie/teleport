@@ -17,7 +17,6 @@
  */
 
 import { MemoryRouter } from 'react-router';
-
 import {
   IntegrationKind,
   IntegrationStatusCode,

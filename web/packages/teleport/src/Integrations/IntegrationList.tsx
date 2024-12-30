@@ -16,22 +16,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React from 'react';
-import styled from 'styled-components';
-import { useHistory } from 'react-router';
-import { Link as InternalRouteLink } from 'react-router-dom';
-
 import { Box, Flex } from 'design';
 import Table, { Cell } from 'design/DataTable';
-import { MenuButton, MenuItem } from 'shared/components/MenuAction';
-import { IconTooltip } from 'design/Tooltip';
-import { useAsync } from 'shared/hooks/useAsync';
 import { ResourceIcon } from 'design/ResourceIcon';
+import { IconTooltip } from 'design/Tooltip';
+import React from 'react';
+import { useHistory } from 'react-router';
+import { Link as InternalRouteLink } from 'react-router-dom';
+import { MenuButton, MenuItem } from 'shared/components/MenuAction';
+import { useAsync } from 'shared/hooks/useAsync';
 import { saveOnDisk } from 'shared/utils/saveOnDisk';
-
-import useStickyClusterId from 'teleport/useStickyClusterId';
+import styled from 'styled-components';
+import cfg from 'teleport/config';
+import { getStatus } from 'teleport/Integrations/helpers';
 import api from 'teleport/services/api';
-
 import {
   ExternalAuditStorageIntegration,
   getStatusCodeDescription,
@@ -41,9 +39,7 @@ import {
   IntegrationStatusCode,
   Plugin,
 } from 'teleport/services/integrations';
-import cfg from 'teleport/config';
-
-import { getStatus } from 'teleport/Integrations/helpers';
+import useStickyClusterId from 'teleport/useStickyClusterId';
 
 import { ExternalAuditStorageOpType } from './Operations/useIntegrationOperation';
 

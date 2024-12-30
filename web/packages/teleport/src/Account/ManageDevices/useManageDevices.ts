@@ -18,7 +18,6 @@
 
 import { useEffect, useState } from 'react';
 import useAttempt from 'shared/hooks/useAttemptNext';
-
 import cfg from 'teleport/config';
 import { DeviceUsage, MfaDevice } from 'teleport/services/mfa';
 import Ctx from 'teleport/teleportContext';

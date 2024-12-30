@@ -16,15 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { ButtonPrimary, Link } from 'design';
+import Flex from 'design/Flex';
+import { Unlock } from 'design/Icon';
 import React from 'react';
 import styled from 'styled-components';
-import { ButtonPrimary, Link } from 'design';
-import { Unlock } from 'design/Icon';
-import Flex from 'design/Flex';
-
 import cfg from 'teleport/config';
 import { getSalesURL } from 'teleport/services/sales';
-
 import { CtaEvent, userEventService } from 'teleport/services/userEvent';
 import useTeleport from 'teleport/useTeleport';
 

@@ -16,17 +16,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useState } from 'react';
-import { ButtonPrimary, Flex } from 'design';
-
-import { unique } from 'teleterm/ui/utils/uid';
-
-import { Notifications } from '.';
-
 import type {
   NotificationItem,
   NotificationSeverity,
 } from '@gravitational/shared/components/Notification';
+import { ButtonPrimary, Flex } from 'design';
+import { useState } from 'react';
+import { unique } from 'teleterm/ui/utils/uid';
+
+import { Notifications } from '.';
 
 export default {
   title: 'Teleterm/components/Notifications',

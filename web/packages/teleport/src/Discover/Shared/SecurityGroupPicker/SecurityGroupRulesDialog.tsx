@@ -16,11 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import styled from 'styled-components';
-
 import { ButtonSecondary, H2, Text } from 'design';
 import Table, { Cell } from 'design/DataTable';
 import Dialog, { DialogContent, DialogFooter } from 'design/DialogConfirmation';
+import styled from 'styled-components';
 
 import { ViewRulesSelection } from './SecurityGroupPicker';
 

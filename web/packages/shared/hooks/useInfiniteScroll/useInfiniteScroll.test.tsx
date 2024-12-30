@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { renderHook, act } from '@testing-library/react';
+import { act, renderHook } from '@testing-library/react';
 import { render, screen } from 'design/utils/testing';
 import { mockIntersectionObserver } from 'jsdom-testing-mocks';
 

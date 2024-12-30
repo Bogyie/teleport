@@ -16,9 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import styled from 'styled-components';
-
 import { ButtonIcon } from 'design';
+import styled from 'styled-components';
 
 export const StyledArrowBtn = styled(ButtonIcon)`
   svg {

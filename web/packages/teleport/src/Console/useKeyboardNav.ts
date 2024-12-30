@@ -16,9 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useEffect } from 'react';
-
 import { getPlatformType } from 'design/platform';
+import { useEffect } from 'react';
 
 import ConsoleContext from './consoleContext';
 

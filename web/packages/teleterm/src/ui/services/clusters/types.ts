@@ -17,7 +17,6 @@
  */
 
 import * as shared from 'shared/services/types';
-
 import * as tsh from 'teleterm/services/tshd/types';
 import * as uri from 'teleterm/ui/uri';
 

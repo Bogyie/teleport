@@ -16,16 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useState } from 'react';
-
 import Box from 'design/Box';
-
 import { Button } from 'design/Button';
-
+import { useState } from 'react';
 import Validation from 'shared/components/Validation';
 
 import { arrayOf, requiredField } from '../Validation/rules';
-
 import { FieldMultiInput } from './FieldMultiInput';
 
 export default {

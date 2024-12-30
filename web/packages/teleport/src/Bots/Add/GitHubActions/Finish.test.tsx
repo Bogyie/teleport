@@ -16,15 +16,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { MemoryRouter } from 'react-router-dom';
 import { render, screen } from 'design/utils/testing';
-
+import { MemoryRouter } from 'react-router-dom';
 import { ContextProvider } from 'teleport';
-import TeleportContext from 'teleport/teleportContext';
 import cfg from 'teleport/config';
+import TeleportContext from 'teleport/teleportContext';
 
-import { GitHubFlowProvider, initialBotState } from './useGitHubFlow';
 import { Finish } from './Finish';
+import { GitHubFlowProvider, initialBotState } from './useGitHubFlow';
 
 describe('finish Component', () => {
   const setup = ({ botName }) => {

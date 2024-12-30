@@ -16,11 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React from 'react';
-
-import { useTheme } from 'styled-components';
-
 import { Box } from 'design';
+import React from 'react';
+import { useTheme } from 'styled-components';
 
 type IconCircleProps = {
   Icon: React.ElementType;

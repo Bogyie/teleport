@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { createGlobalStyle, css } from 'styled-components';
 import { getPlatformType } from 'design/platform';
+import { createGlobalStyle, css } from 'styled-components';
 
 const GlobalStyle = createGlobalStyle`
 

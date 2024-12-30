@@ -16,9 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import styled from 'styled-components';
-
 import { borderRadius, BorderRadiusProps } from 'design/system';
+import styled from 'styled-components';
 
 export const StyledTable = styled.table<BorderRadiusProps>`
   border-collapse: collapse;

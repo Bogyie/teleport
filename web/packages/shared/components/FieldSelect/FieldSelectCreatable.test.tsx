@@ -17,13 +17,10 @@
  */
 
 import { screen } from '@testing-library/react';
-
 import { render } from 'design/utils/testing';
-
 import selectEvent from 'react-select-event';
 
 import useRule from '../Validation/useRule';
-
 import { FieldSelectCreatableAsync } from './FieldSelectCreatable';
 
 jest.mock('../Validation/useRule');

@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { MemoryRouter } from 'react-router';
 import { render, screen } from 'design/utils/testing';
+import { MemoryRouter } from 'react-router';
 
 import { IntegrationsAddButton } from './IntegrationsAddButton';
 

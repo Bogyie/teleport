@@ -16,8 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { addHours, addDays, isAfter } from 'date-fns';
-
+import { addDays, addHours, isAfter } from 'date-fns';
 import { Option } from 'shared/components/Select';
 
 import { getFormattedDurationTxt } from '../../Shared/utils';

@@ -17,13 +17,11 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-
 import {
   KeywordHighlight,
   SelectedLines,
   TerminalContent,
 } from 'shared/components/AnimatedTerminal/TerminalContent';
-
 import { Window } from 'shared/components/Window';
 
 import { BufferEntry, createTerminalContent, TerminalLine } from './content';

@@ -16,27 +16,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { ButtonBorder, Flex, Indicator } from 'design';
+import { ChevronDown } from 'design/Icon';
+import Menu, { MenuItem } from 'design/Menu';
+import { space, SpaceProps } from 'design/system';
 import React, {
   ChangeEvent,
   useImperativeHandle,
   useRef,
   useState,
 } from 'react';
-import styled from 'styled-components';
 import { NavLink } from 'react-router-dom';
-import Menu, { MenuItem } from 'design/Menu';
-import { space, SpaceProps } from 'design/system';
-
-import { ButtonBorder, Flex, Indicator } from 'design';
-import { ChevronDown } from 'design/Icon';
-
-import { useAsync, Attempt } from 'shared/hooks/useAsync';
+import { Attempt, useAsync } from 'shared/hooks/useAsync';
+import styled from 'styled-components';
 
 import {
-  MenuLoginProps,
   LoginItem,
-  MenuLoginHandle,
   MenuInputType,
+  MenuLoginHandle,
+  MenuLoginProps,
 } from './types';
 
 export const MenuLogin = React.forwardRef<MenuLoginHandle, MenuLoginProps>(

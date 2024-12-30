@@ -16,16 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useEffect, useRef } from 'react';
 import { ButtonIcon, Flex, Text } from 'design';
 import { Trash, Unlink } from 'design/Icon';
-
+import { useEffect, useRef } from 'react';
 import styled from 'styled-components';
-
-import { ExtendedTrackedConnection } from 'teleterm/ui/services/connectionTracker';
-import { ListItem } from 'teleterm/ui/components/ListItem';
-
 import { useKeyboardArrowsNavigation } from 'teleterm/ui/components/KeyboardArrowsNavigation';
+import { ListItem } from 'teleterm/ui/components/ListItem';
+import { ExtendedTrackedConnection } from 'teleterm/ui/services/connectionTracker';
 import { isAppUri, isDatabaseUri } from 'teleterm/ui/uri';
 
 import { ConnectionStatusIndicator } from './ConnectionStatusIndicator';

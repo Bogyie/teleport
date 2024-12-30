@@ -18,14 +18,14 @@
 
 import { render, screen } from 'design/utils/testing';
 import { MemoryRouter } from 'react-router';
+
 import 'jest-canvas-mock';
 
 import { allAccessAcl } from 'teleport/mocks/contexts';
 
+import DocumentSsh from '.';
 import ConsoleContext from '../consoleContext';
 import ConsoleContextProvider from '../consoleContextProvider';
-
-import DocumentSsh from '.';
 
 test('file transfer buttons are disabled if user does not have access', async () => {
   const ctx = new ConsoleContext();

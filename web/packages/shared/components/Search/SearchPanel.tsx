@@ -16,14 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useEffect, useState } from 'react';
-import styled from 'styled-components';
 import { Flex } from 'design';
 import InputSearch from 'design/DataTable/InputSearch';
 import { PageIndicatorText } from 'design/DataTable/Pager/PageIndicatorText';
-import { ResourceFilter } from 'teleport/services/agents';
-
+import { useEffect, useState } from 'react';
 import { AdvancedSearchToggle } from 'shared/components/AdvancedSearchToggle';
+import styled from 'styled-components';
+import { ResourceFilter } from 'teleport/services/agents';
 
 export function SearchPanel({
   updateQuery,

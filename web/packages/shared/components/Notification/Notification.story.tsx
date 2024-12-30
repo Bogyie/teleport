@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useState } from 'react';
-import { Bots } from 'design/Icon';
 import Flex from 'design/Flex';
+import { Bots } from 'design/Icon';
+import { useState } from 'react';
 
 import { Notification } from './Notification';
 

@@ -17,10 +17,9 @@
  */
 
 import { useState } from 'react';
-
 import Validation from 'shared/components/Validation';
 
-import { LabelsCreater, DiscoverLabel } from './LabelsCreater';
+import { DiscoverLabel, LabelsCreater } from './LabelsCreater';
 
 export default {
   title: 'Teleport/Discover/Shared/LabelsCreator',

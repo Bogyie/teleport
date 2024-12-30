@@ -16,11 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { Box, Flex, Text } from 'design';
 import { useState } from 'react';
 import { components, ValueContainerProps } from 'react-select';
-import styled from 'styled-components';
-import { Box, Flex, Text } from 'design';
 import { SelectAsync } from 'shared/components/Select';
+import styled from 'styled-components';
 
 const ValueContainer = ({
   children,

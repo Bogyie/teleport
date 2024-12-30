@@ -18,11 +18,10 @@
 
 import { within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { fireEvent, render, screen } from 'design/utils/testing';
 
-import { render, fireEvent, screen } from 'design/utils/testing';
-
-import Table from './Table';
 import { SortIndicator } from './Cells';
+import Table from './Table';
 
 const data = [
   {

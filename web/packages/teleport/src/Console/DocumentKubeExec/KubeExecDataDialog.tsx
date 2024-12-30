@@ -16,13 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useState } from 'react';
-import Dialog, {
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from 'design/Dialog';
 import {
   Box,
   ButtonPrimary,
@@ -31,11 +24,17 @@ import {
   Text,
   Toggle,
 } from 'design';
-
-import Validation from 'shared/components/Validation';
-import FieldInput from 'shared/components/FieldInput';
-import { requiredField } from 'shared/components/Validation/rules';
+import Dialog, {
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from 'design/Dialog';
 import { IconTooltip } from 'design/Tooltip';
+import { useState } from 'react';
+import FieldInput from 'shared/components/FieldInput';
+import Validation from 'shared/components/Validation';
+import { requiredField } from 'shared/components/Validation/rules';
 
 type Props = {
   onClose(): void;

@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import styled from 'styled-components';
 import { Flex, H1 } from 'design';
 import { alignItems, space } from 'design/system';
+import styled from 'styled-components';
 
 /**
  * Header

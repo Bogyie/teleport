@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import styled from 'styled-components';
 import { Box } from 'design';
+import styled from 'styled-components';
 
 import { ToolTipBadge } from './ToolTipBadge';
 

@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useEffect, useRef } from 'react';
 import { Flex, H3 } from 'design';
+import { useEffect, useRef } from 'react';
 import styled from 'styled-components';
 
 import { MenuLogin } from './MenuLogin';

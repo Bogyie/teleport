@@ -16,31 +16,31 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { render, screen, userEvent } from 'design/utils/testing';
 import { act, within } from '@testing-library/react';
-import { Validator } from 'shared/components/Validation';
+import { render, screen, userEvent } from 'design/utils/testing';
 import selectEvent from 'react-select-event';
+import { Validator } from 'shared/components/Validation';
 
 import {
-  ServerAccess,
-  newResourceAccess,
-  KubernetesAccess,
+  AppAccessSection,
+  DatabaseAccessSection,
+  KubernetesAccessSection,
+  ServerAccessSection,
+  WindowsDesktopAccessSection,
+} from './Resources';
+import {
   AppAccess,
   DatabaseAccess,
+  KubernetesAccess,
+  newResourceAccess,
+  ServerAccess,
   WindowsDesktopAccess,
 } from './standardmodel';
+import { StatefulSection } from './StatefulSection';
 import {
   ResourceAccessValidationResult,
   validateResourceAccess,
 } from './validation';
-import {
-  ServerAccessSection,
-  KubernetesAccessSection,
-  AppAccessSection,
-  DatabaseAccessSection,
-  WindowsDesktopAccessSection,
-} from './Resources';
-import { StatefulSection } from './StatefulSection';
 
 describe('ServerAccessSection', () => {
   const setup = () => {

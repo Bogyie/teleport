@@ -16,15 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { MemoryRouter } from 'react-router';
 import { render, screen } from 'design/utils/testing';
-
-import { createTeleportContext, getAcl } from 'teleport/mocks/contexts';
-
-import { ContextProvider } from 'teleport/index';
-import cfg from 'teleport/config';
+import { MemoryRouter } from 'react-router';
 import { clusters } from 'teleport/Clusters/fixtures';
-
+import cfg from 'teleport/config';
+import { ContextProvider } from 'teleport/index';
+import { createTeleportContext, getAcl } from 'teleport/mocks/contexts';
 import { storageService } from 'teleport/services/storageService';
 
 import { ExternalAuditStorageCta } from './ExternalAuditStorageCta';

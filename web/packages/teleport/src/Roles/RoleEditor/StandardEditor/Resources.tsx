@@ -32,27 +32,27 @@ import { precomputed } from 'shared/components/Validation/rules';
 import styled, { useTheme } from 'styled-components';
 import { LabelsInput } from 'teleport/components/LabelsInput';
 
-import { SectionProps, SectionBox } from './sections';
+import { SectionBox, SectionProps } from './sections';
 import {
-  ResourceAccessKind,
-  ResourceAccess,
-  ServerAccess,
-  KubernetesAccess,
-  newKubernetesResourceModel,
-  KubernetesResourceModel,
-  kubernetesResourceKindOptions,
-  kubernetesVerbOptions,
   AppAccess,
   DatabaseAccess,
+  KubernetesAccess,
+  kubernetesResourceKindOptions,
+  KubernetesResourceModel,
+  kubernetesVerbOptions,
+  newKubernetesResourceModel,
+  ResourceAccess,
+  ResourceAccessKind,
+  ServerAccess,
   WindowsDesktopAccess,
 } from './standardmodel';
 import {
-  ResourceAccessValidationResult,
-  ServerAccessValidationResult,
-  KubernetesAccessValidationResult,
-  KubernetesResourceValidationResult,
   AppAccessValidationResult,
   DatabaseAccessValidationResult,
+  KubernetesAccessValidationResult,
+  KubernetesResourceValidationResult,
+  ResourceAccessValidationResult,
+  ServerAccessValidationResult,
   WindowsDesktopAccessValidationResult,
 } from './validation';
 

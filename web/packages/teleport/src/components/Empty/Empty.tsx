@@ -16,18 +16,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Link } from 'react-router-dom';
-
 import {
-  Text,
   Box,
-  Flex,
-  ButtonPrimary,
   ButtonBorder,
+  ButtonPrimary,
+  Flex,
   H1,
   ResourceIcon,
+  Text,
 } from 'design';
-
+import { Link } from 'react-router-dom';
 import cfg from 'teleport/config';
 
 export default function Empty(props: Props) {

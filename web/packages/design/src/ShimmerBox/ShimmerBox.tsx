@@ -16,9 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import styled, { keyframes } from 'styled-components';
-
 import Box, { BoxProps } from 'design/Box';
+import styled, { keyframes } from 'styled-components';
 
 const loading = keyframes`
   0% {

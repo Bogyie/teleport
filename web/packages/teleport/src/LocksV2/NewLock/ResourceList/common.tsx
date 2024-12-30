@@ -16,14 +16,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import styled from 'styled-components';
-import { Box, ButtonPrimary, ButtonBorder } from 'design';
+import { Box, ButtonBorder, ButtonPrimary } from 'design';
 import Table, { Cell } from 'design/DataTable';
 import {
   CustomSort,
   FetchStatus,
   LabelDescription,
 } from 'design/DataTable/types';
+import styled from 'styled-components';
 
 import { LockResourceMap, ToggleSelectResourceFn } from '../common';
 

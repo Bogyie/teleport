@@ -17,16 +17,14 @@
  */
 
 import { GroupBase, OptionsOrGroups } from 'react-select';
-
 import { useAsync } from 'shared/hooks/useAsync';
 
 import Select, {
-  Props as SelectProps,
-  SelectAsync,
   AsyncProps as AsyncSelectProps,
   Option,
+  SelectAsync,
+  Props as SelectProps,
 } from '../Select';
-
 import {
   FieldProps,
   FieldSelectWrapper,

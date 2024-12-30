@@ -16,19 +16,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { ButtonIcon, ButtonPrimary, ButtonSecondary, H2 } from 'design';
 import DialogConfirmation, {
   DialogContent,
   DialogFooter,
   DialogHeader,
 } from 'design/DialogConfirmation';
-import { ButtonIcon, ButtonPrimary, ButtonSecondary, H2 } from 'design';
 import { Cross } from 'design/Icon';
-import { pluralize } from 'shared/utils/text';
-
 import { P } from 'design/Text/Text';
-
-import { RootClusterUri, routing } from 'teleterm/ui/uri';
+import { pluralize } from 'shared/utils/text';
 import { useAppContext } from 'teleterm/ui/appContextProvider';
+import { RootClusterUri, routing } from 'teleterm/ui/uri';
 
 export function DocumentsReopen(props: {
   rootClusterUri: RootClusterUri;

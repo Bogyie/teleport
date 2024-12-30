@@ -16,12 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React from 'react';
-import styled, { useTheme } from 'styled-components';
-import { Flex, Box, rotate360 } from 'design';
+import { Box, Flex, rotate360 } from 'design';
 import * as icons from 'design/Icon';
 import { decomposeColor, emphasize } from 'design/theme/utils/colorManipulator';
+import React from 'react';
 import { AttemptStatus } from 'shared/hooks/useAsync';
+import styled, { useTheme } from 'styled-components';
 
 interface ProgressBarProps {
   phases: {

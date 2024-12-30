@@ -17,9 +17,7 @@
  */
 
 import React, { useEffect } from 'react';
-
 import { PingTeleportProvider } from 'teleport/Discover/Shared/PingTeleportContext';
-
 import { clearCachedJoinTokenResult } from 'teleport/Discover/Shared/useJoinTokenSuspender';
 
 import { ResourceKind } from '../Shared';

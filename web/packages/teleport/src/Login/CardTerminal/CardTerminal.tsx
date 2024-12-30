@@ -16,10 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useLocation } from 'react-router';
-
 import CardIcon from 'design/CardIcon';
 import { Terminal } from 'design/Icon';
+import { useLocation } from 'react-router';
 
 export function CardTerminal() {
   const { search } = useLocation();

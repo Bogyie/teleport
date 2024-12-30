@@ -19,7 +19,6 @@
 import { render, screen, waitFor } from 'design/utils/testing';
 import { createMemoryHistory } from 'history';
 import { Router } from 'react-router';
-
 import { Route } from 'teleport/components/Router';
 import cfg from 'teleport/config';
 import api from 'teleport/services/api';

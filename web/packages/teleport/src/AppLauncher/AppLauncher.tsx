@@ -16,16 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useCallback, useEffect } from 'react';
-
-import { useLocation, useParams } from 'react-router';
-
 import { Flex, Indicator } from 'design';
-
 import { AccessDenied } from 'design/CardError';
-
+import { useCallback, useEffect } from 'react';
+import { useLocation, useParams } from 'react-router';
 import useAttempt from 'shared/hooks/useAttemptNext';
-
 import AuthnDialog from 'teleport/components/AuthnDialog';
 import { CreateAppSessionParams, UrlLauncherParams } from 'teleport/config';
 import { useMfa } from 'teleport/lib/useMfa';

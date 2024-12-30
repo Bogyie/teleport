@@ -26,7 +26,7 @@ import {
   Subtitle2,
 } from 'design';
 import React from 'react';
-import styled, { useTheme, css } from 'styled-components';
+import styled, { css, useTheme } from 'styled-components';
 
 export interface HeaderProps {
   title: React.ReactNode;

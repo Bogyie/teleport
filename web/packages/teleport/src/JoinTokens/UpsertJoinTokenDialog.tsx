@@ -16,28 +16,26 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useState } from 'react';
-
 import {
-  Flex,
-  Text,
+  Alert,
   Box,
   ButtonIcon,
-  ButtonText,
   ButtonPrimary,
   ButtonSecondary,
-  Alert,
+  ButtonText,
+  Flex,
+  Text,
 } from 'design';
-import styled from 'styled-components';
-import { HoverTooltip } from 'design/Tooltip';
 import { Cross } from 'design/Icon';
-import Validation from 'shared/components/Validation';
+import { HoverTooltip } from 'design/Tooltip';
+import { useState } from 'react';
 import FieldInput from 'shared/components/FieldInput';
-import { requiredField } from 'shared/components/Validation/rules';
 import { FieldSelect } from 'shared/components/FieldSelect';
 import { Option } from 'shared/components/Select';
+import Validation from 'shared/components/Validation';
+import { requiredField } from 'shared/components/Validation/rules';
 import { useAsync } from 'shared/hooks/useAsync';
-
+import styled from 'styled-components';
 import { useTeleport } from 'teleport';
 import {
   AWSRules,

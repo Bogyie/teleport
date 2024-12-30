@@ -17,9 +17,11 @@
  */
 
 import { Alert, OutlineDanger } from 'design/Alert/Alert';
+import Box from 'design/Box';
 import { ButtonPrimary, ButtonSecondary } from 'design/Button';
 import Dialog from 'design/Dialog';
 import Flex from 'design/Flex';
+import Indicator from 'design/Indicator';
 import { RadioGroup } from 'design/RadioGroup';
 import { StepComponentProps, StepHeader, StepSlider } from 'design/StepSlider';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -32,11 +34,6 @@ import {
 } from 'shared/components/Validation/rules';
 import { useAsync } from 'shared/hooks/useAsync';
 import styled from 'styled-components';
-
-import Box from 'design/Box';
-
-import Indicator from 'design/Indicator';
-
 import useReAuthenticate, {
   ReauthState,
 } from 'teleport/components/ReAuthenticate/useReAuthenticate';

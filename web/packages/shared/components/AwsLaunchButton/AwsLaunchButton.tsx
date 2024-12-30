@@ -16,14 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React from 'react';
-import styled from 'styled-components';
-import { space, SpaceProps } from 'design/system';
-import { ButtonBorder, Flex, Text, Box } from 'design';
-import Menu, { MenuItem } from 'design/Menu';
+import { Box, ButtonBorder, Flex, Text } from 'design';
 import { ChevronDown } from 'design/Icon';
-
+import Menu, { MenuItem } from 'design/Menu';
+import { space, SpaceProps } from 'design/system';
+import React from 'react';
 import { AwsRole } from 'shared/services/apps';
+import styled from 'styled-components';
 
 export class AwsLaunchButton extends React.Component<Props> {
   anchorEl: React.MutableRefObject<HTMLButtonElement> = React.createRef();

@@ -16,9 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useState, ChangeEvent, createRef } from 'react';
-
 import { render, screen, userEvent } from 'design/utils/testing';
+import { ChangeEvent, createRef, useState } from 'react';
 
 import { FieldRadio } from './FieldRadio';
 

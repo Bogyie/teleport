@@ -20,7 +20,6 @@ import Dialog from 'design/Dialog';
 import { forwardRef, useRef } from 'react';
 import { Transition, TransitionStatus } from 'react-transition-group';
 import { css } from 'styled-components';
-
 import { State as ResourcesState } from 'teleport/components/useResources';
 import { RoleWithYaml } from 'teleport/services/resources';
 

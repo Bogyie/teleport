@@ -18,7 +18,6 @@
 
 import { ButtonPrimary, Text } from 'design';
 import { ListAddCheck } from 'design/Icon';
-
 import { useAccessRequestsButton } from 'teleterm/ui/StatusBar/useAccessRequestCheckoutButton';
 
 export function AccessRequestCheckoutButton() {

@@ -16,11 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useState } from 'react';
-
+import { H1, Text } from 'design';
 import Flex from 'design/Flex';
-import { Text, H1 } from 'design';
-
+import { useState } from 'react';
 import { Navigation } from 'teleport/components/Wizard/Navigation';
 
 export type FlowStepProps = {

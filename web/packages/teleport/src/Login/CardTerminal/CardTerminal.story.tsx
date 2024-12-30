@@ -17,7 +17,6 @@
  */
 
 import { MemoryRouter } from 'react-router';
-
 import cfg from 'teleport/config';
 
 import { CardTerminal as CardTerminalComponent } from './CardTerminal';

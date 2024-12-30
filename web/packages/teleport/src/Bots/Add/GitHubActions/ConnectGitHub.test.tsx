@@ -16,17 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { MemoryRouter } from 'react-router';
-
 import { render, screen } from 'design/utils/testing';
-
-import { allAccessAcl } from 'teleport/mocks/contexts';
-
+import { MemoryRouter } from 'react-router';
 import { ContextProvider } from 'teleport';
+import { allAccessAcl } from 'teleport/mocks/contexts';
 import TeleportContext from 'teleport/teleportContext';
 
 import { ConnectGitHub } from './ConnectGitHub';
-
 import { GitHubFlowProvider } from './useGitHubFlow';
 
 describe('connectGitHub Component', () => {

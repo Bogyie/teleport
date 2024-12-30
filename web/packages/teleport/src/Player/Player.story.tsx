@@ -17,10 +17,8 @@
  */
 
 import { Flex } from 'design';
-
 import { createMemoryHistory } from 'history';
-
-import { Router, Route } from 'teleport/components/Router';
+import { Route, Router } from 'teleport/components/Router';
 
 import { Player } from './Player';
 

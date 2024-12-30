@@ -16,21 +16,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { Box, Input, LabelInput, Text } from 'design';
+import { BoxProps } from 'design/Box';
+import { IconProps } from 'design/Icon/Icon';
+import { InputMode, InputSize, InputType } from 'design/Input';
+import { IconTooltip } from 'design/Tooltip';
 import React, {
   forwardRef,
   HTMLInputAutoCompleteAttribute,
   useId,
 } from 'react';
-import { Box, Input, LabelInput, Text } from 'design';
-
-import { BoxProps } from 'design/Box';
-import styled, { useTheme } from 'styled-components';
-import { IconProps } from 'design/Icon/Icon';
-import { InputMode, InputSize, InputType } from 'design/Input';
-
-import { IconTooltip } from 'design/Tooltip';
-
 import { useRule } from 'shared/components/Validation';
+import styled, { useTheme } from 'styled-components';
 
 const FieldInput = forwardRef<HTMLInputElement, FieldInputProps>(
   (

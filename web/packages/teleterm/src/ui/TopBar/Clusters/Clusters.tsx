@@ -16,18 +16,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useCallback, useMemo, useRef, useState } from 'react';
-import Popover from 'design/Popover';
-import styled from 'styled-components';
 import { Box } from 'design';
-
-import { useKeyboardShortcuts } from 'teleterm/ui/services/keyboardShortcuts';
+import Popover from 'design/Popover';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import styled from 'styled-components';
 import { KeyboardArrowsNavigation } from 'teleterm/ui/components/KeyboardArrowsNavigation';
+import { useKeyboardShortcuts } from 'teleterm/ui/services/keyboardShortcuts';
 import { ClusterUri } from 'teleterm/ui/uri';
 
-import { useClusters } from './useClusters';
 import { ClusterSelector } from './ClusterSelector/ClusterSelector';
 import { ClustersFilterableList } from './ClustersFilterableList/ClustersFilterableList';
+import { useClusters } from './useClusters';
 
 export function Clusters() {
   const iconRef = useRef();

@@ -16,10 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Link, useLocation } from 'react-router-dom';
-
 import { ButtonPrimary, ButtonSecondary } from 'design/Button';
-
+import { Link, useLocation } from 'react-router-dom';
 import cfg from 'teleport/config';
 
 import { FlowStepProps } from './GuidedFlow';

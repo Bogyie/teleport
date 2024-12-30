@@ -17,7 +17,6 @@
  */
 
 import { useAsync } from 'shared/hooks/useAsync';
-
 import { RootClusterUri } from 'teleterm/ui/uri';
 
 import { useAppContext } from '../appContextProvider';

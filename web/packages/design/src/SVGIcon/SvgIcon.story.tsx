@@ -16,17 +16,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { ReactNode } from 'react';
-
-import { useTheme } from 'styled-components';
-
 import { IconCircle } from 'design/Icon/IconCircle';
+import { ReactNode } from 'react';
+import { useTheme } from 'styled-components';
 
 import Flex from '../Flex';
 import Text from '../Text';
-
-import { TeleportGearIcon } from './TeleportGearIcon';
 import { SVGIconProps } from './common';
+import { TeleportGearIcon } from './TeleportGearIcon';
 
 export default {
   title: 'Design/Icon',

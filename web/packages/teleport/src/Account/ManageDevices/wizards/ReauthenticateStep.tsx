@@ -17,6 +17,7 @@
  */
 
 import { OutlineDanger } from 'design/Alert/Alert';
+import Box from 'design/Box';
 import { ButtonPrimary, ButtonSecondary } from 'design/Button';
 import Flex from 'design/Flex';
 import { RadioGroup } from 'design/RadioGroup';
@@ -25,9 +26,6 @@ import React, { FormEvent, useState } from 'react';
 import FieldInput from 'shared/components/FieldInput';
 import Validation, { Validator } from 'shared/components/Validation';
 import { requiredField } from 'shared/components/Validation/rules';
-
-import Box from 'design/Box';
-
 import { ReauthState } from 'teleport/components/ReAuthenticate/useReAuthenticate';
 import { DeviceType } from 'teleport/services/mfa';
 

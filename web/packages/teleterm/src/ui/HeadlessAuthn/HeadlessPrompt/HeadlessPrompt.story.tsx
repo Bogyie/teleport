@@ -17,7 +17,6 @@
  */
 
 import { makeEmptyAttempt } from 'shared/hooks/useAsync';
-
 import { makeRootCluster } from 'teleterm/services/tshd/testHelpers';
 
 import { HeadlessPrompt } from './HeadlessPrompt';

@@ -16,11 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { useTheme } from 'styled-components';
-
 import { Box, Indicator } from 'design';
-
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   FileTransfer,
   FileTransferActionBar,
@@ -28,17 +25,14 @@ import {
   FileTransferRequests,
 } from 'shared/components/FileTransfer';
 import { TerminalSearch } from 'shared/components/TerminalSearch';
-
-import * as stores from 'teleport/Console/stores';
-
+import { useTheme } from 'styled-components';
 import AuthnDialog from 'teleport/components/AuthnDialog';
+import * as stores from 'teleport/Console/stores';
 import { useMfa, useMfaTty } from 'teleport/lib/useMfa';
 import { MfaChallengeScope } from 'teleport/services/auth/auth';
 
-import Document from '../Document';
-
 import { useConsoleContext } from '../consoleContextProvider';
-
+import Document from '../Document';
 import { Terminal, TerminalRef } from './Terminal';
 import { useFileTransfer } from './useFileTransfer';
 import useSshSession from './useSshSession';

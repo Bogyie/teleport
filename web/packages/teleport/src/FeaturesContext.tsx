@@ -17,7 +17,6 @@
  */
 
 import React, { useContext } from 'react';
-
 import type { TeleportFeature } from 'teleport/types';
 
 interface FeaturesContextState {

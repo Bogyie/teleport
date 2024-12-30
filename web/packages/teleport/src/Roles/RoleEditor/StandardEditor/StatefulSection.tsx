@@ -17,7 +17,6 @@
  */
 
 import React, { useState } from 'react';
-
 import Validation, { Validator } from 'shared/components/Validation';
 
 import { SectionProps } from './sections';

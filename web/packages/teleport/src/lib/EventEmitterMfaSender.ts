@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { EventEmitter } from 'events';
-
 import { MfaChallengeResponse } from 'teleport/services/mfa';
+
+import { EventEmitter } from 'events';
 
 class EventEmitterMfaSender extends EventEmitter {
   constructor() {

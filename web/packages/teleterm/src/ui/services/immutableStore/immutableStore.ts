@@ -19,9 +19,8 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment*/
 
 import { enableMapSet, produce } from 'immer';
-import Store from 'shared/libs/stores/store';
 import stateLogger from 'shared/libs/stores/logger';
-
+import Store from 'shared/libs/stores/store';
 import Logger from 'teleterm/logger';
 
 enableMapSet();

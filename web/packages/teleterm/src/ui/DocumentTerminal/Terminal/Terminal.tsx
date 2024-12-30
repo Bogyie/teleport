@@ -16,26 +16,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, { useEffect, useRef, useState } from 'react';
-import styled, { useTheme } from 'styled-components';
 import { Box, Flex } from 'design';
-import { debounce } from 'shared/utils/highbar';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Attempt,
   makeEmptyAttempt,
   makeErrorAttemptWithStatusText,
   makeSuccessAttempt,
 } from 'shared/hooks/useAsync';
-
+import { debounce } from 'shared/utils/highbar';
+import styled, { useTheme } from 'styled-components';
+import { ConfigService } from 'teleterm/services/config';
 import { WindowsPty } from 'teleterm/services/pty';
 import { IPtyProcess } from 'teleterm/sharedProcess/ptyHost';
-import { DocumentTerminal } from 'teleterm/ui/services/workspacesService';
 import { KeyboardShortcutsService } from 'teleterm/ui/services/keyboardShortcuts';
-
-import { ConfigService } from 'teleterm/services/config';
+import { DocumentTerminal } from 'teleterm/ui/services/workspacesService';
 
 import { Reconnect } from '../Reconnect';
-
 import XTermCtrl from './ctrl';
 
 type TerminalProps = {

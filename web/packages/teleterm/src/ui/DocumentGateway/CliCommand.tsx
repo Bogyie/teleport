@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useEffect, useState } from 'react';
 import { Box, ButtonPrimary, Flex, Indicator } from 'design';
 import { fade } from 'design/theme/utils/colorManipulator';
+import { useEffect, useState } from 'react';
 import styled from 'styled-components';
 
 interface CliCommandProps {

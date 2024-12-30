@@ -17,7 +17,6 @@
  */
 
 import { SortType } from 'design/DataTable/types';
-
 import type * as uri from 'teleterm/ui/uri';
 
 /*

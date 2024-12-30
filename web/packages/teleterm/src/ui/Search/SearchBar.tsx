@@ -16,15 +16,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, { useRef, useEffect, useCallback } from 'react';
-import styled from 'styled-components';
 import { Box, Flex } from 'design';
-
+import React, { useCallback, useEffect, useRef } from 'react';
+import styled from 'styled-components';
+import { KeyboardShortcutAction } from 'teleterm/services/config';
 import {
   SearchContextProvider,
   useSearchContext,
 } from 'teleterm/ui/Search/SearchContext';
-import { KeyboardShortcutAction } from 'teleterm/services/config';
 import {
   useKeyboardShortcutFormatters,
   useKeyboardShortcuts,

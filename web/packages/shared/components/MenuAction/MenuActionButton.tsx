@@ -16,12 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, { PropsWithChildren } from 'react';
-import Menu from 'design/Menu';
 import { ButtonBorder } from 'design';
 import { ChevronDown } from 'design/Icon';
+import Menu from 'design/Menu';
+import React, { PropsWithChildren } from 'react';
 
-import { MenuProps, AnchorProps } from './types';
+import { AnchorProps, MenuProps } from './types';
 
 type Props = MenuProps & {
   defaultOpen?: boolean;

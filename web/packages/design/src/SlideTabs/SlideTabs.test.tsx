@@ -16,12 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useState } from 'react';
 import { screen } from '@testing-library/react';
-
-import { render, userEvent } from 'design/utils/testing';
-
 import * as Icon from 'design/Icon';
+import { render, userEvent } from 'design/utils/testing';
+import { useState } from 'react';
 
 import { SlideTabs, SlideTabsProps } from './SlideTabs';
 

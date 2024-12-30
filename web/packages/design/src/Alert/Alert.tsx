@@ -16,22 +16,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { IconProps } from 'design/Icon/Icon';
+import { StatusIcon, StatusKind } from 'design/StatusIcon';
 import React, { useState } from 'react';
 import styled, { useTheme } from 'styled-components';
-import { style, color, ColorProps } from 'styled-system';
+import { color, ColorProps, style } from 'styled-system';
 
-import { IconProps } from 'design/Icon/Icon';
-
-import { StatusIcon, StatusKind } from 'design/StatusIcon';
-
-import { space, SpaceProps, width, WidthProps } from '../system';
-import { Theme } from '../theme';
-import * as Icon from '../Icon';
-import Flex from '../Flex';
-import Text from '../Text';
 import Box from '../Box';
-import { ButtonFill, ButtonIntent, Button } from '../Button';
+import { Button, ButtonFill, ButtonIntent } from '../Button';
 import ButtonIcon from '../ButtonIcon';
+import Flex from '../Flex';
+import * as Icon from '../Icon';
+import { space, SpaceProps, width, WidthProps } from '../system';
+import Text from '../Text';
+import { Theme } from '../theme';
 
 const linkColor = style({
   prop: 'linkColor',

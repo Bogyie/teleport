@@ -16,17 +16,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import Box from 'design/Box';
 import React, {
+  createRef,
   useCallback,
   useEffect,
   useRef,
   useState,
-  createRef,
 } from 'react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import styled from 'styled-components';
-
-import Box from 'design/Box';
 
 /**
  * StepSlider

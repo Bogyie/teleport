@@ -16,13 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useMemo } from 'react';
-
 import { ButtonBorder } from 'design';
+import { useMemo } from 'react';
 import { NavLink } from 'react-router-dom';
-
 import cfg from 'teleport/config';
-
 import {
   Event,
   EventCode,

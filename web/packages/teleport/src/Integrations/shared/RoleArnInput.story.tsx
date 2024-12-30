@@ -16,10 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useState } from 'react';
 import { ButtonSecondary } from 'design/Button';
+import { useState } from 'react';
 import Validation from 'shared/components/Validation';
-
 import { StyledBox } from 'teleport/Discover/Shared';
 
 import { RoleArnInput } from './RoleArnInput';

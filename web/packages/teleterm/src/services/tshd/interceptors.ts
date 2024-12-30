@@ -17,9 +17,7 @@
  */
 
 import { MethodInfo, RpcInterceptor } from '@protobuf-ts/runtime-rpc';
-
 import { isObject } from 'shared/utils/highbar';
-
 import Logger from 'teleterm/logger';
 
 const SENSITIVE_PROPERTIES = ['password', 'authClusterId', 'pin', 'puk'];

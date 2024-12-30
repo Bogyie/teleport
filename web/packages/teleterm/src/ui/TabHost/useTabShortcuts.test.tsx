@@ -16,18 +16,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { PropsWithChildren } from 'react';
 import renderHook from 'design/utils/renderHook';
-
-import { useTabShortcuts } from 'teleterm/ui/TabHost/useTabShortcuts';
-import { Document } from 'teleterm/ui/services/workspacesService/documentsService';
+import { PropsWithChildren } from 'react';
+import AppContextProvider from 'teleterm/ui/appContextProvider';
+import { MockAppContext } from 'teleterm/ui/fixtures/mocks';
 import {
   KeyboardShortcutEvent,
   KeyboardShortcutEventSubscriber,
 } from 'teleterm/ui/services/keyboardShortcuts';
-import AppContextProvider from 'teleterm/ui/appContextProvider';
+import { Document } from 'teleterm/ui/services/workspacesService/documentsService';
 import { makeDocumentCluster } from 'teleterm/ui/services/workspacesService/documentsService/testHelpers';
-import { MockAppContext } from 'teleterm/ui/fixtures/mocks';
+import { useTabShortcuts } from 'teleterm/ui/TabHost/useTabShortcuts';
 
 function getMockDocuments(): Document[] {
   return [

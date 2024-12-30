@@ -16,10 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Link as InternalLink } from 'react-router-dom';
-import { OutlineInfo } from 'design/Alert/Alert';
 import { Mark } from 'design';
-
+import { OutlineInfo } from 'design/Alert/Alert';
+import { Link as InternalLink } from 'react-router-dom';
 import cfg from 'teleport/config';
 
 export const SingleEc2InstanceInstallation = () => (

@@ -18,7 +18,6 @@
 
 import { Box, ButtonPrimary, Flex, H1, ResourceIcon, Text } from 'design';
 import styled from 'styled-components';
-
 import { useAppContext } from 'teleterm/ui/appContextProvider';
 
 import { RecentClusters } from './RecentClusters';

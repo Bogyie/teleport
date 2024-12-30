@@ -17,7 +17,6 @@
  */
 
 import { useEffect } from 'react';
-
 import session from 'teleport/services/websession';
 
 import ConsoleContext from './consoleContext';

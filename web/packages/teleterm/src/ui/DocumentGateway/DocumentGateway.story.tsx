@@ -18,11 +18,10 @@
 
 import {
   makeEmptyAttempt,
-  makeProcessingAttempt,
   makeErrorAttemptWithStatusText,
+  makeProcessingAttempt,
   makeSuccessAttempt,
 } from 'shared/hooks/useAsync';
-
 import { makeDatabaseGateway } from 'teleterm/services/tshd/testHelpers';
 
 import { DocumentGateway, DocumentGatewayProps } from './DocumentGateway';

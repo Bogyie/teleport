@@ -16,11 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, { useState } from 'react';
-import { Box, Flex, ButtonSecondary, LabelInput } from 'design';
-import Select, { Option } from 'shared/components/Select';
+import { Box, ButtonSecondary, Flex, LabelInput } from 'design';
 import { Refresh as RefreshIcon } from 'design/Icon';
-
+import React, { useState } from 'react';
+import Select, { Option } from 'shared/components/Select';
 import { awsRegionMap, Regions } from 'teleport/services/integrations';
 
 export function AwsRegionSelector({

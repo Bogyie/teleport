@@ -17,7 +17,6 @@
  */
 
 import { Box, Text } from 'design';
-
 import styled from 'styled-components';
 
 export const TextIcon = styled(Text)`

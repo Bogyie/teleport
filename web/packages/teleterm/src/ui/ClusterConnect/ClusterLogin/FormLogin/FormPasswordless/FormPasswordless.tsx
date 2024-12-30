@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { Box, ButtonText, Flex, Text } from 'design';
+import { ArrowForward, Key } from 'design/Icon';
 import styled from 'styled-components';
-import { Text, Flex, ButtonText, Box } from 'design';
-import { Key, ArrowForward } from 'design/Icon';
 
 import type { Props } from '../FormLogin';
 

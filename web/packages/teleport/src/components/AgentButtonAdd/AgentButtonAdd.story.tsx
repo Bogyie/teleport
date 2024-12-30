@@ -17,7 +17,6 @@
  */
 
 import { MemoryRouter } from 'react-router';
-
 import { SearchResource } from 'teleport/Discover/SelectResource';
 
 import AgentButtonAdd, { Props } from './AgentButtonAdd';

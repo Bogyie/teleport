@@ -18,13 +18,12 @@
 
 import { render, screen } from 'design/utils/testing';
 import { MemoryRouter } from 'react-router-dom';
-
 import { ContextProvider } from 'teleport';
-import TeleportContext from 'teleport/teleportContext';
 import { allAccessAcl } from 'teleport/mocks/contexts';
+import TeleportContext from 'teleport/teleportContext';
 
-import { GitHubFlowProvider } from './useGitHubFlow';
 import { ConfigureBot } from './ConfigureBot';
+import { GitHubFlowProvider } from './useGitHubFlow';
 
 describe('addBotToWorkflow Component', () => {
   const setup = () => {

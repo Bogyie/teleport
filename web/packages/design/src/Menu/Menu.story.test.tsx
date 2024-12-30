@@ -17,7 +17,6 @@
  */
 
 import { screen } from '@testing-library/react';
-
 import { render } from 'design/utils/testing';
 
 import { IconExample } from './Menu.story';

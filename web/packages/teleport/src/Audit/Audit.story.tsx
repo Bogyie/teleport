@@ -16,10 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Router } from 'react-router';
 import { createMemoryHistory } from 'history';
-
-import { ContextProvider, Context } from 'teleport';
+import { Router } from 'react-router';
+import { Context, ContextProvider } from 'teleport';
 
 import { AuditContainer as Audit } from './Audit';
 import EventList from './EventList';

@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import styled from 'styled-components';
+import { Box, Flex } from 'design';
 import { typography } from 'design/system';
-import { Flex, Box } from 'design';
+import styled from 'styled-components';
 
 const Tabs = props => {
   return (

@@ -16,25 +16,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useEffect, useState } from 'react';
-import styled from 'styled-components';
-
 import { Box, ButtonIcon, Flex, Label, Text } from 'design';
 import { CheckboxInput } from 'design/Checkbox';
 import { Tags } from 'design/Icon';
 import { ResourceIcon } from 'design/ResourceIcon';
-
+import { HoverTooltip } from 'design/Tooltip';
+import { useEffect, useState } from 'react';
+import styled from 'styled-components';
 import { makeLabelTag } from 'teleport/components/formatters';
 
-import { HoverTooltip } from 'design/Tooltip';
-
-import { ResourceItemProps } from '../types';
-import { PinButton } from '../shared/PinButton';
 import { CopyButton } from '../shared/CopyButton';
 import {
   BackgroundColorProps,
   getBackgroundColor,
 } from '../shared/getBackgroundColor';
+import { PinButton } from '../shared/PinButton';
+import { ResourceItemProps } from '../types';
 
 export function ResourceListItem({
   name,

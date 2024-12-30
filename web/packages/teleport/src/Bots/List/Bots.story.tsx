@@ -17,7 +17,6 @@
  */
 
 import { MemoryRouter } from 'react-router';
-
 import { botsFixture } from 'teleport/Bots/fixtures';
 import { BotList } from 'teleport/Bots/List/BotList';
 

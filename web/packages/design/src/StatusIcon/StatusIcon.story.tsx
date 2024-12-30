@@ -17,7 +17,6 @@
  */
 
 import { StoryObj } from '@storybook/react';
-
 import Flex from 'design/Flex';
 
 import { StatusIcon } from '.';

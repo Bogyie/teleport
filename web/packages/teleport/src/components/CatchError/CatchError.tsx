@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React from 'react';
 import { Failed } from 'design/CardError';
+import React from 'react';
 import Logger from 'shared/libs/logger';
 
 const logger = Logger.create('components/CatchError');

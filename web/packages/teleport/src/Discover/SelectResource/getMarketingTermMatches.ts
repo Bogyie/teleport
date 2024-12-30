@@ -17,7 +17,6 @@
  */
 
 import { Resource } from 'gen-proto-ts/teleport/userpreferences/v1/onboard_pb';
-
 import { MarketingParams } from 'teleport/services/userPreferences/types';
 
 /**

@@ -16,12 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React from 'react';
-
 import { Logger } from 'design/logger';
-
-import { isObject } from 'shared/utils/highbar';
+import React from 'react';
 import { Store, useStore } from 'shared/libs/stores';
+import { isObject } from 'shared/utils/highbar';
 
 import { ValidationResult } from './rules';
 

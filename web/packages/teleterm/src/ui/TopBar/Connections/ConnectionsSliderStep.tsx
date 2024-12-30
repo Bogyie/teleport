@@ -16,15 +16,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useState } from 'react';
 import { Box } from 'design';
 import { StepComponentProps } from 'design/StepSlider';
-
+import { useState } from 'react';
 import { useAppContext } from 'teleterm/ui/appContextProvider';
 import { KeyboardArrowsNavigation } from 'teleterm/ui/components/KeyboardArrowsNavigation';
 
-import { ConnectionsFilterableList } from './ConnectionsFilterableList/ConnectionsFilterableList';
 import { useConnectionsContext } from './connectionsContext';
+import { ConnectionsFilterableList } from './ConnectionsFilterableList/ConnectionsFilterableList';
 
 export const ConnectionsSliderStep = (props: StepComponentProps) => {
   const { connectionTracker } = useAppContext();

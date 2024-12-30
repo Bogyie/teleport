@@ -17,7 +17,6 @@
  */
 
 import { Resource } from 'gen-proto-ts/teleport/userpreferences/v1/onboard_pb';
-
 import { SearchResource } from 'teleport/Discover/SelectResource/types';
 
 export const resourceMapping: { [key in Resource]: SearchResource } = {

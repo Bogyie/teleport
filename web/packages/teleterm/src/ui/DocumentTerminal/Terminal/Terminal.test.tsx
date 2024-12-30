@@ -17,15 +17,15 @@
  */
 
 import 'jest-canvas-mock';
-import { EventEmitter } from 'node:events';
 
-import userEvent from '@testing-library/user-event';
 import { screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { render } from 'design/utils/testing';
-
-import { MockAppContext } from 'teleterm/ui/fixtures/mocks';
 import Logger, { NullService } from 'teleterm/logger';
+import { MockAppContext } from 'teleterm/ui/fixtures/mocks';
 import { IAppContext } from 'teleterm/ui/types';
+
+import { EventEmitter } from 'node:events';
 
 import { Terminal } from './Terminal';
 

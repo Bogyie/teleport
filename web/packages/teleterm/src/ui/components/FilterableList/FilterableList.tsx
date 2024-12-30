@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Fragment, ReactNode, useMemo, useState } from 'react';
 import { Input } from 'design';
+import { Fragment, ReactNode, useMemo, useState } from 'react';
 import styled from 'styled-components';
 
 interface FilterableListProps<T> {

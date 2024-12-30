@@ -16,16 +16,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, { useState } from 'react';
 import { Box, ButtonPrimary, ButtonText, H2 } from 'design';
 import { Danger } from 'design/Alert';
+import React, { useState } from 'react';
 import FieldInput from 'shared/components/FieldInput';
 import Validation, { Validator } from 'shared/components/Validation';
 import { requiredField } from 'shared/components/Validation/rules';
 import { useRefAutoFocus } from 'shared/hooks';
-
 import { OnboardCard } from 'teleport/components/Onboard';
-
 import { PasskeyBlurb } from 'teleport/components/Passkeys/PasskeyBlurb';
 
 import { SliderProps, UseTokenState } from './types';

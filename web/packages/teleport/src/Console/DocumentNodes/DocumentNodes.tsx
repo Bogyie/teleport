@@ -16,17 +16,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, { useState } from 'react';
-import styled from 'styled-components';
-import { Indicator, Box } from 'design';
+import { Box, Indicator } from 'design';
 import { Danger } from 'design/Alert';
-
+import React, { useState } from 'react';
 import { ClusterDropdown } from 'shared/components/ClusterDropdown/ClusterDropdown';
-
-import { NodeList } from 'teleport/components/NodeList';
+import styled from 'styled-components';
 import ErrorMessage from 'teleport/components/AgentErrorMessage';
+import { NodeList } from 'teleport/components/NodeList';
 import Document from 'teleport/Console/Document';
-
 import * as stores from 'teleport/Console/stores/types';
 
 import useNodes from './useNodes';

@@ -20,7 +20,6 @@ import { getPlatform } from 'design/platform';
 import { MemoryRouter } from 'react-router';
 
 import { getConnectDownloadLinks } from '../DownloadConnect/DownloadConnect';
-
 import { DeviceTrustConnectPassthrough } from './AuthorizeDeviceWeb';
 
 export default {

@@ -16,9 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import styled from 'styled-components';
-
 import { render, screen, userEvent } from 'design/utils/testing';
+import styled from 'styled-components';
 
 import { ToolTipBadge } from './ToolTipBadge';
 

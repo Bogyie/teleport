@@ -16,23 +16,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { BackgroundItemStatus } from 'gen-proto-ts/teleport/lib/teleterm/vnet/v1/vnet_service_pb';
 import {
+  createContext,
   FC,
   PropsWithChildren,
-  createContext,
-  useContext,
-  useState,
   useCallback,
-  useMemo,
+  useContext,
   useEffect,
+  useMemo,
+  useState,
 } from 'react';
-import { useAsync, Attempt } from 'shared/hooks/useAsync';
-import { BackgroundItemStatus } from 'gen-proto-ts/teleport/lib/teleterm/vnet/v1/vnet_service_pb';
-
+import { Attempt, useAsync } from 'shared/hooks/useAsync';
+import { isTshdRpcError } from 'teleterm/services/tshd';
 import { useAppContext } from 'teleterm/ui/appContextProvider';
 import { usePersistedState } from 'teleterm/ui/hooks/usePersistedState';
 import { useStoreSelector } from 'teleterm/ui/hooks/useStoreSelector';
-import { isTshdRpcError } from 'teleterm/services/tshd';
 import { IAppContext } from 'teleterm/ui/types';
 
 /**

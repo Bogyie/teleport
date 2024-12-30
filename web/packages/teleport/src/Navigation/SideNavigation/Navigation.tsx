@@ -16,38 +16,33 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { Box, Flex } from 'design';
+import { SideNavDrawerMode } from 'gen-proto-ts/teleport/userpreferences/v1/sidenav_preferences_pb';
+import type * as history from 'history';
 import React, {
-  useState,
   useCallback,
   useEffect,
-  useRef,
   useMemo,
+  useRef,
+  useState,
 } from 'react';
-import styled from 'styled-components';
 import { matchPath, useHistory } from 'react-router';
-import { Flex, Box } from 'design';
-
-import { SideNavDrawerMode } from 'gen-proto-ts/teleport/userpreferences/v1/sidenav_preferences_pb';
-
+import styled from 'styled-components';
 import cfg from 'teleport/config';
-
 import { useFeatures } from 'teleport/FeaturesContext';
-import useStickyClusterId from 'teleport/useStickyClusterId';
+import type { TeleportFeature } from 'teleport/types';
 import { useUser } from 'teleport/User/UserContext';
-
-import { DefaultSection, rightPanelWidth } from './Section';
-import { zIndexMap } from './zIndexMap';
+import useStickyClusterId from 'teleport/useStickyClusterId';
 
 import {
   CustomNavigationSubcategory,
   NAVIGATION_CATEGORIES,
   SidenavCategory,
 } from './categories';
-import { SearchSection } from './Search';
 import { getResourcesSection, ResourcesSection } from './ResourcesSection';
-
-import type * as history from 'history';
-import type { TeleportFeature } from 'teleport/types';
+import { SearchSection } from './Search';
+import { DefaultSection, rightPanelWidth } from './Section';
+import { zIndexMap } from './zIndexMap';
 
 const SideNavContainer = styled(Flex).attrs({
   gap: 2,

@@ -16,16 +16,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useEffect, useState } from 'react';
-
 import isMatch, { MatchCallback } from 'design/utils/match';
+import { useEffect, useState } from 'react';
 
 import paginateData from './Pager/paginateData';
 import {
-  TableProps,
-  TableColumn,
-  PagerPosition,
   PagedTableProps,
+  PagerPosition,
+  TableColumn,
+  TableProps,
 } from './types';
 
 type TableState<T> = {

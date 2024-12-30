@@ -16,21 +16,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { Theme } from 'design/theme';
 import { TdHTMLAttributes } from 'react';
 
-import { Theme } from 'design/theme';
-
-import Label from '../Label';
+import { displayDate } from '../datetime';
 import Flex from '../Flex';
 import * as Icons from '../Icon';
-
-import { displayDate } from '../datetime';
-
+import Label from '../Label';
 import {
+  LabelDescription,
   ServersideProps,
   SortDir,
   TableColumn,
-  LabelDescription,
 } from './types';
 
 export function Cell(props: TdHTMLAttributes<HTMLTableCellElement>) {

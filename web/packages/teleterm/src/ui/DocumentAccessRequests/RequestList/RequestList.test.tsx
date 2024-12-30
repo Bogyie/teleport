@@ -16,12 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { MemoryRouter } from 'react-router-dom';
 import { fireEvent, render, screen } from 'design/utils/testing';
-
+import { MemoryRouter } from 'react-router-dom';
 import { requestRoleApproved } from 'shared/components/AccessRequests/fixtures';
-import { AccessRequest } from 'shared/services/accessRequests';
 import { RequestFlags } from 'shared/components/AccessRequests/ReviewRequests';
+import { AccessRequest } from 'shared/services/accessRequests';
 
 import { RequestList } from './RequestList';
 

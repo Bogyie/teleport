@@ -16,16 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { Theme } from 'design/theme/themes/types';
+import { shouldForwardProp } from 'design/ThemeProvider';
 import React, { useEffect, useState } from 'react';
 import {
   ThemeProvider as StyledThemeProvider,
   StyleSheetManager,
 } from 'styled-components';
-
-import { Theme } from 'design/theme/themes/types';
-
-import { shouldForwardProp } from 'design/ThemeProvider';
-
 import { useAppContext } from 'teleterm/ui/appContextProvider';
 
 import { GlobalStyle } from './globals';

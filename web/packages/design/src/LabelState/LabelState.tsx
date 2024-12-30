@@ -16,20 +16,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import styled from 'styled-components';
-
 import {
-  fontSize,
-  FontSizeProps,
   color,
   ColorProps,
-  width,
-  WidthProps,
+  fontSize,
+  FontSizeProps,
   space,
   SpaceProps,
+  width,
+  WidthProps,
 } from 'design/system';
-import { fade } from 'design/theme/utils/colorManipulator';
 import { Theme } from 'design/theme/themes/types';
+import { fade } from 'design/theme/utils/colorManipulator';
+import styled from 'styled-components';
 
 export type LabelKind =
   | 'primary'

@@ -16,16 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React from 'react';
-
-import { ResourceLabel } from 'teleport/services/agents';
-
-import { ResourceIconName } from 'design/ResourceIcon';
 import { Icon } from 'design/Icon';
-import { AppSubKind, PermissionSet } from 'teleport/services/apps';
-
-import { DbProtocol } from 'shared/services/databases';
+import { ResourceIconName } from 'design/ResourceIcon';
+import React from 'react';
 import { NodeSubKind } from 'shared/services';
+import { DbProtocol } from 'shared/services/databases';
+import { ResourceLabel } from 'teleport/services/agents';
+import { AppSubKind, PermissionSet } from 'teleport/services/apps';
 
 export type UnifiedResourceApp = {
   kind: 'app';

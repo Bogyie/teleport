@@ -17,7 +17,6 @@
  */
 
 import { Duration } from 'date-fns';
-
 import {
   middleValues,
   requestTtlMiddleValues,

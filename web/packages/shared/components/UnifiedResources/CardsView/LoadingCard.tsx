@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useState } from 'react';
-import { Flex, Box } from 'design';
+import { Box, Flex } from 'design';
 import { ShimmerBox } from 'design/ShimmerBox';
+import { useState } from 'react';
 
 export function LoadingCard() {
   const [randomizedSize] = useState(() => ({

@@ -19,7 +19,6 @@
 import Table, { Cell } from 'design/DataTable';
 import * as Icons from 'design/Icon';
 import styled from 'styled-components';
-
 import { Participant, Session, SessionKind } from 'teleport/services/session';
 
 import { SessionJoinBtn } from './SessionJoinBtn';

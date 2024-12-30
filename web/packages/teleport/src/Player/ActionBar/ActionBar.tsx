@@ -16,11 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { NavLink } from 'react-router-dom';
-import { Flex, ButtonPrimary } from 'design';
-import { MenuIcon, MenuItem, MenuItemIcon } from 'shared/components/MenuAction';
+import { ButtonPrimary, Flex } from 'design';
 import * as Icons from 'design/Icon';
-
+import { NavLink } from 'react-router-dom';
+import { MenuIcon, MenuItem, MenuItemIcon } from 'shared/components/MenuAction';
 import cfg from 'teleport/config';
 
 export default function ActionBar({ onLogout }: Props) {

@@ -16,17 +16,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useState } from 'react';
-import styled from 'styled-components';
 import { Box } from 'design';
+import { useState } from 'react';
 import { ActionMeta } from 'react-select';
-
-import { Option } from 'shared/components/Select';
 import { FieldSelectAsync } from 'shared/components/FieldSelect';
+import { Option } from 'shared/components/Select';
+import styled from 'styled-components';
 
 import { CheckableOptionComponent } from '../CheckableOption';
-
-import { PendingListItem, PendingKubeResourceItem } from './RequestCheckout';
+import { PendingKubeResourceItem, PendingListItem } from './RequestCheckout';
 
 export function KubeNamespaceSelector({
   kubeClusterItem,

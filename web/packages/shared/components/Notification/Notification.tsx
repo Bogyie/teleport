@@ -16,17 +16,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, { useEffect, useRef, useState } from 'react';
-import styled, { useTheme } from 'styled-components';
 import { Box, ButtonIcon, Flex, Text } from 'design';
-import { Cross } from 'design/Icon';
-
-import * as Icon from 'design/Icon';
-import { IconProps } from 'design/Icon/Icon';
-import { Theme } from 'design/theme/themes/types';
-import { borderColor } from 'design/system';
 import { ActionButton } from 'design/Alert';
 import { BoxProps } from 'design/Box';
+import { Cross } from 'design/Icon';
+import * as Icon from 'design/Icon';
+import { IconProps } from 'design/Icon/Icon';
+import { borderColor } from 'design/system';
+import { Theme } from 'design/theme/themes/types';
+import React, { useEffect, useRef, useState } from 'react';
+import styled, { useTheme } from 'styled-components';
 
 import type {
   NotificationItem,

@@ -17,16 +17,15 @@
  */
 
 import { MemoryRouter } from 'react-router';
-
 import {
   IntegrationKind,
   IntegrationStatusCode,
 } from 'teleport/services/integrations';
 
+import { EditAwsOidcIntegrationDialog } from './EditAwsOidcIntegrationDialog';
+import { integrations, plugins } from './fixtures';
 import { IntegrationList } from './IntegrationList';
 import { DeleteIntegrationDialog } from './RemoveIntegrationDialog';
-import { EditAwsOidcIntegrationDialog } from './EditAwsOidcIntegrationDialog';
-import { plugins, integrations } from './fixtures';
 
 export default {
   title: 'Teleport/Integrations',

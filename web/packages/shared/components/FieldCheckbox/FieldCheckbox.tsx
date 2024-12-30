@@ -17,11 +17,11 @@
  */
 
 import Box from 'design/Box';
-import { CheckboxSize, CheckboxInput } from 'design/Checkbox';
+import { CheckboxInput, CheckboxSize } from 'design/Checkbox';
 import Flex from 'design/Flex';
 import LabelInput from 'design/LabelInput';
-import Text from 'design/Text';
 import { SpaceProps } from 'design/system';
+import Text from 'design/Text';
 import React, { forwardRef } from 'react';
 import styled from 'styled-components';
 

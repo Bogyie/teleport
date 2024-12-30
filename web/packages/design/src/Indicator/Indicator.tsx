@@ -16,10 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { IconProps } from 'design/Icon/Icon';
 import { useEffect, useState } from 'react';
 import styled from 'styled-components';
-
-import { IconProps } from 'design/Icon/Icon';
 
 import { Spinner as SpinnerIcon } from '../Icon';
 import { rotate360 } from '../keyframes';

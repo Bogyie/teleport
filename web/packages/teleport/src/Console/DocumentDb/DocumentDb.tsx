@@ -15,17 +15,14 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { useEffect, useRef } from 'react';
-
 import { Box, Indicator } from 'design';
+import { useEffect, useRef } from 'react';
 import { useTheme } from 'styled-components';
-
+import AuthnDialog from 'teleport/components/AuthnDialog';
+import Document from 'teleport/Console/Document';
 import { Terminal, TerminalRef } from 'teleport/Console/DocumentSsh/Terminal';
 import * as stores from 'teleport/Console/stores/types';
 import { useMfaTty } from 'teleport/lib/useMfa';
-
-import Document from 'teleport/Console/Document';
-import AuthnDialog from 'teleport/components/AuthnDialog';
 
 import { ConnectDialog } from './ConnectDialog';
 import { useDbSession } from './useDbSession';

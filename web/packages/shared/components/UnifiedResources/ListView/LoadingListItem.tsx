@@ -16,11 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useState } from 'react';
-import styled from 'styled-components';
-
 import { Box, Flex } from 'design';
 import { ShimmerBox } from 'design/ShimmerBox';
+import { useState } from 'react';
+import styled from 'styled-components';
 
 export function LoadingListItem() {
   const [randomizedSize] = useState(() => ({

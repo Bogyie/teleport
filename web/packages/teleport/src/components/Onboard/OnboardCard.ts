@@ -16,9 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import styled from 'styled-components';
-
 import { Card } from 'design';
+import styled from 'styled-components';
 
 export const OnboardCard = styled(Card)<{ center?: boolean }>`
   width: 600px;

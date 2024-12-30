@@ -16,34 +16,33 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useId, useState } from 'react';
 import { Box, Flex } from 'design';
-import { useValidation } from 'shared/components/Validation';
 import * as Icon from 'design/Icon';
-import styled from 'styled-components';
-import { MenuButton, MenuItem } from 'shared/components/MenuAction';
 import { SlideTabs } from 'design/SlideTabs';
+import { useId, useState } from 'react';
+import { MenuButton, MenuItem } from 'shared/components/MenuAction';
+import { useValidation } from 'shared/components/Validation';
+import styled from 'styled-components';
 import { Role, RoleWithYaml } from 'teleport/services/resources';
 
 import { EditorSaveCancelButton } from '../Shared';
-
+import { AccessRules } from './AccessRules';
+import { MetadataSection } from './MetadataSection';
+import { Options } from './Options';
+import { RequiresResetToStandard } from './RequiresResetToStandard';
+import { ResourceAccessSection, resourceAccessSections } from './Resources';
 import {
-  roleEditorModelToRole,
   hasModifiedFields,
-  RoleEditorModel,
-  StandardEditorModel,
-  ResourceAccessKind,
-  ResourceAccess,
   newResourceAccess,
-  RuleModel,
   OptionsModel,
+  ResourceAccess,
+  ResourceAccessKind,
+  RoleEditorModel,
+  roleEditorModelToRole,
+  RuleModel,
+  StandardEditorModel,
 } from './standardmodel';
 import { validateRoleEditorModel } from './validation';
-import { RequiresResetToStandard } from './RequiresResetToStandard';
-import { MetadataSection } from './MetadataSection';
-import { ResourceAccessSection, resourceAccessSections } from './Resources';
-import { AccessRules } from './AccessRules';
-import { Options } from './Options';
 
 export type StandardEditorProps = {
   originalRole: RoleWithYaml;

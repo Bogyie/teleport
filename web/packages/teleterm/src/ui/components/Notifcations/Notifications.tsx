@@ -16,10 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import {
+  Notification,
+  type NotificationItem,
+} from 'shared/components/Notification';
 import styled from 'styled-components';
-import { Notification } from 'shared/components/Notification';
-
-import type { NotificationItem } from 'shared/components/Notification';
 
 interface NotificationsProps {
   items: NotificationItem[];

@@ -20,7 +20,6 @@ import { ButtonPrimary } from 'design/Button';
 import { useState } from 'react';
 import { NotificationItem } from 'shared/components/Notification';
 import { throttle } from 'shared/utils/highbar';
-
 import { TdpClient, TdpClientEvent } from 'teleport/lib/tdp';
 import { makeDefaultMfaState } from 'teleport/lib/useMfa';
 

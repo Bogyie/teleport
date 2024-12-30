@@ -16,12 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React from 'react';
-
-import { useTheme } from 'styled-components';
-
 import * as Icon from 'design/Icon';
 import { IconProps } from 'design/Icon/Icon';
+import React from 'react';
+import { useTheme } from 'styled-components';
 
 export type StatusKind = 'neutral' | 'danger' | 'info' | 'warning' | 'success';
 

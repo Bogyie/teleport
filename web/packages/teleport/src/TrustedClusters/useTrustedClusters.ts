@@ -18,7 +18,6 @@
 
 import { useEffect, useState } from 'react';
 import useAttempt from 'shared/hooks/useAttemptNext';
-
 import { Resource } from 'teleport/services/resources';
 import useTeleport from 'teleport/useTeleport';
 

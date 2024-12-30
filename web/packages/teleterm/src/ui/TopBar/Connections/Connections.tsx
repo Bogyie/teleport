@@ -16,17 +16,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useMemo, useRef } from 'react';
-import Popover from 'design/Popover';
 import { Box, StepSlider } from 'design';
-
-import { useKeyboardShortcuts } from 'teleterm/ui/services/keyboardShortcuts';
-import { VnetSliderStep, useVnetContext } from 'teleterm/ui/Vnet';
+import Popover from 'design/Popover';
+import { useMemo, useRef } from 'react';
 import { useAppContext } from 'teleterm/ui/appContextProvider';
+import { useKeyboardShortcuts } from 'teleterm/ui/services/keyboardShortcuts';
+import { useVnetContext, VnetSliderStep } from 'teleterm/ui/Vnet';
 
+import { Step, useConnectionsContext } from './connectionsContext';
 import { ConnectionsIcon } from './ConnectionsIcon/ConnectionsIcon';
 import { ConnectionsSliderStep } from './ConnectionsSliderStep';
-import { Step, useConnectionsContext } from './connectionsContext';
 
 export function Connections() {
   const { connectionTracker } = useAppContext();

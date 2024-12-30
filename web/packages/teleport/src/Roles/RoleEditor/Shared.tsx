@@ -19,7 +19,6 @@
 import { Box, ButtonPrimary, ButtonSecondary, Flex } from 'design';
 import { HoverTooltip } from 'design/Tooltip';
 import { useTheme } from 'styled-components';
-
 import useTeleport from 'teleport/useTeleport';
 
 export const EditorSaveCancelButton = ({

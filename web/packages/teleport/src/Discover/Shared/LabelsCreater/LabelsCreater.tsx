@@ -16,16 +16,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React from 'react';
-import { Box, Flex, ButtonIcon, Text } from 'design';
+import { Box, ButtonIcon, Flex, Text } from 'design';
 import * as Icons from 'design/Icon';
+import { inputGeometry } from 'design/Input/Input';
+import React from 'react';
+import { ButtonTextWithAddIcon } from 'shared/components/ButtonTextWithAddIcon';
 import FieldInput from 'shared/components/FieldInput';
 import { useValidation, Validator } from 'shared/components/Validation';
 import { requiredField } from 'shared/components/Validation/rules';
-import { ButtonTextWithAddIcon } from 'shared/components/ButtonTextWithAddIcon';
-
-import { inputGeometry } from 'design/Input/Input';
-
 import { ResourceLabel } from 'teleport/services/agents';
 
 export function LabelsCreater({

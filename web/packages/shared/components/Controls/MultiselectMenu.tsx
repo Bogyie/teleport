@@ -16,8 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, { ReactNode, useState } from 'react';
-import styled from 'styled-components';
 import {
   ButtonPrimary,
   ButtonSecondary,
@@ -26,10 +24,11 @@ import {
   MenuItem,
   Text,
 } from 'design';
-import { ChevronDown } from 'design/Icon';
 import { CheckboxInput } from 'design/Checkbox';
-
+import { ChevronDown } from 'design/Icon';
 import { HoverTooltip } from 'design/Tooltip';
+import React, { ReactNode, useState } from 'react';
+import styled from 'styled-components';
 
 type MultiselectMenuProps<T> = {
   options: {

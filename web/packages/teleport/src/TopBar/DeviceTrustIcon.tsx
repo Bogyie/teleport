@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import styled from 'styled-components';
 import { Flex } from 'design';
 import { ShieldCheck, ShieldWarning } from 'design/Icon';
 import { IconProps } from 'design/Icon/Icon';
+import styled from 'styled-components';
 
 import { DeviceTrustStatusKind } from './DeviceTrustStatus';
 

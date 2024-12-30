@@ -24,11 +24,9 @@ import {
   waitFor,
 } from 'design/utils/testing';
 import { MemoryRouter } from 'react-router';
-
-import { userEventService } from 'teleport/services/userEvent';
-
-import { integrationService } from 'teleport/services/integrations';
 import { ApiError } from 'teleport/services/api/parseError';
+import { integrationService } from 'teleport/services/integrations';
+import { userEventService } from 'teleport/services/userEvent';
 
 import { AwsOidc } from './AwsOidc';
 

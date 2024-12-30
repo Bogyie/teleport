@@ -16,16 +16,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { render, screen, userEvent } from 'design/utils/testing';
 import { act } from '@testing-library/react';
-import { Validator } from 'shared/components/Validation';
+import { render, screen, userEvent } from 'design/utils/testing';
 import selectEvent from 'react-select-event';
+import { Validator } from 'shared/components/Validation';
 import { ResourceKind } from 'teleport/services/resources';
 
-import { RuleModel } from './standardmodel';
-import { AccessRuleValidationResult, validateAccessRule } from './validation';
 import { AccessRules } from './AccessRules';
+import { RuleModel } from './standardmodel';
 import { StatefulSection } from './StatefulSection';
+import { AccessRuleValidationResult, validateAccessRule } from './validation';
 
 describe('AccessRules', () => {
   const setup = () => {

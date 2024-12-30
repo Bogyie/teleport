@@ -16,14 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useState } from 'react';
-import { Flex, Text, ButtonIcon, Box, LabelInput } from 'design';
+import { Box, ButtonIcon, Flex, LabelInput, Text } from 'design';
 import * as Icon from 'design/Icon';
-
 import { IconTooltip } from 'design/Tooltip';
-
+import { useState } from 'react';
 import Select, { Option } from 'shared/components/Select';
-
 import { AccessRequest } from 'shared/services/accessRequests';
 
 import { getFormattedDurationTxt } from '../../Shared/utils';

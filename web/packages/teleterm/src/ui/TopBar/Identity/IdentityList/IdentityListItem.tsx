@@ -16,14 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useState } from 'react';
 import { ButtonIcon, Flex, Label, Text } from 'design';
 import { Logout } from 'design/Icon';
-
-import { ListItem } from 'teleterm/ui/components/ListItem';
+import { useState } from 'react';
 import { useKeyboardArrowsNavigation } from 'teleterm/ui/components/KeyboardArrowsNavigation';
-import { getUserWithClusterName } from 'teleterm/ui/utils';
+import { ListItem } from 'teleterm/ui/components/ListItem';
 import { ProfileStatusError } from 'teleterm/ui/components/ProfileStatusError';
+import { getUserWithClusterName } from 'teleterm/ui/utils';
 
 import { IdentityRootCluster } from '../useIdentity';
 

@@ -17,10 +17,8 @@
  */
 
 import { Meta } from '@storybook/react';
-
-import { Attempt } from 'shared/hooks/useAttemptNext';
 import { useEffect, useState } from 'react';
-
+import { Attempt } from 'shared/hooks/useAttemptNext';
 import cfg from 'teleport/config';
 
 import { UserReset } from './UserReset';

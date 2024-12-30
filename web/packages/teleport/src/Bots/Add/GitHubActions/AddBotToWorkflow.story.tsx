@@ -17,13 +17,10 @@
  */
 
 import { MemoryRouter } from 'react-router';
-
 import { ContextProvider } from 'teleport';
-
 import { createTeleportContext } from 'teleport/mocks/contexts';
 
 import { FlowStepProps } from '../Shared/GuidedFlow';
-
 import { AddBotToWorkflow } from './AddBotToWorkflow';
 import { GitHubFlowProvider } from './useGitHubFlow';
 

@@ -16,9 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { DependencyList } from 'react';
-
 import { render } from 'design/utils/testing';
+import { DependencyList } from 'react';
 
 import { useRefAutoFocus } from './useRefAutoFocus';
 

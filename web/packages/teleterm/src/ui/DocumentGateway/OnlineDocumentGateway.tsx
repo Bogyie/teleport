@@ -16,14 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useMemo, useRef } from 'react';
-import { debounce } from 'shared/utils/highbar';
 import { Box, ButtonSecondary, Flex, H1, H2, Link, Text } from 'design';
-import Validation from 'shared/components/Validation';
 import * as Alerts from 'design/Alert';
+import { useMemo, useRef } from 'react';
+import Validation from 'shared/components/Validation';
+import { debounce } from 'shared/utils/highbar';
 
 import { ConfigFieldInput, PortFieldInput } from '../components/FieldInputs';
-
 import { CliCommand } from './CliCommand';
 import { DocumentGatewayProps } from './DocumentGateway';
 

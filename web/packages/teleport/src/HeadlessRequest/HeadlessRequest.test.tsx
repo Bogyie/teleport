@@ -17,11 +17,10 @@
  */
 
 import { render, screen } from 'design/utils/testing';
-import { Route, Router } from 'react-router';
 import { createMemoryHistory } from 'history';
-
-import { HeadlessRequest } from 'teleport/HeadlessRequest/HeadlessRequest';
+import { Route, Router } from 'react-router';
 import cfg from 'teleport/config';
+import { HeadlessRequest } from 'teleport/HeadlessRequest/HeadlessRequest';
 import auth from 'teleport/services/auth';
 
 test('ip address should be visible', async () => {

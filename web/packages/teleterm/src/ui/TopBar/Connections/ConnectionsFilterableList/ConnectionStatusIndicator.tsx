@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { blink, Box } from 'design';
 import styled, { css } from 'styled-components';
-import { Box, blink } from 'design';
 
 type Status = 'on' | 'off' | 'error' | 'warning' | 'processing';
 

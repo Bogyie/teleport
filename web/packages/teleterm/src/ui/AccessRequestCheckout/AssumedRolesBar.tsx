@@ -16,10 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import styled from 'styled-components';
 import { Box, Flex, Text } from 'design';
 import { pluralize } from 'shared/utils/text';
-
+import styled from 'styled-components';
 import { AssumedRequest } from 'teleterm/services/tshd/types';
 
 import { useAssumedRolesBar } from './useAssumedRolesBar';

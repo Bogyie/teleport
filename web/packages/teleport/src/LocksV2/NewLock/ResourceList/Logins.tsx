@@ -16,11 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, { useState } from 'react';
-import Table from 'design/DataTable';
 import { Box, ButtonSecondary, Flex, Input, Text } from 'design';
+import Table from 'design/DataTable';
+import React, { useState } from 'react';
 
-import { renderActionCell, LoginsProps } from './common';
+import { LoginsProps, renderActionCell } from './common';
 
 export function Logins(props: LoginsProps) {
   const [loginInput, setLoginInput] = useState('');

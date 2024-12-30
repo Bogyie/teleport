@@ -16,11 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import styled from 'styled-components';
-
-import { flex, space } from 'styled-system';
-
 import { Flex } from 'design';
+import styled from 'styled-components';
+import { flex, space } from 'styled-system';
 
 const DialogContent = styled(Flex)`
   margin-bottom: ${props => props.theme.space[5]}px;

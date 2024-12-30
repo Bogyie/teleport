@@ -17,11 +17,8 @@
  */
 
 import { fireEvent, render, screen, userEvent } from 'design/utils/testing';
-
-import { Router } from 'react-router';
-
 import { createMemoryHistory } from 'history';
-
+import { Router } from 'react-router';
 import { IntegrationList } from 'teleport/Integrations/IntegrationList';
 import {
   IntegrationKind,

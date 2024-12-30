@@ -16,20 +16,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React from 'react';
 import { Flex, Text } from 'design';
+import React from 'react';
 import TextEditor from 'shared/components/TextEditor';
 
 import {
-  kubeAccessRW,
-  kubeAccessRO,
-  nodeAccessRO,
-  nodeAccessRW,
+  awsAppAccessRO,
+  awsAppAccessRW,
   connDiagRW,
   dbAccessRO,
   dbAccessRW,
-  awsAppAccessRO,
-  awsAppAccessRW,
+  kubeAccessRO,
+  kubeAccessRW,
+  nodeAccessRO,
+  nodeAccessRW,
 } from '../../yamlTemplates';
 
 export function AccessInfo({ accessKind, traitKind, traitDesc }: Props) {

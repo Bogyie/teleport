@@ -21,7 +21,7 @@ import ButtonIcon from 'design/ButtonIcon';
 import Flex from 'design/Flex';
 import { Minus, Plus, Trash } from 'design/Icon';
 import { H3 } from 'design/Text';
-import { IconTooltip, HoverTooltip } from 'design/Tooltip';
+import { HoverTooltip, IconTooltip } from 'design/Tooltip';
 import { useState } from 'react';
 import { useValidation } from 'shared/components/Validation';
 import { ValidationResult } from 'shared/components/Validation/rules';

@@ -16,11 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { WebTarget } from 'styled-components';
 import { Property } from 'csstype';
-
 import { SharedStyles, Theme } from 'design/theme/themes/types';
 import { shouldForwardProp } from 'design/ThemeProvider';
+import { WebTarget } from 'styled-components';
 
 export interface TypographyProps {
   caps?: boolean;

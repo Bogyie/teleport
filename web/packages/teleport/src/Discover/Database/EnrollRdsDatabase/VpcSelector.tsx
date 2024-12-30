@@ -16,11 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { components } from 'react-select';
-import { Box, Flex, LabelInput, Link, ButtonIcon } from 'design';
-import Select from 'shared/components/Select';
+import { Box, ButtonIcon, Flex, LabelInput, Link } from 'design';
 import { NewTab } from 'design/Icon';
-
+import { components } from 'react-select';
+import Select from 'shared/components/Select';
 import { Regions, Vpc } from 'teleport/services/integrations';
 
 export type VpcOption = { value: Vpc; label: string; link: string };

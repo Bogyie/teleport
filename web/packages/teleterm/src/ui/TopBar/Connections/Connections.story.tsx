@@ -16,14 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useLayoutEffect } from 'react';
 import { Flex, Text } from 'design';
-
+import { useLayoutEffect } from 'react';
+import { MockedUnaryCall } from 'teleterm/services/tshd/cloneableClient';
+import { makeRootCluster } from 'teleterm/services/tshd/testHelpers';
 import AppContextProvider from 'teleterm/ui/appContextProvider';
 import { MockAppContext } from 'teleterm/ui/fixtures/mocks';
 import { VnetContextProvider } from 'teleterm/ui/Vnet';
-import { makeRootCluster } from 'teleterm/services/tshd/testHelpers';
-import { MockedUnaryCall } from 'teleterm/services/tshd/cloneableClient';
 
 import { Connections } from './Connections';
 import { ConnectionsContextProvider } from './connectionsContext';

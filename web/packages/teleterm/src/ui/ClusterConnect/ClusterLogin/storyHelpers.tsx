@@ -16,11 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { FC, PropsWithChildren } from 'react';
 import Dialog from 'design/Dialog';
+import { FC, PropsWithChildren } from 'react';
 
 import { dialogCss } from '../spacing';
-
 import { ClusterLoginPresentationProps } from './ClusterLogin';
 
 export const TestContainer: FC<PropsWithChildren> = ({ children }) => (

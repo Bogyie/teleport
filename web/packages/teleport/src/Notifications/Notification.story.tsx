@@ -16,25 +16,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { MemoryRouter } from 'react-router';
-import { subSeconds, subMinutes, subHours, subDays } from 'date-fns';
-import { http, HttpResponse, delay } from 'msw';
-import { withoutQuery } from 'web/packages/build/storybook';
-
+import { subDays, subHours, subMinutes, subSeconds } from 'date-fns';
 import { Flex, H2 } from 'design';
-
+import { delay, http, HttpResponse } from 'msw';
+import { MemoryRouter } from 'react-router';
+import cfg from 'teleport/config';
+import { createTeleportContext } from 'teleport/mocks/contexts';
 import {
   NotificationSubKind,
   UpsertNotificationStateRequest,
 } from 'teleport/services/notifications';
-import { createTeleportContext } from 'teleport/mocks/contexts';
-import cfg from 'teleport/config';
+import { withoutQuery } from 'web/packages/build/storybook';
 
 import { ContextProvider } from '..';
-
+import { notifications as mockNotifications } from './fixtures';
 import { Notification } from './Notification';
 import { Notifications as NotificationsListComponent } from './Notifications';
-import { notifications as mockNotifications } from './fixtures';
 
 const notificationsPathWithoutQuery = withoutQuery(cfg.api.notificationsPath);
 
