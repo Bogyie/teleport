@@ -16,9 +16,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Suspense, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { Box, ButtonSecondary, Link, Text, Mark, H3, Subtitle3 } from 'design';
+import {
+  Box,
+  ButtonSecondary,
+  Link,
+  Text,
+  Mark,
+  H3,
+  Subtitle3,
+  Flex,
+} from 'design';
 import * as Icons from 'design/Icon';
 import FieldInput from 'shared/components/FieldInput';
 import Validation, { Validator } from 'shared/components/Validation';
@@ -41,6 +50,7 @@ import {
   SuccessBox,
   WaitingInfo,
 } from 'teleport/Discover/Shared/HintBox';
+import { ResourceLabelTooltip } from 'teleport/Discover/Shared/ResourceLabelTooltip';
 
 import { CommandBox } from 'teleport/Discover/Shared/CommandBox';
 
@@ -48,6 +58,7 @@ import {
   ActionButtons,
   Header,
   HeaderSubtitle,
+  LabelsCreater,
   ResourceKind,
   TextIcon,
   useShowHint,
@@ -62,6 +73,7 @@ export default function Container(props: AgentStepProps) {
   const [namespace, setNamespace] = useState('');
   const [clusterName, setClusterName] = useState('');
   const [showHelmChart, setShowHelmChart] = useState(false);
+  const [labels, setLabels] = useState<ResourceLabel[]>([]);
 
   return (
     // This outer CatchError and Suspense handles
@@ -85,6 +97,8 @@ export default function Container(props: AgentStepProps) {
             setNamespace={setNamespace}
             clusterName={clusterName}
             setClusterName={setClusterName}
+            labels={labels}
+            onChangeLabels={setLabels}
           />
           <ActionButtons
             onProceed={() => null}
@@ -105,6 +119,8 @@ export default function Container(props: AgentStepProps) {
               setNamespace={setNamespace}
               clusterName={clusterName}
               setClusterName={setClusterName}
+              labels={labels}
+              onChangeLabels={setLabels}
             />
             <ActionButtons
               onProceed={() => null}
@@ -125,6 +141,8 @@ export default function Container(props: AgentStepProps) {
               setNamespace={setNamespace}
               clusterName={clusterName}
               setClusterName={setClusterName}
+              labels={labels}
+              onChangeLabels={setLabels}
             />
             <ActionButtons
               onProceed={() => null}
@@ -141,12 +159,20 @@ export default function Container(props: AgentStepProps) {
             setNamespace={setNamespace}
             clusterName={clusterName}
             setClusterName={setClusterName}
+            labels={labels}
+            onChangeLabels={setLabels}
           />
         )}
       </Suspense>
     </CatchError>
   );
 }
+
+const resourceKinds = [
+  ResourceKind.Kubernetes,
+  ResourceKind.Application,
+  ResourceKind.Discovery,
+];
 
 export function HelmChart(
   props: AgentStepProps & {
@@ -155,13 +181,18 @@ export function HelmChart(
     setNamespace(n: string): void;
     clusterName: string;
     setClusterName(c: string): void;
+    labels: ResourceLabel[];
+    onChangeLabels(l: ResourceLabel[]): void;
   }
 ) {
-  const { joinToken, reloadJoinToken } = useJoinTokenSuspender([
-    ResourceKind.Kubernetes,
-    ResourceKind.Application,
-    ResourceKind.Discovery,
-  ]);
+  const { joinToken, reloadJoinToken } = useJoinTokenSuspender({
+    resourceKinds,
+    suggestedLabels: props.labels,
+  });
+
+  useEffect(() => {
+    return clearCachedJoinTokenResult(resourceKinds);
+  });
 
   return (
     <Box>
@@ -175,6 +206,8 @@ export function HelmChart(
         setNamespace={props.setNamespace}
         clusterName={props.clusterName}
         setClusterName={props.setClusterName}
+        labels={props.labels}
+        onChangeLabels={props.onChangeLabels}
       />
       <InstallHelmChart
         prevStep={props.prevStep}
@@ -183,6 +216,7 @@ export function HelmChart(
         joinToken={joinToken}
         nextStep={props.nextStep}
         updateAgentMeta={props.updateAgentMeta}
+        labels={props.labels}
       />
     </Box>
   );
@@ -238,6 +272,8 @@ const StepTwo = ({
   generateScript,
   disabled,
   onEdit,
+  labels,
+  onChangeLabels,
 }: {
   error?: Error;
   generateScript?(): void;
@@ -247,6 +283,8 @@ const StepTwo = ({
   setClusterName(c: string): void;
   disabled?: boolean;
   onEdit: () => void;
+  labels: ResourceLabel[];
+  onChangeLabels(l: ResourceLabel[]): void;
 }) => {
   function handleSubmit(validator: Validator) {
     if (!validator.validate()) {
@@ -290,6 +328,19 @@ const StepTwo = ({
                 width="100%"
                 mr="3"
                 onChange={e => setClusterName(e.target.value)}
+              />
+            </Box>
+            <Flex alignItems="center" gap={1} mb={2}>
+              <Subtitle3>Add Labels (Optional)</Subtitle3>
+              <ResourceLabelTooltip resourceKind="kube" />
+            </Flex>
+            <Box mb={3}>
+              <LabelsCreater
+                labels={labels}
+                setLabels={onChangeLabels}
+                isLabelOptional={true}
+                disableBtns={disabled}
+                noDuplicateKey={true}
               />
             </Box>
             {disabled ? (
@@ -394,6 +445,7 @@ const InstallHelmChart = ({
   nextStep,
   prevStep,
   updateAgentMeta,
+  labels,
 }: {
   namespace: string;
   clusterName: string;
@@ -401,6 +453,7 @@ const InstallHelmChart = ({
   nextStep(): void;
   prevStep(): void;
   updateAgentMeta(a: AgentMeta): void;
+  labels: ResourceLabel[];
 }) => {
   const ctx = useTeleport();
 
@@ -480,6 +533,7 @@ const InstallHelmChart = ({
     isCloud: ctx.isCloud,
     automaticUpgradesEnabled: ctx.automaticUpgradesEnabled,
     automaticUpgradesTargetVersion: ctx.automaticUpgradesTargetVersion,
+    joinLabels: labels,
   });
 
   return (
