@@ -18,8 +18,9 @@
 
 import { Box, ButtonPrimary, Flex, H1, Link, Text } from 'design';
 import { useState } from 'react';
-import { FieldCheckbox } from 'shared/components/FieldCheckbox';
 import styled from 'styled-components';
+
+import { FieldCheckbox } from 'shared/components/FieldCheckbox';
 import FormLogin from 'teleport/components/FormLogin';
 import { LogoHero } from 'teleport/components/LogoHero';
 import cfg from 'teleport/config';

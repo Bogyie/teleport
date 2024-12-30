@@ -18,10 +18,11 @@
 
 import { formatRelative } from 'date-fns';
 import { Button, Label as Pill } from 'design';
-import { Danger } from 'design/Alert';
-import Table, { Cell } from 'design/DataTable';
 import { Fragment, useEffect, useState } from 'react';
 import { useHistory, useLocation } from 'react-router';
+
+import { Danger } from 'design/Alert';
+import Table, { Cell } from 'design/DataTable';
 import useAttempt from 'shared/hooks/useAttemptNext';
 import {
   FeatureBox,

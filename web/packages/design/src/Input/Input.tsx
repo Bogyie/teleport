@@ -16,10 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import Box from 'design/Box';
-import * as Icon from 'design/Icon';
-import { IconProps } from 'design/Icon/Icon';
-import { Theme } from 'design/theme/themes/types';
 import React, {
   forwardRef,
   HTMLAttributes,
@@ -36,6 +32,11 @@ import {
   width,
   WidthProps,
 } from 'styled-system';
+
+import Box from 'design/Box';
+import * as Icon from 'design/Icon';
+import { IconProps } from 'design/Icon/Icon';
+import { Theme } from 'design/theme/themes/types';
 
 export type InputSize = 'large' | 'medium' | 'small';
 export type InputType =

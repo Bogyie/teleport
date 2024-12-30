@@ -30,6 +30,10 @@ import {
   MenuItem,
   Text,
 } from 'design';
+import { useEffect, useState } from 'react';
+import styled from 'styled-components';
+import { useTeleport } from 'teleport';
+
 import Table, { Cell } from 'design/DataTable';
 import Dialog, {
   DialogContent,
@@ -39,12 +43,9 @@ import Dialog, {
 } from 'design/Dialog';
 import { Warning } from 'design/Icon';
 import { HoverTooltip } from 'design/Tooltip';
-import { useEffect, useState } from 'react';
 import { MenuButton } from 'shared/components/MenuAction';
 import { CopyButton } from 'shared/components/UnifiedResources/shared/CopyButton';
 import { Attempt, useAsync } from 'shared/hooks/useAsync';
-import styled from 'styled-components';
-import { useTeleport } from 'teleport';
 import {
   FeatureBox,
   FeatureHeader,

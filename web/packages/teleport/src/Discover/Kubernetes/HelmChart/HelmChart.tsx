@@ -17,13 +17,14 @@
  */
 
 import { Box, ButtonSecondary, H3, Link, Mark, Subtitle3, Text } from 'design';
+import { Suspense, useState } from 'react';
+import styled from 'styled-components';
+
 import * as Icons from 'design/Icon';
 import { P } from 'design/Text/Text';
-import { Suspense, useState } from 'react';
 import FieldInput from 'shared/components/FieldInput';
 import Validation, { Validator } from 'shared/components/Validation';
 import { requiredField } from 'shared/components/Validation/rules';
-import styled from 'styled-components';
 import { CatchError } from 'teleport/components/CatchError';
 import { TextSelectCopyMulti } from 'teleport/components/TextSelectCopy';
 import { CommandBox } from 'teleport/Discover/Shared/CommandBox';

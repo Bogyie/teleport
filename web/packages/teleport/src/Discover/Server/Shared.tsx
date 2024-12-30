@@ -17,8 +17,9 @@
  */
 
 import { Mark } from 'design';
-import { OutlineInfo } from 'design/Alert/Alert';
 import { Link as InternalLink } from 'react-router-dom';
+
+import { OutlineInfo } from 'design/Alert/Alert';
 import cfg from 'teleport/config';
 
 export const SingleEc2InstanceInstallation = () => (

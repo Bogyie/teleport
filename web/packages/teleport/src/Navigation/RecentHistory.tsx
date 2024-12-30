@@ -17,11 +17,12 @@
  */
 
 import { ButtonIcon, Flex, H4, P3, Text } from 'design';
-import { Cross } from 'design/Icon';
 import { useEffect, useRef, useState } from 'react';
 import { matchPath } from 'react-router';
 import { NavLink } from 'react-router-dom';
 import styled from 'styled-components';
+
+import { Cross } from 'design/Icon';
 import { useFeatures } from 'teleport/FeaturesContext';
 import { TeleportFeature } from 'teleport/types';
 

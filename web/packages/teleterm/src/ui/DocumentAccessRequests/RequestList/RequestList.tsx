@@ -17,6 +17,8 @@
  */
 
 import { Alert, Box, ButtonBorder, ButtonPrimary, Flex, Label } from 'design';
+import styled from 'styled-components';
+
 import Table, { Cell } from 'design/DataTable';
 import { requestMatcher } from 'shared/components/AccessRequests/NewRequest/matcher';
 import {
@@ -33,7 +35,6 @@ import {
 import { Attempt as AsyncAttempt } from 'shared/hooks/useAsync';
 import { Attempt } from 'shared/hooks/useAttemptNext';
 import { AccessRequest, canAssumeNow } from 'shared/services/accessRequests';
-import styled from 'styled-components';
 
 export function RequestList({
   attempt,

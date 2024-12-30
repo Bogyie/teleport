@@ -17,6 +17,9 @@
  */
 
 import { Box, ButtonPrimary, ButtonSecondary, Flex, Indicator } from 'design';
+import { useCallback, useEffect, useState } from 'react';
+import { useTeleport } from 'teleport';
+
 import { Danger } from 'design/Alert';
 import Dialog, {
   DialogContent,
@@ -24,7 +27,6 @@ import Dialog, {
   DialogHeader,
   DialogTitle,
 } from 'design/Dialog';
-import { useCallback, useEffect, useState } from 'react';
 import {
   FieldSelect,
   FieldSelectCreatable,
@@ -33,7 +35,6 @@ import { Option } from 'shared/components/Select';
 import Validation from 'shared/components/Validation';
 import { requiredField } from 'shared/components/Validation/rules';
 import { useAsync } from 'shared/hooks/useAsync';
-import { useTeleport } from 'teleport';
 import { DbConnectData } from 'teleport/lib/term/tty';
 import { Database } from 'teleport/services/databases';
 

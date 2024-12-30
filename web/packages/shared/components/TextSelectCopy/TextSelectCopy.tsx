@@ -17,11 +17,12 @@
  */
 
 import { Box, ButtonPrimary, Flex } from 'design';
+import { useRef, useState } from 'react';
+import { useTheme } from 'styled-components';
+
 import { copyToClipboard } from 'design/utils/copyToClipboard';
 import selectElementContent from 'design/utils/selectElementContent';
-import { useRef, useState } from 'react';
 import { wait } from 'shared/utils/wait';
-import { useTheme } from 'styled-components';
 
 export function TextSelectCopy({
   text,

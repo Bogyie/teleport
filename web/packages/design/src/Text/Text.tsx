@@ -17,6 +17,9 @@
  */
 
 import { Property } from 'csstype';
+import styled from 'styled-components';
+import { ResponsiveValue } from 'styled-system';
+
 import {
   color,
   ColorProps,
@@ -32,8 +35,6 @@ import {
 } from 'design/system';
 import { shouldForwardTypographyProp } from 'design/system/typography';
 import { fontWeights } from 'design/theme/typography';
-import styled from 'styled-components';
-import { ResponsiveValue } from 'styled-system';
 
 interface FontWeightProps {
   fontWeight?: ResponsiveValue<Property.FontWeight | keyof typeof fontWeights>;

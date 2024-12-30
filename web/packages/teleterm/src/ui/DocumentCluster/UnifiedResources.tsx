@@ -17,7 +17,6 @@
  */
 
 import { ButtonPrimary, Flex, H1, Link, ResourceIcon, Text } from 'design';
-import * as icons from 'design/Icon';
 import { ShowResources } from 'gen-proto-ts/teleport/lib/teleterm/v1/cluster_pb';
 import {
   ListUnifiedResourcesRequest,
@@ -25,6 +24,22 @@ import {
 } from 'gen-proto-ts/teleport/lib/teleterm/v1/service_pb';
 import { DefaultTab } from 'gen-proto-ts/teleport/userpreferences/v1/unified_resource_preferences_pb';
 import { memo, useCallback, useEffect, useMemo } from 'react';
+import { getAppAddrWithProtocol } from 'teleterm/services/tshd/app';
+import { useAppContext } from 'teleterm/ui/appContextProvider';
+import { useConnectMyComputerContext } from 'teleterm/ui/ConnectMyComputer';
+import { useWorkspaceContext } from 'teleterm/ui/Documents';
+import { useWorkspaceLoggedInUser } from 'teleterm/ui/hooks/useLoggedInUser';
+import { useStoreSelector } from 'teleterm/ui/hooks/useStoreSelector';
+import { UnifiedResourceResponse } from 'teleterm/ui/services/resources';
+import {
+  DocumentCluster,
+  DocumentClusterQueryParams,
+  DocumentClusterResourceKind,
+} from 'teleterm/ui/services/workspacesService';
+import * as uri from 'teleterm/ui/uri';
+import { retryWithRelogin } from 'teleterm/ui/utils';
+
+import * as icons from 'design/Icon';
 import {
   getResourceAvailabilityFilter,
   ResourceAvailabilityFilter,
@@ -42,20 +57,6 @@ import {
   formatDatabaseInfo,
 } from 'shared/services/databases';
 import { waitForever } from 'shared/utils/wait';
-import { getAppAddrWithProtocol } from 'teleterm/services/tshd/app';
-import { useAppContext } from 'teleterm/ui/appContextProvider';
-import { useConnectMyComputerContext } from 'teleterm/ui/ConnectMyComputer';
-import { useWorkspaceContext } from 'teleterm/ui/Documents';
-import { useWorkspaceLoggedInUser } from 'teleterm/ui/hooks/useLoggedInUser';
-import { useStoreSelector } from 'teleterm/ui/hooks/useStoreSelector';
-import { UnifiedResourceResponse } from 'teleterm/ui/services/resources';
-import {
-  DocumentCluster,
-  DocumentClusterQueryParams,
-  DocumentClusterResourceKind,
-} from 'teleterm/ui/services/workspacesService';
-import * as uri from 'teleterm/ui/uri';
-import { retryWithRelogin } from 'teleterm/ui/utils';
 
 import {
   AccessRequestButton,

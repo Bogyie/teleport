@@ -18,6 +18,7 @@
 
 import { context, trace } from '@opentelemetry/api';
 import { useEffect, useState } from 'react';
+
 import { useAttempt } from 'shared/hooks';
 import cfg from 'teleport/config';
 import { Session } from 'teleport/services/session';

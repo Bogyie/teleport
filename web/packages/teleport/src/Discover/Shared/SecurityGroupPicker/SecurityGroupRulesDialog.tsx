@@ -17,9 +17,10 @@
  */
 
 import { ButtonSecondary, H2, Text } from 'design';
+import styled from 'styled-components';
+
 import Table, { Cell } from 'design/DataTable';
 import Dialog, { DialogContent, DialogFooter } from 'design/DialogConfirmation';
-import styled from 'styled-components';
 
 import { ViewRulesSelection } from './SecurityGroupPicker';
 

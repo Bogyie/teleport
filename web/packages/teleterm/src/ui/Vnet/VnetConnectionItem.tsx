@@ -17,14 +17,15 @@
  */
 
 import { ButtonIcon, Flex, rotate360, Text } from 'design';
-import * as icons from 'design/Icon';
-import { copyToClipboard } from 'design/utils/copyToClipboard';
 import React, { forwardRef, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { useAppContext } from 'teleterm/ui/appContextProvider';
 import { useKeyboardArrowsNavigation } from 'teleterm/ui/components/KeyboardArrowsNavigation';
 import { ListItem, StaticListItem } from 'teleterm/ui/components/ListItem';
 import { ConnectionStatusIndicator } from 'teleterm/ui/TopBar/Connections/ConnectionsFilterableList/ConnectionStatusIndicator';
+
+import * as icons from 'design/Icon';
+import { copyToClipboard } from 'design/utils/copyToClipboard';
 
 import { useVnetContext } from './vnetContext';
 

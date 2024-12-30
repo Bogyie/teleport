@@ -17,8 +17,9 @@
  */
 
 import { Flex, Text } from 'design';
-import ButtonSso, { guessProviderType } from 'shared/components/ButtonSso';
 import * as types from 'teleterm/ui/services/clusters/types';
+
+import ButtonSso, { guessProviderType } from 'shared/components/ButtonSso';
 
 const SSOBtnList = ({
   providers,

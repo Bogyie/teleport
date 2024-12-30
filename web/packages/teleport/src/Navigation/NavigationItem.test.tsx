@@ -17,10 +17,11 @@
  */
 
 import { act } from '@testing-library/react';
-import { Server } from 'design/Icon';
-import { render, screen } from 'design/utils/testing';
 import { createMemoryHistory, MemoryHistory } from 'history';
 import { generatePath, Router } from 'react-router';
+
+import { Server } from 'design/Icon';
+import { render, screen } from 'design/utils/testing';
 import { NavigationCategory } from 'teleport/Navigation/categories';
 import { NavigationItemSize } from 'teleport/Navigation/common';
 import { NavigationItem } from 'teleport/Navigation/NavigationItem';

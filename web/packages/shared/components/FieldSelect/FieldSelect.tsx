@@ -17,6 +17,7 @@
  */
 
 import { GroupBase, OptionsOrGroups } from 'react-select';
+
 import { useAsync } from 'shared/hooks/useAsync';
 
 import Select, {

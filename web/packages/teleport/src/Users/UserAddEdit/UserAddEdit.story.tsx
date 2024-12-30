@@ -17,6 +17,7 @@
  */
 
 import { useState } from 'react';
+
 import { AllUserTraits } from 'teleport/services/user';
 
 import type { TraitsOption } from './TraitsEditor';

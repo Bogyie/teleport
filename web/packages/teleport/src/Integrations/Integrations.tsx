@@ -18,6 +18,7 @@
 
 import { Alert, Box, Indicator } from 'design';
 import { useEffect, useState } from 'react';
+
 import useAttempt from 'shared/hooks/useAttemptNext';
 import {
   FeatureBox,

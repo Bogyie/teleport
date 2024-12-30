@@ -17,9 +17,10 @@
  */
 
 import { subMinutes, subSeconds } from 'date-fns';
-import { render, screen } from 'design/utils/testing';
 import { createMemoryHistory } from 'history';
 import { Router } from 'react-router';
+
+import { render, screen } from 'design/utils/testing';
 import { getOSSFeatures } from 'teleport/features';
 import { FeaturesContextProvider } from 'teleport/FeaturesContext';
 import { LayoutContextProvider } from 'teleport/Main/LayoutContext';

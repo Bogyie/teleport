@@ -17,12 +17,13 @@
  */
 
 import { Flex, Indicator } from 'design';
+import React, { useEffect, useRef } from 'react';
+import styled, { useTheme } from 'styled-components';
+
 import { IconProps } from 'design/Icon/Icon';
 import { Position } from 'design/Popover/Popover';
 import { StatusIcon, StatusKind } from 'design/StatusIcon';
 import { HoverTooltip } from 'design/Tooltip';
-import React, { useEffect, useRef } from 'react';
-import styled, { useTheme } from 'styled-components';
 
 export function SlideTabs({
   appearance = 'square',

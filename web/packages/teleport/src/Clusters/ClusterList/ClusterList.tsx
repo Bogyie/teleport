@@ -16,12 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import Table, { Cell } from 'design/DataTable';
-import { Primary, Secondary } from 'design/Label';
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { MenuButton, MenuItem } from 'shared/components/MenuAction';
 import styled from 'styled-components';
+
+import Table, { Cell } from 'design/DataTable';
+import { Primary, Secondary } from 'design/Label';
+import { MenuButton, MenuItem } from 'shared/components/MenuAction';
 import { DropdownDivider } from 'teleport/components/Dropdown';
 import cfg from 'teleport/config';
 import { Cluster } from 'teleport/services/clusters';

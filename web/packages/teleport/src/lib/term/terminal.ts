@@ -24,6 +24,7 @@ import { ImageAddon } from '@xterm/addon-image';
 import { WebLinksAddon } from '@xterm/addon-web-links';
 import { WebglAddon } from '@xterm/addon-webgl';
 import { ITheme, Terminal } from '@xterm/xterm';
+
 import {
   SearchAddon,
   TerminalSearcher,

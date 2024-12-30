@@ -25,6 +25,11 @@ import {
   Image,
   Text,
 } from 'design';
+import { useState } from 'react';
+import type * as tsh from 'teleterm/services/tshd/types';
+import svgHardwareKey from 'teleterm/ui/ClusterConnect/ClusterLogin/FormLogin/PromptPasswordless/hardware.svg';
+import { LinearProgress } from 'teleterm/ui/components/LinearProgress';
+
 import * as Alerts from 'design/Alert';
 import DialogConfirmation, {
   DialogContent,
@@ -33,11 +38,7 @@ import DialogConfirmation, {
 } from 'design/DialogConfirmation';
 import * as Icons from 'design/Icon';
 import { P, P3 } from 'design/Text/Text';
-import { useState } from 'react';
 import { Attempt } from 'shared/hooks/useAsync';
-import type * as tsh from 'teleterm/services/tshd/types';
-import svgHardwareKey from 'teleterm/ui/ClusterConnect/ClusterLogin/FormLogin/PromptPasswordless/hardware.svg';
-import { LinearProgress } from 'teleterm/ui/components/LinearProgress';
 
 export type HeadlessPromptProps = {
   cluster: tsh.Cluster;

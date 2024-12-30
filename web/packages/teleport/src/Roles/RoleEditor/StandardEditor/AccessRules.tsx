@@ -16,17 +16,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { components, MultiValueProps } from 'react-select';
+import styled from 'styled-components';
+
 import { ButtonSecondary } from 'design/Button';
 import Flex from 'design/Flex';
 import { Plus } from 'design/Icon';
 import { HoverTooltip } from 'design/Tooltip';
-import { components, MultiValueProps } from 'react-select';
 import {
   FieldSelect,
   FieldSelectCreatable,
 } from 'shared/components/FieldSelect';
 import { precomputed } from 'shared/components/Validation/rules';
-import styled from 'styled-components';
 
 import { SectionBox, SectionProps } from './sections';
 import {

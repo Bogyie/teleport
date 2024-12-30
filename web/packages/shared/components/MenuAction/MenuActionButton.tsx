@@ -17,9 +17,10 @@
  */
 
 import { ButtonBorder } from 'design';
+import React, { PropsWithChildren } from 'react';
+
 import { ChevronDown } from 'design/Icon';
 import Menu from 'design/Menu';
-import React, { PropsWithChildren } from 'react';
 
 import { AnchorProps, MenuProps } from './types';
 

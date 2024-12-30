@@ -17,8 +17,9 @@
  */
 
 import { forwardRef } from 'react';
-import FieldInput, { FieldInputProps } from 'shared/components/FieldInput';
 import styled from 'styled-components';
+
+import FieldInput, { FieldInputProps } from 'shared/components/FieldInput';
 
 export const ConfigFieldInput = forwardRef<HTMLInputElement, FieldInputProps>(
   (props, ref) => <FieldInput size="small" ref={ref} {...props} />

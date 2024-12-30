@@ -17,11 +17,12 @@
  */
 
 import { Box, ButtonBorder, ButtonIcon, Flex, Text } from 'design';
-import * as Icon from 'design/Icon';
 import { useEffect, useRef, useState } from 'react';
 import { components } from 'react-select';
 import ReactSelectCreatable from 'react-select/creatable';
 import styled from 'styled-components';
+
+import * as Icon from 'design/Icon';
 
 import { ReviewerOption } from './types';
 

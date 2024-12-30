@@ -17,9 +17,10 @@
  */
 
 import { Flex, Text } from 'design';
-import { ResourceIcon } from 'design/ResourceIcon';
 import React, { PropsWithChildren } from 'react';
 import { useTheme } from 'styled-components';
+
+import { ResourceIcon } from 'design/ResourceIcon';
 
 import { iconNames } from './resourceIconSpecs';
 

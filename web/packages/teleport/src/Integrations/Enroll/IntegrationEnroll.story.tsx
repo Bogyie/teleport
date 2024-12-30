@@ -18,6 +18,7 @@
 
 import { MemoryRouter } from 'react-router';
 import { ContextProvider } from 'teleport';
+
 import cfg from 'teleport/config';
 import { createTeleportContext } from 'teleport/mocks/contexts';
 

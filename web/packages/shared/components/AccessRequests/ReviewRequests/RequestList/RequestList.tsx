@@ -17,6 +17,7 @@
  */
 
 import { Flex, LabelState, Text } from 'design';
+
 import { Cell } from 'design/DataTable';
 import { ArrowFatLinesUp } from 'design/Icon';
 import { LabelKind } from 'design/LabelState/LabelState';

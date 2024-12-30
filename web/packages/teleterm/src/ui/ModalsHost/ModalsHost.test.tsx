@@ -17,7 +17,6 @@
  */
 
 import { act } from '@testing-library/react';
-import { render, screen } from 'design/utils/testing';
 import { MockAppContextProvider } from 'teleterm/ui/fixtures/MockAppContextProvider';
 import { MockAppContext } from 'teleterm/ui/fixtures/mocks';
 import {
@@ -26,6 +25,8 @@ import {
   DialogHardwareKeyTouch,
   ModalsService,
 } from 'teleterm/ui/services/modals';
+
+import { render, screen } from 'design/utils/testing';
 
 import ModalsHost from './ModalsHost';
 

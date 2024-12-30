@@ -17,12 +17,13 @@
  */
 
 import { ButtonIcon, Flex, Link } from 'design';
+import React from 'react';
+
 import { Danger } from 'design/Alert';
 import { CheckboxInput } from 'design/Checkbox';
 import Table, { Cell } from 'design/DataTable';
 import { FetchStatus } from 'design/DataTable/types';
 import { NewTab } from 'design/Icon';
-import React from 'react';
 import { Attempt } from 'shared/hooks/useAttemptNext';
 import { Regions, Subnet } from 'teleport/services/integrations';
 

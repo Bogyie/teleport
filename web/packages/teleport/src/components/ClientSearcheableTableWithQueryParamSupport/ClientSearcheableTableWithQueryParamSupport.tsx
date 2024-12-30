@@ -16,9 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { useHistory, useLocation } from 'react-router';
+
 import Table from 'design/DataTable';
 import { TableProps } from 'design/DataTable/types';
-import { useHistory, useLocation } from 'react-router';
 
 import {
   decodeUrlQueryParam,

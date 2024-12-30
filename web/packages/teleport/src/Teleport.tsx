@@ -18,6 +18,7 @@
 
 import type { History } from 'history';
 import React, { Suspense, useEffect } from 'react';
+
 import Authenticated from 'teleport/components/Authenticated';
 import { CatchError } from 'teleport/components/CatchError';
 import { Route, Router, Switch } from 'teleport/components/Router';

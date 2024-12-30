@@ -16,8 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import isMatch, { MatchCallback } from 'design/utils/match';
 import { useEffect, useState } from 'react';
+
+import isMatch, { MatchCallback } from 'design/utils/match';
 
 import paginateData from './Pager/paginateData';
 import {

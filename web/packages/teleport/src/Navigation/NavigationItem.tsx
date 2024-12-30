@@ -16,11 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { ArrowSquareOut } from 'design/Icon';
 import React, { useCallback, useMemo } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import styled, { css, keyframes } from 'styled-components';
 import { useTeleport } from 'teleport';
+
+import { ArrowSquareOut } from 'design/Icon';
 import {
   commonNavigationItemStyles,
   LinkContent,

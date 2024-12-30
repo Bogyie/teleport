@@ -17,6 +17,7 @@
  */
 
 import { MemoryRouter } from 'react-router';
+
 import { Route } from 'teleport/components/Router';
 import { ContextProvider } from 'teleport/index';
 import { ContentMinWidth } from 'teleport/Main/Main';

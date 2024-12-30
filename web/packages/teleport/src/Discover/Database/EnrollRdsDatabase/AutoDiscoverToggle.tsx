@@ -17,6 +17,7 @@
  */
 
 import { Box, Toggle } from 'design';
+
 import { IconTooltip } from 'design/Tooltip';
 
 export function AutoDiscoverToggle({

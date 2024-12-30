@@ -18,6 +18,7 @@
 
 import { Flex, Text } from 'design';
 import { forwardRef } from 'react';
+
 import ButtonSso, { guessProviderType } from 'shared/components/ButtonSso';
 import { AuthProvider } from 'shared/services';
 

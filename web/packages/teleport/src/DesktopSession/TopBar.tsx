@@ -17,10 +17,11 @@
  */
 
 import { Flex, Text, TopNav } from 'design';
+import { useTheme } from 'styled-components';
+
 import { Clipboard, FolderShared } from 'design/Icon';
 import { HoverTooltip } from 'design/Tooltip';
 import type { NotificationItem } from 'shared/components/Notification';
-import { useTheme } from 'styled-components';
 
 import ActionMenu from './ActionMenu';
 import { AlertDropdown } from './AlertDropdown';

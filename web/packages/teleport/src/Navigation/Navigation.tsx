@@ -17,10 +17,11 @@
  */
 
 import { Box, Flex, Text } from 'design';
-import { IconTooltip } from 'design/Tooltip';
 import type * as history from 'history';
 import { matchPath, useHistory, useLocation } from 'react-router';
 import styled, { useTheme } from 'styled-components';
+
+import { IconTooltip } from 'design/Tooltip';
 import cfg from 'teleport/config';
 import { useFeatures } from 'teleport/FeaturesContext';
 import {

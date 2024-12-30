@@ -16,6 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { useState } from 'react';
+
 import { Alert, OutlineDanger } from 'design/Alert/Alert';
 import Box from 'design/Box';
 import { ButtonSecondary, ButtonWarning } from 'design/Button';
@@ -23,7 +25,6 @@ import Dialog from 'design/Dialog';
 import Flex from 'design/Flex';
 import Indicator from 'design/Indicator';
 import { StepComponentProps, StepHeader, StepSlider } from 'design/StepSlider';
-import { useState } from 'react';
 import useAttempt from 'shared/hooks/useAttemptNext';
 import useReAuthenticate from 'teleport/components/ReAuthenticate/useReAuthenticate';
 import auth, { MfaChallengeScope } from 'teleport/services/auth/auth';

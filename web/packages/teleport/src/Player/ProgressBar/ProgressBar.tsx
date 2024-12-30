@@ -16,9 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import * as Icons from 'design/Icon';
 import React, { memo } from 'react';
 import styled from 'styled-components';
+
+import * as Icons from 'design/Icon';
 
 import Slider from './Slider';
 

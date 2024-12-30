@@ -17,12 +17,13 @@
  */
 
 import { Box, ButtonText, Flex } from 'design';
+import styled from 'styled-components';
+import * as types from 'teleterm/ui/services/clusters/types';
+
 import * as Alerts from 'design/Alert';
 import { StepSlider, type StepComponentProps } from 'design/StepSlider';
 import { Attempt } from 'shared/hooks/useAsync';
 import type { PrimaryAuthType } from 'shared/services';
-import styled from 'styled-components';
-import * as types from 'teleterm/ui/services/clusters/types';
 
 import { outermostPadding } from '../../spacing';
 import type { PasswordlessLoginState } from '../useClusterLogin';

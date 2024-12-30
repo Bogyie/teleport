@@ -24,6 +24,7 @@ import { MemoryRouter } from 'react-router';
 import '@testing-library/jest-dom';
 
 import { Theme } from 'gen-proto-ts/teleport/userpreferences/v1/theme_pb';
+
 import cfg from 'teleport/config';
 import { KeysEnum } from 'teleport/services/storageService';
 import { UserContextProvider } from 'teleport/User';

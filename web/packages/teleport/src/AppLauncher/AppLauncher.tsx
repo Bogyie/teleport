@@ -17,9 +17,10 @@
  */
 
 import { Flex, Indicator } from 'design';
-import { AccessDenied } from 'design/CardError';
 import { useCallback, useEffect } from 'react';
 import { useLocation, useParams } from 'react-router';
+
+import { AccessDenied } from 'design/CardError';
 import useAttempt from 'shared/hooks/useAttemptNext';
 import AuthnDialog from 'teleport/components/AuthnDialog';
 import { CreateAppSessionParams, UrlLauncherParams } from 'teleport/config';

@@ -17,10 +17,11 @@
  */
 
 import { ButtonPrimary, Flex, Text } from 'design';
+import styled, { useTheme } from 'styled-components';
+
 import AGPLLogoDark from 'design/assets/images/agpl-dark.svg';
 import AGPLLogoLight from 'design/assets/images/agpl-light.svg';
 import { P } from 'design/Text/Text';
-import styled, { useTheme } from 'styled-components';
 
 import { HoverTooltip } from './HoverTooltip';
 import { IconTooltip } from './IconTooltip';

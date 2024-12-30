@@ -27,9 +27,10 @@ import {
   Subtitle3,
   Text,
 } from 'design';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+
 import * as Icons from 'design/Icon';
 import { P } from 'design/Text/Text';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Select, { type Option } from 'shared/components/Select';
 import * as connectMyComputer from 'shared/connectMyComputer';
 import { useAsync } from 'shared/hooks/useAsync';

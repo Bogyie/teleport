@@ -18,7 +18,6 @@
 
 import 'jest-canvas-mock';
 
-import { act, fireEvent, render, screen } from 'design/utils/testing';
 import { createRef } from 'react';
 import { TabContextMenuOptions } from 'teleterm/mainProcess/types';
 import {
@@ -32,6 +31,8 @@ import { Document } from 'teleterm/ui/services/workspacesService';
 import { makeDocumentCluster } from 'teleterm/ui/services/workspacesService/documentsService/testHelpers';
 import { TabHost } from 'teleterm/ui/TabHost/TabHost';
 import { routing } from 'teleterm/ui/uri';
+
+import { act, fireEvent, render, screen } from 'design/utils/testing';
 
 function getMockDocuments(): Document[] {
   return [

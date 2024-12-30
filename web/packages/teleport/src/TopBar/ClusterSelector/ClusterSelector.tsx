@@ -19,8 +19,9 @@
 import { Box, Flex, Text } from 'design';
 import { useState } from 'react';
 import { components, ValueContainerProps } from 'react-select';
-import { SelectAsync } from 'shared/components/Select';
 import styled from 'styled-components';
+
+import { SelectAsync } from 'shared/components/Select';
 
 const ValueContainer = ({
   children,

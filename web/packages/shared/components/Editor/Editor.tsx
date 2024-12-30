@@ -17,6 +17,8 @@
  */
 
 import React, { useState } from 'react';
+import styled, { keyframes } from 'styled-components';
+
 import {
   KeywordHighlight,
   TerminalColor,
@@ -29,7 +31,6 @@ import {
   WindowContentContainer,
   WindowTitleBar,
 } from 'shared/components/Window';
-import styled, { keyframes } from 'styled-components';
 
 import { File, FileProps } from './File';
 

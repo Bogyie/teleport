@@ -17,10 +17,11 @@
  */
 
 import { Box, ButtonIcon, ButtonPrimary, Menu, Text } from 'design';
+import { useState } from 'react';
+
 import { displayDateWithPrefixedTime } from 'design/datetime';
 import { Info } from 'design/Icon';
 import { HoverTooltip } from 'design/Tooltip';
-import { useState } from 'react';
 import { AccessRequest } from 'shared/services/accessRequests';
 
 export function PromotedMessage({

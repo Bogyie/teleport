@@ -16,8 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { color } from 'design/system';
 import styled from 'styled-components';
+
+import { color } from 'design/system';
 
 const StyledTextEditor = styled.div`
   overflow: hidden;

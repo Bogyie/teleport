@@ -33,12 +33,14 @@ import {
   Subtitle2,
   Text,
 } from 'design';
+import React, { forwardRef, useEffect, useRef, useState } from 'react';
+import type { TransitionStatus } from 'react-transition-group';
+import styled from 'styled-components';
+
 import { Danger } from 'design/Alert';
 import Table, { Cell } from 'design/DataTable';
 import { ArrowBack, ChevronDown, ChevronRight, Warning } from 'design/Icon';
 import { HoverTooltip } from 'design/Tooltip';
-import React, { forwardRef, useEffect, useRef, useState } from 'react';
-import type { TransitionStatus } from 'react-transition-group';
 import { RequestableResourceKind } from 'shared/components/AccessRequests/NewRequest/resource';
 import { FieldCheckbox } from 'shared/components/FieldCheckbox';
 import { Option } from 'shared/components/Select';
@@ -48,7 +50,6 @@ import { Attempt } from 'shared/hooks/useAttemptNext';
 import { mergeRefs } from 'shared/libs/mergeRefs';
 import type { AccessRequest } from 'shared/services/accessRequests';
 import { pluralize } from 'shared/utils/text';
-import styled from 'styled-components';
 
 import { AccessDurationRequest } from '../../AccessDuration';
 import { AssumeStartTime } from '../../AssumeStartTime/AssumeStartTime';

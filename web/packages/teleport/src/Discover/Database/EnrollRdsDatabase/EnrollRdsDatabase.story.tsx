@@ -16,11 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Info } from 'design/Alert';
 import { delay, http, HttpResponse } from 'msw';
 import { useEffect } from 'react';
 import { MemoryRouter } from 'react-router';
 import { ContextProvider } from 'teleport';
+import { withoutQuery } from 'web/packages/build/storybook';
+
+import { Info } from 'design/Alert';
 import cfg from 'teleport/config';
 import {
   DatabaseEngine,
@@ -35,7 +37,6 @@ import {
   IntegrationKind,
   IntegrationStatusCode,
 } from 'teleport/services/integrations';
-import { withoutQuery } from 'web/packages/build/storybook';
 
 import { EnrollRdsDatabase } from './EnrollRdsDatabase';
 

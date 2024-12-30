@@ -17,6 +17,7 @@
  */
 
 import { subHours, subMinutes, subMonths, subSeconds } from 'date-fns';
+
 import {
   Notification,
   NotificationSubKind,

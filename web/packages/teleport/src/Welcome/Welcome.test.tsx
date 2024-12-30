@@ -18,9 +18,10 @@
 
 import { act } from '@testing-library/react';
 import { userEvent, UserEvent } from '@testing-library/user-event';
-import { fireEvent, render, screen, waitFor } from 'design/utils/testing';
 import { createMemoryHistory } from 'history';
 import { MemoryRouter, Route, Router } from 'react-router';
+
+import { fireEvent, render, screen, waitFor } from 'design/utils/testing';
 import { Logger } from 'shared/libs/logger';
 import cfg from 'teleport/config';
 import auth from 'teleport/services/auth';

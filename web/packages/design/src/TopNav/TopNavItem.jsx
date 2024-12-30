@@ -16,8 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { height, maxHeight, maxWidth, space, width } from 'design/system';
 import styled from 'styled-components';
+
+import { height, maxHeight, maxWidth, space, width } from 'design/system';
 
 /**
  * TopNavItem

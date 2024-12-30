@@ -17,12 +17,13 @@
  */
 
 import { Box, ButtonIcon, Flex, P2, Text } from 'design';
-import { ArrowLineLeft } from 'design/Icon';
-import { Theme } from 'design/theme';
-import { HoverTooltip, IconTooltip } from 'design/Tooltip';
 import React, { PropsWithChildren } from 'react';
 import { NavLink } from 'react-router-dom';
 import styled, { css, useTheme } from 'styled-components';
+
+import { ArrowLineLeft } from 'design/Icon';
+import { Theme } from 'design/theme';
+import { HoverTooltip, IconTooltip } from 'design/Tooltip';
 import cfg from 'teleport/config';
 
 import { CategoryIcon } from './CategoryIcon';

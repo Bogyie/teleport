@@ -16,8 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { space, SpaceProps } from 'design/system';
 import styled from 'styled-components';
+
+import { space, SpaceProps } from 'design/system';
 
 interface LabelInputProps extends SpaceProps {
   hasError?: boolean;

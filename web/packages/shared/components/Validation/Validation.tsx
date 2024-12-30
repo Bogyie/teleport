@@ -16,8 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Logger } from 'design/logger';
 import React from 'react';
+
+import { Logger } from 'design/logger';
 import { Store, useStore } from 'shared/libs/stores';
 import { isObject } from 'shared/utils/highbar';
 

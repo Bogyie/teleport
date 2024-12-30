@@ -17,11 +17,12 @@
  */
 
 import { Flex } from 'design';
+import { useEffect, useMemo, useState } from 'react';
+
 import { StyledArrowBtn } from 'design/DataTable/Pager/StyledPager';
 import { StyledPanel } from 'design/DataTable/StyledTable';
 import { SortType } from 'design/DataTable/types';
 import { CircleArrowLeft, CircleArrowRight } from 'design/Icon';
-import { useEffect, useMemo, useState } from 'react';
 import { SearchPanel } from 'shared/components/Search';
 import { makeAdvancedSearchQueryForLabel } from 'shared/utils/advancedSearchLabelQuery';
 import { useServerSidePagination } from 'teleport/components/hooks';

@@ -23,9 +23,10 @@ import {
   Mark,
   Text,
 } from 'design';
+import { useEffect } from 'react';
+
 import Dialog, { DialogContent } from 'design/DialogConfirmation';
 import * as Icons from 'design/Icon';
-import { useEffect } from 'react';
 import { TextIcon, useShowHint } from 'teleport/Discover/Shared';
 import { HintBox } from 'teleport/Discover/Shared/HintBox';
 import { usePingTeleport } from 'teleport/Discover/Shared/PingTeleportContext';

@@ -16,6 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import React, { SetStateAction } from 'react';
+import styled from 'styled-components';
+
 import {
   color,
   ColorProps,
@@ -24,8 +27,6 @@ import {
   space,
   SpaceProps,
 } from 'design/system';
-import React, { SetStateAction } from 'react';
-import styled from 'styled-components';
 
 // Taken from design.dataTable.InputSearch; will be modified later.
 export function SearchInput({ searchValue, setSearchValue, children }: Props) {

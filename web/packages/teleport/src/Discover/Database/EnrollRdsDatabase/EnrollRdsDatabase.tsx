@@ -17,9 +17,10 @@
  */
 
 import { Box, Indicator } from 'design';
+import { useState } from 'react';
+
 import { Danger } from 'design/Alert';
 import { P } from 'design/Text/Text';
-import { useState } from 'react';
 import useAttempt from 'shared/hooks/useAttemptNext';
 import { getErrMessage } from 'shared/utils/errorType';
 import { ConfigureIamPerms } from 'teleport/Discover/Shared/Aws/ConfigureIamPerms';

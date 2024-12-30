@@ -17,8 +17,9 @@
  */
 
 import { Box, Flex } from 'design';
-import { ShimmerBox } from 'design/ShimmerBox';
 import { useState } from 'react';
+
+import { ShimmerBox } from 'design/ShimmerBox';
 
 export function LoadingCard() {
   const [randomizedSize] = useState(() => ({

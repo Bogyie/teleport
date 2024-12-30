@@ -16,6 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import React, { useCallback, useEffect, useState } from 'react';
+import { useParams } from 'react-router';
+import { Link } from 'react-router-dom';
+import styled from 'styled-components';
+
 import { Alert } from 'design/Alert';
 import Box, { BoxProps } from 'design/Box';
 import Flex from 'design/Flex';
@@ -24,12 +29,8 @@ import { Indicator } from 'design/Indicator';
 import { MultiRowBox, Row } from 'design/MultiRowBox';
 import { ShimmerBox } from 'design/ShimmerBox';
 import Text, { H2 } from 'design/Text';
-import React, { useCallback, useEffect, useState } from 'react';
-import { useParams } from 'react-router';
-import { Link } from 'react-router-dom';
 import { LoadingSkeleton } from 'shared/components/UnifiedResources/shared/LoadingSkeleton';
 import { Attempt, useAsync } from 'shared/hooks/useAsync';
-import styled from 'styled-components';
 import {
   FeatureBox,
   FeatureHeader,

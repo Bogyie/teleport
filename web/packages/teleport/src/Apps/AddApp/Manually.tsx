@@ -24,6 +24,7 @@ import {
   Link,
   Text,
 } from 'design';
+
 import { DialogContent, DialogFooter } from 'design/Dialog';
 import DownloadLinks from 'teleport/components/DownloadLinks';
 import TextSelectCopy from 'teleport/components/TextSelectCopy';

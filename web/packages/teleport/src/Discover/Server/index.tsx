@@ -17,6 +17,7 @@
  */
 
 import React from 'react';
+
 import cfg from 'teleport/config';
 import { ResourceViewConfig } from 'teleport/Discover/flow';
 import { DownloadScript } from 'teleport/Discover/Server/DownloadScript';

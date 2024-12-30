@@ -16,11 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { useEffect, useRef, useState } from 'react';
+
 import ButtonIcon from 'design/ButtonIcon';
 import { Check, Copy } from 'design/Icon';
 import { HoverTooltip } from 'design/Tooltip';
 import { copyToClipboard } from 'design/utils/copyToClipboard';
-import { useEffect, useRef, useState } from 'react';
 
 export function CopyButton({
   name,

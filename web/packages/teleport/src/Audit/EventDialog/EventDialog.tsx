@@ -17,13 +17,14 @@
  */
 
 import { ButtonSecondary } from 'design';
+import PropTypes from 'prop-types';
+
 import Dialog, {
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from 'design/Dialog';
-import PropTypes from 'prop-types';
 import TextEditor from 'shared/components/TextEditor';
 import { Event } from 'teleport/services/audit';
 

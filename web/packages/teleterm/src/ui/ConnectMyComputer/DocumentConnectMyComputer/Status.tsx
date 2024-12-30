@@ -27,14 +27,9 @@ import {
   MenuItem,
   Text,
 } from 'design';
-import * as icons from 'design/Icon';
-import type { IconProps } from 'design/Icon/Icon';
-import Indicator from 'design/Indicator';
 import React, { useCallback, useRef } from 'react';
 import { Transition } from 'react-transition-group';
-import { MenuIcon } from 'shared/components/MenuAction';
 import styled, { css } from 'styled-components';
-import { makeLabelTag } from 'teleport/components/formatters';
 import type * as tsh from 'teleterm/services/tshd/types';
 import { useAppContext } from 'teleterm/ui/appContextProvider';
 import {
@@ -47,6 +42,12 @@ import { useWorkspaceContext } from 'teleterm/ui/Documents';
 import { connectToServer } from 'teleterm/ui/services/workspacesService';
 import { assertUnreachable } from 'teleterm/ui/utils';
 import { codeOrSignal } from 'teleterm/ui/utils/process';
+
+import * as icons from 'design/Icon';
+import type { IconProps } from 'design/Icon/Icon';
+import Indicator from 'design/Indicator';
+import { MenuIcon } from 'shared/components/MenuAction';
+import { makeLabelTag } from 'teleport/components/formatters';
 
 import { CompatibilityError, useVersions } from '../CompatibilityPromise';
 import { Logs } from '../Logs';

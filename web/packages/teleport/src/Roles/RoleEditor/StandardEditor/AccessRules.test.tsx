@@ -17,8 +17,9 @@
  */
 
 import { act } from '@testing-library/react';
-import { render, screen, userEvent } from 'design/utils/testing';
 import selectEvent from 'react-select-event';
+
+import { render, screen, userEvent } from 'design/utils/testing';
 import { Validator } from 'shared/components/Validation';
 import { ResourceKind } from 'teleport/services/resources';
 

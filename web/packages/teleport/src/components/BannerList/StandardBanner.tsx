@@ -17,6 +17,7 @@
  */
 
 import { Banner } from 'design';
+
 import { Action } from 'design/Alert';
 import { userEventService } from 'teleport/services/userEvent';
 import { CaptureEvent } from 'teleport/services/userEvent/types';

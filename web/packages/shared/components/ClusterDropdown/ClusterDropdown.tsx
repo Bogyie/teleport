@@ -17,11 +17,12 @@
  */
 
 import { Box, ButtonSecondary, Flex, Menu, MenuItem, Text } from 'design';
-import { ChevronDown } from 'design/Icon';
-import { HoverTooltip } from 'design/Tooltip';
 import React, { useEffect, useState } from 'react';
 import { useHistory } from 'react-router';
 import styled from 'styled-components';
+
+import { ChevronDown } from 'design/Icon';
+import { HoverTooltip } from 'design/Tooltip';
 import cfg from 'teleport/config';
 import { Cluster } from 'teleport/services/clusters';
 

@@ -16,6 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import styled from 'styled-components';
+
 import {
   alignItems,
   AlignItemsProps,
@@ -30,7 +32,6 @@ import {
   justifyContent,
   JustifyContentProps,
 } from 'design/system';
-import styled from 'styled-components';
 
 import Box, { BoxProps } from '../Box';
 

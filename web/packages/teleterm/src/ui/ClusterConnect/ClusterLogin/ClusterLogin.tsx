@@ -25,15 +25,16 @@ import {
   Indicator,
   Text,
 } from 'design';
-import * as Alerts from 'design/Alert';
-import { DialogContent, DialogHeader } from 'design/Dialog';
-import * as Icons from 'design/Icon';
 import React from 'react';
-import { PrimaryAuthType } from 'shared/services';
 import { publicAddrWithTargetPort } from 'teleterm/services/tshd/app';
 import { getTargetNameFromUri } from 'teleterm/services/tshd/gateway';
 import { AuthSettings } from 'teleterm/ui/services/clusters/types';
 import { ClusterConnectReason } from 'teleterm/ui/services/modals';
+
+import * as Alerts from 'design/Alert';
+import { DialogContent, DialogHeader } from 'design/Dialog';
+import * as Icons from 'design/Icon';
+import { PrimaryAuthType } from 'shared/services';
 
 import { outermostPadding } from '../spacing';
 import LoginForm from './FormLogin';

@@ -17,10 +17,11 @@
  */
 
 import { Box, Flex, Indicator } from 'design';
-import { Danger } from 'design/Alert';
 import { useEffect, useMemo } from 'react';
-import useAttempt from 'shared/hooks/useAttemptNext';
 import styled from 'styled-components';
+
+import { Danger } from 'design/Alert';
+import useAttempt from 'shared/hooks/useAttemptNext';
 import AjaxPoller from 'teleport/components/AjaxPoller';
 
 import ActionBar from './ActionBar';

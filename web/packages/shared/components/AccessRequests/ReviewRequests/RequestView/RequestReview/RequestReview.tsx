@@ -17,10 +17,12 @@
  */
 
 import { Alert, Box, ButtonPrimary, Flex, H3, Label, Text } from 'design';
+import React, { useState } from 'react';
+import styled from 'styled-components';
+
 import { Warning } from 'design/Icon';
 import { Radio } from 'design/RadioGroup';
 import { HoverTooltip } from 'design/Tooltip';
-import React, { useState } from 'react';
 import { FieldSelect } from 'shared/components/FieldSelect';
 import { FieldTextArea } from 'shared/components/FieldTextArea';
 import { Option } from 'shared/components/Select';
@@ -28,7 +30,6 @@ import Validation, { Validator } from 'shared/components/Validation';
 import { requiredField } from 'shared/components/Validation/rules';
 import { Attempt } from 'shared/hooks/useAsync';
 import { AccessRequest, RequestState } from 'shared/services/accessRequests';
-import styled from 'styled-components';
 
 import { AccessDurationReview } from '../../../AccessDuration';
 import { AssumeStartTime } from '../../../AssumeStartTime/AssumeStartTime';

@@ -16,6 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import React, { FormEvent, useEffect, useState } from 'react';
+
 import { Alert, OutlineDanger } from 'design/Alert/Alert';
 import Box from 'design/Box';
 import { ButtonPrimary, ButtonSecondary } from 'design/Button';
@@ -26,7 +28,6 @@ import Indicator from 'design/Indicator';
 import { RadioGroup } from 'design/RadioGroup';
 import { StepComponentProps, StepHeader, StepSlider } from 'design/StepSlider';
 import { P } from 'design/Text/Text';
-import React, { FormEvent, useEffect, useState } from 'react';
 import FieldInput from 'shared/components/FieldInput';
 import Validation, { Validator } from 'shared/components/Validation';
 import { requiredField } from 'shared/components/Validation/rules';

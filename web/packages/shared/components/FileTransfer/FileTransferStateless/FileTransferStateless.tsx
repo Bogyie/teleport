@@ -17,8 +17,9 @@
  */
 
 import { ButtonIcon, Flex, Text } from 'design';
-import { Cross as CloseIcon } from 'design/Icon';
 import styled from 'styled-components';
+
+import { Cross as CloseIcon } from 'design/Icon';
 
 import { DownloadForm } from './DownloadForm';
 import { FileList } from './FileList';

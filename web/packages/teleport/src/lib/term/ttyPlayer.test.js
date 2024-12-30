@@ -17,6 +17,7 @@
  */
 
 import WS from 'jest-websocket-mock';
+
 import { StatusEnum } from 'teleport/lib/player';
 import { TermEvent } from 'teleport/lib/term/enums';
 

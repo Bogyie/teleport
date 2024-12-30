@@ -24,8 +24,9 @@ import {
   Link,
   Text,
 } from 'design';
-import { DialogContent, DialogFooter } from 'design/Dialog';
 import { KeyboardEvent, useEffect, useState } from 'react';
+
+import { DialogContent, DialogFooter } from 'design/Dialog';
 import FieldInput from 'shared/components/FieldInput';
 import Validation, { Validator } from 'shared/components/Validation';
 import { Attempt } from 'shared/hooks/useAttemptNext';

@@ -28,6 +28,7 @@ import React, {
 } from 'react';
 import { matchPath, useHistory } from 'react-router';
 import styled from 'styled-components';
+
 import cfg from 'teleport/config';
 import { useFeatures } from 'teleport/FeaturesContext';
 import type { TeleportFeature } from 'teleport/types';

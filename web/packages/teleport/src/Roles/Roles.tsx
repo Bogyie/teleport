@@ -17,8 +17,10 @@
  */
 
 import { Alert, Box, Button, Flex, H3, Link } from 'design';
-import { P } from 'design/Text/Text';
 import { useEffect, useState } from 'react';
+import styled from 'styled-components';
+
+import { P } from 'design/Text/Text';
 import { MissingPermissionsTooltip } from 'shared/components/MissingPermissionsTooltip';
 import {
   Notification,
@@ -26,7 +28,6 @@ import {
   NotificationSeverity,
 } from 'shared/components/Notification';
 import { HoverTooltip } from 'shared/components/ToolTip';
-import styled from 'styled-components';
 import { useServerSidePagination } from 'teleport/components/hooks';
 import {
   FeatureBox,

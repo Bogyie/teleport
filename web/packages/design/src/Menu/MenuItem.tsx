@@ -16,8 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import Flex from 'design/Flex';
-import { Theme } from 'design/theme/themes/types';
 import styled from 'styled-components';
 import {
   color,
@@ -27,6 +25,9 @@ import {
   space,
   SpaceProps,
 } from 'styled-system';
+
+import Flex from 'design/Flex';
+import { Theme } from 'design/theme/themes/types';
 
 const defaultValues = {
   fontSize: 1,

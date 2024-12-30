@@ -17,6 +17,7 @@
  */
 
 import { ContextProvider } from 'teleport';
+
 import { LockedAccessRequests } from 'teleport/AccessRequests/LockedAccessRequests/LockedAccessRequests';
 import { createTeleportContext } from 'teleport/mocks/contexts';
 

@@ -17,8 +17,9 @@
  */
 
 import { Box, ButtonPrimary, ButtonText, H2 } from 'design';
-import { Danger } from 'design/Alert';
 import React, { useState } from 'react';
+
+import { Danger } from 'design/Alert';
 import FieldInput from 'shared/components/FieldInput';
 import Validation, { Validator } from 'shared/components/Validation';
 import { requiredField } from 'shared/components/Validation/rules';

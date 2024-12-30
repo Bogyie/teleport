@@ -17,6 +17,7 @@
  */
 
 import { useEffect, useState } from 'react';
+
 import { decodeUrlQueryParam } from 'teleport/components/hooks/useUrlFiltering';
 import { ResourceFilter } from 'teleport/services/agents';
 

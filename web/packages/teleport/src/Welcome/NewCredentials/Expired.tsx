@@ -18,6 +18,7 @@
 
 import { H2, P1 } from 'design';
 import styled from 'styled-components';
+
 import { OnboardCard } from 'teleport/components/Onboard';
 
 export function Expired({ resetMode = false }) {

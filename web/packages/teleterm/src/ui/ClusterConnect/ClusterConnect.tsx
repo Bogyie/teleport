@@ -16,11 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import Dialog from 'design/Dialog';
 import { useState } from 'react';
 import { useAppContext } from 'teleterm/ui/appContextProvider';
 import { DialogClusterConnect } from 'teleterm/ui/services/modals';
 import { RootClusterUri } from 'teleterm/ui/uri';
+
+import Dialog from 'design/Dialog';
 
 import { ClusterAdd } from './ClusterAdd';
 import { ClusterLogin } from './ClusterLogin';

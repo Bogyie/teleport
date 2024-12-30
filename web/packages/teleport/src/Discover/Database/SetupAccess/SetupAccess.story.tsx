@@ -17,6 +17,7 @@
  */
 
 import { http, HttpResponse } from 'msw';
+
 import cfg from 'teleport/config';
 import {
   getDbMeta,

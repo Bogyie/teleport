@@ -17,14 +17,15 @@
  */
 
 import { Button, ButtonIcon, Card, Flex, H3 } from 'design';
-import { Cross, Warning } from 'design/Icon';
 import { useRef, useState } from 'react';
+import styled, { useTheme } from 'styled-components';
+
+import { Cross, Warning } from 'design/Icon';
 import {
   Notification,
   type NotificationItem,
 } from 'shared/components/Notification';
 import { useClickOutside } from 'shared/hooks/useClickOutside';
-import styled, { useTheme } from 'styled-components';
 
 export function AlertDropdown({ alerts, onRemoveAlert }: Props) {
   const [showDropdown, setShowDropdown] = useState(false);

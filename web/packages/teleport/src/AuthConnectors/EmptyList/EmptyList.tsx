@@ -17,6 +17,7 @@
  */
 
 import { Card, Flex, H1, H2, ResourceIcon, Text } from 'design';
+
 import { AuthProviderType } from 'shared/services';
 import getSsoIcon from 'teleport/AuthConnectors/ssoIcons/getSsoIcon';
 import { ConnectorBox } from 'teleport/AuthConnectors/styles/ConnectorBox.styles';

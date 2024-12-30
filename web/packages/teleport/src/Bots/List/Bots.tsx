@@ -17,9 +17,10 @@
  */
 
 import { Alert, Box, Button, Indicator } from 'design';
-import { HoverTooltip } from 'design/Tooltip';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+
+import { HoverTooltip } from 'design/Tooltip';
 import { useAttemptNext } from 'shared/hooks';
 import { BotList } from 'teleport/Bots/List/BotList';
 import {

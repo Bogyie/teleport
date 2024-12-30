@@ -17,8 +17,9 @@
  */
 
 import { act, renderHook } from '@testing-library/react';
-import { render, screen } from 'design/utils/testing';
 import { mockIntersectionObserver } from 'jsdom-testing-mocks';
+
+import { render, screen } from 'design/utils/testing';
 
 import { useInfiniteScroll } from './useInfiniteScroll';
 

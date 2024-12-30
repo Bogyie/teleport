@@ -16,9 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { render, screen } from 'design/utils/testing';
 import { createMemoryHistory } from 'history';
 import { Route, Router } from 'react-router';
+
+import { render, screen } from 'design/utils/testing';
 import cfg from 'teleport/config';
 import { HeadlessRequest } from 'teleport/HeadlessRequest/HeadlessRequest';
 import auth from 'teleport/services/auth';

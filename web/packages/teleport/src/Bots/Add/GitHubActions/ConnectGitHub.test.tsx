@@ -16,9 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { render, screen } from 'design/utils/testing';
 import { MemoryRouter } from 'react-router';
 import { ContextProvider } from 'teleport';
+
+import { render, screen } from 'design/utils/testing';
 import { allAccessAcl } from 'teleport/mocks/contexts';
 import TeleportContext from 'teleport/teleportContext';
 

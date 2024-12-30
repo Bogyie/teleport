@@ -10,6 +10,7 @@ module.exports = {
     '',
     '<BUILTIN_MODULES>',
     '',
+    '^(design|build|shared|teleport|teleport-e)/(.*)$',
     '^@gravitational/(.*)$',
     '',
     '^[./]',

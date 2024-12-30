@@ -18,7 +18,6 @@
 
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { render } from 'design/utils/testing';
 import { TrustedDeviceRequirement } from 'gen-proto-ts/teleport/legacy/types/trusted_device_requirement_pb';
 import {
   makeLoggedInUser,
@@ -27,6 +26,8 @@ import {
 } from 'teleterm/services/tshd/testHelpers';
 import { MockAppContextProvider } from 'teleterm/ui/fixtures/MockAppContextProvider';
 import { MockAppContext } from 'teleterm/ui/fixtures/mocks';
+
+import { render } from 'design/utils/testing';
 
 import { IdentityContainer } from './Identity';
 

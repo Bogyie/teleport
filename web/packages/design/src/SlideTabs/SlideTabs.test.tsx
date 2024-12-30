@@ -17,9 +17,10 @@
  */
 
 import { screen } from '@testing-library/react';
+import { useState } from 'react';
+
 import * as Icon from 'design/Icon';
 import { render, userEvent } from 'design/utils/testing';
-import { useState } from 'react';
 
 import { SlideTabs, SlideTabsProps } from './SlideTabs';
 

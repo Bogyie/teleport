@@ -16,14 +16,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import React, { forwardRef } from 'react';
+import styled from 'styled-components';
+
 import Box from 'design/Box';
 import { CheckboxInput, CheckboxSize } from 'design/Checkbox';
 import Flex from 'design/Flex';
 import LabelInput from 'design/LabelInput';
 import { SpaceProps } from 'design/system';
 import Text from 'design/Text';
-import React, { forwardRef } from 'react';
-import styled from 'styled-components';
 
 interface FieldCheckboxProps extends SpaceProps {
   name?: string;

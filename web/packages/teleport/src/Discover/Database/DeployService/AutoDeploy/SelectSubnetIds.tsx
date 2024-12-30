@@ -25,10 +25,11 @@ import {
   Subtitle3,
   Text,
 } from 'design';
+import React, { useEffect, useState } from 'react';
+
 import { FetchStatus } from 'design/DataTable/types';
 import * as Icons from 'design/Icon';
 import { HoverTooltip, IconTooltip } from 'design/Tooltip';
-import React, { useEffect, useState } from 'react';
 import useAttempt from 'shared/hooks/useAttemptNext';
 import { getErrMessage } from 'shared/utils/errorType';
 import { pluralize } from 'shared/utils/text';

@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { isObject } from 'shared/utils/highbar';
 import split2 from 'split2';
 import winston, {
   createLogger as createWinston,
@@ -27,6 +26,8 @@ import winston, {
 
 import type { ChildProcess } from 'node:child_process';
 import stream from 'node:stream';
+
+import { isObject } from 'shared/utils/highbar';
 
 import { KeepLastChunks } from './keepLastChunks';
 import { Logger, LoggerService, NodeLoggerService } from './types';

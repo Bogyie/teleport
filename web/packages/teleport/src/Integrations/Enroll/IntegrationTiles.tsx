@@ -18,6 +18,7 @@
 
 import { Flex, Text } from 'design';
 import { Link } from 'react-router-dom';
+
 import {
   BadgeTitle,
   ToolTipNoPermBadge,

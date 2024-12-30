@@ -17,11 +17,12 @@
  */
 
 import { FileTransferDirection } from 'gen-proto-ts/teleport/lib/teleterm/v1/service_pb';
-import { FileTransferListeners } from 'shared/components/FileTransfer';
 import { TshdClient } from 'teleterm/services/tshd';
 import { cloneAbortSignal } from 'teleterm/services/tshd/cloneableClient';
 import { FileTransferRequest } from 'teleterm/services/tshd/types';
 import { UsageService } from 'teleterm/ui/services/usage';
+
+import { FileTransferListeners } from 'shared/components/FileTransfer';
 
 export class FileTransferService {
   constructor(

@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Theme } from 'design/theme/themes/types';
 import React, {
   forwardRef,
   HTMLAttributes,
@@ -33,6 +32,8 @@ import {
   width,
   WidthProps,
 } from 'styled-system';
+
+import { Theme } from 'design/theme/themes/types';
 
 export type TextAreaSize = 'large' | 'medium' | 'small';
 

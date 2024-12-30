@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useStore } from 'shared/libs/stores';
 import { ClustersService } from 'teleterm/ui/services/clusters';
 import { StatePersistenceService } from 'teleterm/ui/services/statePersistence';
 import {
@@ -28,6 +27,8 @@ import {
 import * as uri from 'teleterm/ui/uri';
 import { RootClusterUri, routing } from 'teleterm/ui/uri';
 import { assertUnreachable } from 'teleterm/ui/utils';
+
+import { useStore } from 'shared/libs/stores';
 
 import { ImmutableStore } from '../immutableStore';
 import { TrackedConnectionOperationsFactory } from './trackedConnectionOperationsFactory';

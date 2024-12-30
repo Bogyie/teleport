@@ -17,6 +17,7 @@
  */
 
 import { ButtonIcon, ButtonText, Flex, Text } from 'design';
+
 import { Plus, Trash } from 'design/Icon';
 import FieldInput from 'shared/components/FieldInput';
 import { FieldSelectCreatable } from 'shared/components/FieldSelect';

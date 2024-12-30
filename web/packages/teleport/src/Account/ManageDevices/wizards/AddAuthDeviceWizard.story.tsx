@@ -16,8 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import Dialog from 'design/Dialog';
 import { delay, http, HttpResponse } from 'msw';
+
+import Dialog from 'design/Dialog';
 import { makeEmptyAttempt } from 'shared/hooks/useAsync';
 import { ReauthState } from 'teleport/components/ReAuthenticate/useReAuthenticate';
 import cfg from 'teleport/config';

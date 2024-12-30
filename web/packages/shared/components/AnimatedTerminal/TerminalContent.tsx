@@ -17,8 +17,9 @@
  */
 
 import { Fragment, useEffect, useLayoutEffect, useRef } from 'react';
-import { BufferEntry } from 'shared/components/AnimatedTerminal/content';
 import styled from 'styled-components';
+
+import { BufferEntry } from 'shared/components/AnimatedTerminal/content';
 
 export interface SelectedLines {
   start: number;

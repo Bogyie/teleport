@@ -18,6 +18,7 @@
 
 import { useEffect, useState } from 'react';
 import { useTeleport } from 'teleport';
+
 import {
   ResourceKind,
   resourceKindToJoinRole,

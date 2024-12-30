@@ -17,8 +17,9 @@
  */
 
 import { Text } from 'design';
-import * as icons from 'design/Icon';
 import { ReactElement, useCallback, useEffect } from 'react';
+
+import * as icons from 'design/Icon';
 import { Highlight } from 'shared/components/Highlight';
 import {
   Attempt,

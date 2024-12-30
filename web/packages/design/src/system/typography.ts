@@ -17,9 +17,10 @@
  */
 
 import { Property } from 'csstype';
+import { WebTarget } from 'styled-components';
+
 import { SharedStyles, Theme } from 'design/theme/themes/types';
 import { shouldForwardProp } from 'design/ThemeProvider';
-import { WebTarget } from 'styled-components';
 
 export interface TypographyProps {
   caps?: boolean;

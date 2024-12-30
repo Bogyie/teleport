@@ -17,9 +17,11 @@
  */
 
 import { Box, ButtonPrimary, Flex, H1, Image, Text } from 'design';
-import { ResourceIcon } from 'design/ResourceIcon';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import styled, { useTheme } from 'styled-components';
+
+import { ResourceIcon } from 'design/ResourceIcon';
 import {
   Description,
   DetailsTab,
@@ -29,7 +31,6 @@ import {
   FeatureSlider,
   Title,
 } from 'shared/components/EmptyState/EmptyState';
-import styled, { useTheme } from 'styled-components';
 import { DisplayTile } from 'teleport/Bots/Add/AddBotsPicker';
 import cfg from 'teleport/config';
 

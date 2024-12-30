@@ -17,8 +17,9 @@
  */
 
 import { Box, Flex, H2, ResourceIcon } from 'design';
-import { P } from 'design/Text/Text';
 import styled from 'styled-components';
+
+import { P } from 'design/Text/Text';
 
 export const IntegrationTile = styled(Flex)<{
   disabled?: boolean;

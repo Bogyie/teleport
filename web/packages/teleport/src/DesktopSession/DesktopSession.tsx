@@ -17,6 +17,8 @@
  */
 
 import { Box, ButtonPrimary, ButtonSecondary, Flex, Indicator } from 'design';
+import { useEffect, useState } from 'react';
+
 import { Info } from 'design/Alert';
 import Dialog, {
   DialogContent,
@@ -24,7 +26,6 @@ import Dialog, {
   DialogHeader,
   DialogTitle,
 } from 'design/Dialog';
-import { useEffect, useState } from 'react';
 import { Attempt } from 'shared/hooks/useAttemptNext';
 import AuthnDialog from 'teleport/components/AuthnDialog';
 import TdpClientCanvas from 'teleport/components/TdpClientCanvas';

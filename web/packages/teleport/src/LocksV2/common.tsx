@@ -16,8 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Trash } from 'design/Icon';
 import styled from 'styled-components';
+
+import { Trash } from 'design/Icon';
 
 export const TrashButton = styled(Trash)`
   padding: 8px;

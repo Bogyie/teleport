@@ -28,6 +28,7 @@ import {
   ViewMode,
 } from 'gen-proto-ts/teleport/userpreferences/v1/unified_resource_preferences_pb';
 import { UserPreferences } from 'gen-proto-ts/teleport/userpreferences/v1/userpreferences_pb';
+
 import cfg from 'teleport/config';
 import api from 'teleport/services/api';
 import { getPrefersDark } from 'teleport/ThemeProvider';

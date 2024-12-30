@@ -42,7 +42,6 @@ import {
   NavigationCategory,
 } from 'teleport/Navigation/categories';
 import { NavigationCategory as SideNavigationCategory } from 'teleport/Navigation/SideNavigation/categories';
-
 import { IntegrationEnroll } from '@gravitational/teleport/src/Integrations/Enroll';
 
 import { LockedAccessRequests } from './AccessRequests';

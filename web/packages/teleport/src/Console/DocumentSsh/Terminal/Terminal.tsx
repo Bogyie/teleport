@@ -18,7 +18,6 @@
 
 import { ITheme } from '@xterm/xterm';
 import { Flex } from 'design';
-import { getPlatformType } from 'design/platform';
 import React, {
   forwardRef,
   useEffect,
@@ -26,6 +25,8 @@ import React, {
   useRef,
 } from 'react';
 import styled from 'styled-components';
+
+import { getPlatformType } from 'design/platform';
 import { getMappedAction } from 'teleport/Console/useKeyboardNav';
 import XTermCtrl from 'teleport/lib/term/terminal';
 import Tty from 'teleport/lib/term/tty';

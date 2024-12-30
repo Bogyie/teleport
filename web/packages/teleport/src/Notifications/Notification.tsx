@@ -17,6 +17,9 @@
  */
 
 import { formatDistanceToNowStrict } from 'date-fns';
+import React, { useState } from 'react';
+import styled from 'styled-components';
+
 import { ButtonSecondary } from 'design/Button';
 import Dialog, {
   DialogContent,
@@ -27,11 +30,9 @@ import Dialog, {
 import * as Icons from 'design/Icon';
 import Text, { P3 } from 'design/Text';
 import { Theme } from 'design/theme/themes/types';
-import React, { useState } from 'react';
 import { MenuIcon, MenuItem } from 'shared/components/MenuAction';
 import { useAsync } from 'shared/hooks/useAsync';
 import { IGNORE_CLICK_CLASSNAME } from 'shared/hooks/useRefClickOutside/useRefClickOutside';
-import styled from 'styled-components';
 import history from 'teleport/services/history';
 import {
   NotificationState,

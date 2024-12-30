@@ -17,9 +17,10 @@
  */
 
 import { Flex, Text } from 'design';
+import styled from 'styled-components';
+
 import { Cross as CloseIcon } from 'design/Icon';
 import { space } from 'design/system';
-import styled from 'styled-components';
 
 import JoinedUsers from './JoinedUsers';
 

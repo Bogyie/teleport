@@ -17,11 +17,12 @@
  */
 
 import { StoryObj } from '@storybook/react';
+import { delay, http, HttpResponse } from 'msw';
+import { useEffect, useState } from 'react';
+
 import { Info } from 'design/Alert';
 import { ButtonPrimary } from 'design/Button';
 import Flex from 'design/Flex';
-import { delay, http, HttpResponse } from 'msw';
-import { useEffect, useState } from 'react';
 import useResources from 'teleport/components/useResources';
 import cfg from 'teleport/config';
 import { createTeleportContext } from 'teleport/mocks/contexts';

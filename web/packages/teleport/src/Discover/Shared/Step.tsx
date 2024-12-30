@@ -18,6 +18,7 @@
 
 import { Text } from 'design';
 import styled from 'styled-components';
+
 import TextSelectCopy from 'teleport/components/TextSelectCopy';
 
 interface StepProps {

@@ -17,6 +17,7 @@
  */
 
 import { useEffect } from 'react';
+
 import cfg from 'teleport/config';
 import { PasswordState } from 'teleport/services/user';
 

@@ -18,6 +18,12 @@
 
 import { UnifiedResourcePreferences } from 'gen-proto-ts/teleport/userpreferences/v1/unified_resource_preferences_pb';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { cloneAbortSignal } from 'teleterm/services/tshd/cloneableClient';
+import { UserPreferences } from 'teleterm/services/tshd/types';
+import { useAppContext } from 'teleterm/ui/appContextProvider';
+import { ClusterUri, routing } from 'teleterm/ui/uri';
+import { retryWithRelogin } from 'teleterm/ui/utils';
+
 import {
   Attempt,
   CanceledError,
@@ -29,11 +35,6 @@ import {
   mapAttempt,
   useAsync,
 } from 'shared/hooks/useAsync';
-import { cloneAbortSignal } from 'teleterm/services/tshd/cloneableClient';
-import { UserPreferences } from 'teleterm/services/tshd/types';
-import { useAppContext } from 'teleterm/ui/appContextProvider';
-import { ClusterUri, routing } from 'teleterm/ui/uri';
-import { retryWithRelogin } from 'teleterm/ui/utils';
 
 export function useUserPreferences(clusterUri: ClusterUri): {
   userPreferencesAttempt: Attempt<void>;

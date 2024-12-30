@@ -16,8 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { color, space } from 'design/system';
 import styled from 'styled-components';
+
+import { color, space } from 'design/system';
 
 function Link({ ...props }) {
   return <StyledButtonLink {...props} />;

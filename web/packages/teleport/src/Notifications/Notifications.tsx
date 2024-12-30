@@ -18,9 +18,12 @@
 
 import { formatDistanceToNowStrict, isAfter, isBefore } from 'date-fns';
 import { Alert, Box, Flex, Indicator, Text } from 'design';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import styled from 'styled-components';
+import { useTeleport } from 'teleport';
+
 import { BellRinging, Notification as NotificationIcon } from 'design/Icon';
 import { HoverTooltip } from 'design/Tooltip';
-import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   useInfiniteScroll,
   useKeyBasedPagination,
@@ -29,8 +32,6 @@ import { useRefClickOutside } from 'shared/hooks/useRefClickOutside';
 import { IGNORE_CLICK_CLASSNAME } from 'shared/hooks/useRefClickOutside/useRefClickOutside';
 import Logger from 'shared/libs/logger';
 import { useStore } from 'shared/libs/stores';
-import styled from 'styled-components';
-import { useTeleport } from 'teleport';
 import { Dropdown } from 'teleport/components/Dropdown';
 import {
   LocalNotificationGroupedKind,

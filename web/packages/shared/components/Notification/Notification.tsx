@@ -17,6 +17,9 @@
  */
 
 import { Box, ButtonIcon, Flex, Text } from 'design';
+import React, { useEffect, useRef, useState } from 'react';
+import styled, { useTheme } from 'styled-components';
+
 import { ActionButton } from 'design/Alert';
 import { BoxProps } from 'design/Box';
 import { Cross } from 'design/Icon';
@@ -24,8 +27,6 @@ import * as Icon from 'design/Icon';
 import { IconProps } from 'design/Icon/Icon';
 import { borderColor } from 'design/system';
 import { Theme } from 'design/theme/themes/types';
-import React, { useEffect, useRef, useState } from 'react';
-import styled, { useTheme } from 'styled-components';
 
 import type {
   NotificationItem,

@@ -17,9 +17,10 @@
  */
 
 import { Text } from 'design';
+import { useEffect, useState } from 'react';
+
 import { Alert } from 'design/Alert/Alert';
 import { FetchStatus } from 'design/DataTable/types';
-import { useEffect, useState } from 'react';
 import useAttempt, { Attempt } from 'shared/hooks/useAttemptNext';
 import { getErrMessage } from 'shared/utils/errorType';
 import cfg from 'teleport/config';

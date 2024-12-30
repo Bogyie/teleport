@@ -25,9 +25,10 @@ import {
   Mark,
   Text,
 } from 'design';
+import { useEffect, useState } from 'react';
+
 import Dialog, { DialogContent } from 'design/DialogConfirmation';
 import * as Icons from 'design/Icon';
-import { useEffect, useState } from 'react';
 import useAttempt, { Attempt } from 'shared/hooks/useAttemptNext';
 import { getErrMessage } from 'shared/utils/errorType';
 import cfg from 'teleport/config';

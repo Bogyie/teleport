@@ -17,6 +17,7 @@
  */
 
 import { ButtonIcon, Flex, Text } from 'design';
+
 import * as Icons from 'design/Icon';
 import { HoverTooltip } from 'design/Tooltip';
 

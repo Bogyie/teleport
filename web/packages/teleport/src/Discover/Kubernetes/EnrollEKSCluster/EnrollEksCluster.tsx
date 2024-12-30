@@ -25,13 +25,14 @@ import {
   Text,
   Toggle,
 } from 'design';
+import { useCallback, useState } from 'react';
+import styled from 'styled-components';
+
 import { Danger } from 'design/Alert';
 import { FetchStatus } from 'design/DataTable/types';
 import { IconTooltip } from 'design/Tooltip';
-import { useCallback, useState } from 'react';
 import useAttempt from 'shared/hooks/useAttemptNext';
 import { getErrMessage } from 'shared/utils/errorType';
-import styled from 'styled-components';
 import cfg from 'teleport/config';
 import { generateCmd } from 'teleport/Discover/Kubernetes/HelmChart/HelmChart';
 import { ConfigureIamPerms } from 'teleport/Discover/Shared/Aws/ConfigureIamPerms';

@@ -16,8 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Button, ButtonProps } from 'design/Button';
 import styled from 'styled-components';
+
+import { Button, ButtonProps } from 'design/Button';
 
 function ButtonLink({ ...props }: ButtonProps<'a'>) {
   return <Button as={StyledButtonLink} {...props} />;

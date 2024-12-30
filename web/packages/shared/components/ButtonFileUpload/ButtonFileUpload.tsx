@@ -17,11 +17,12 @@
  */
 
 import { ButtonBorder, Flex, LabelInput } from 'design';
+import React, { useEffect, useRef, useState } from 'react';
+import styled from 'styled-components';
+
 import type { ButtonSize } from 'design/Button';
 import { Upload } from 'design/Icon';
 import type { IconSize } from 'design/Icon/Icon';
-import React, { useEffect, useRef, useState } from 'react';
-import styled from 'styled-components';
 
 /**
  * ButtonFileUpload let the user choose a file from local filesystem.

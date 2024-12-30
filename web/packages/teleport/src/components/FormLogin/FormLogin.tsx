@@ -27,10 +27,12 @@ import {
   Flex,
   Text,
 } from 'design';
+import React, { useMemo, useState } from 'react';
+import styled from 'styled-components';
+
 import * as Alerts from 'design/Alert';
 import { StepComponentProps, StepSlider } from 'design/StepSlider';
 import { P } from 'design/Text/Text';
-import React, { useMemo, useState } from 'react';
 import FieldInput from 'shared/components/FieldInput';
 import { FieldSelect } from 'shared/components/FieldSelect';
 import Validation, { Validator } from 'shared/components/Validation';
@@ -46,7 +48,6 @@ import {
   PrimaryAuthType,
 } from 'shared/services';
 import createMfaOptions, { MfaOption } from 'shared/utils/createMfaOptions';
-import styled from 'styled-components';
 import { UserCredentials } from 'teleport/services/auth';
 import history from 'teleport/services/history';
 

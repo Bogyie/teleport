@@ -17,9 +17,10 @@
  */
 
 import { Box, ButtonIcon, Flex, Text } from 'design';
+import React from 'react';
+
 import * as Icons from 'design/Icon';
 import { inputGeometry } from 'design/Input/Input';
-import React from 'react';
 import { ButtonTextWithAddIcon } from 'shared/components/ButtonTextWithAddIcon';
 import FieldInput from 'shared/components/FieldInput';
 import { useValidation, Validator } from 'shared/components/Validation';

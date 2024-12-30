@@ -18,6 +18,7 @@
 
 import { ButtonPrimary, ButtonSecondary, Flex, H2, Image, Text } from 'design';
 import styled from 'styled-components';
+
 import cfg from 'teleport/config';
 import history from 'teleport/services/history';
 

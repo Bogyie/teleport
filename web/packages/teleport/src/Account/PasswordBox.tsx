@@ -17,9 +17,10 @@
  */
 
 import { Box, Flex } from 'design';
+import { useState } from 'react';
+
 import * as Icon from 'design/Icon';
 import { SingleRowBox } from 'design/MultiRowBox';
-import { useState } from 'react';
 import cfg from 'teleport/config';
 import { MfaDevice } from 'teleport/services/mfa';
 import { PasswordState } from 'teleport/services/user';

@@ -17,6 +17,7 @@
  */
 
 import { ContextProvider } from 'teleport';
+
 import * as stores from 'teleport/Console/stores/types';
 import { createTeleportContext } from 'teleport/mocks/contexts';
 import type { Session } from 'teleport/services/session';

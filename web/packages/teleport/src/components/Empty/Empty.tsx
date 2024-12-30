@@ -26,6 +26,7 @@ import {
   Text,
 } from 'design';
 import { Link } from 'react-router-dom';
+
 import cfg from 'teleport/config';
 
 export default function Empty(props: Props) {

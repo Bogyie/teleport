@@ -17,12 +17,13 @@
  */
 
 import { Box, Flex } from 'design';
+import { useId, useState } from 'react';
+import styled from 'styled-components';
+
 import * as Icon from 'design/Icon';
 import { SlideTabs } from 'design/SlideTabs';
-import { useId, useState } from 'react';
 import { MenuButton, MenuItem } from 'shared/components/MenuAction';
 import { useValidation } from 'shared/components/Validation';
-import styled from 'styled-components';
 import { Role, RoleWithYaml } from 'teleport/services/resources';
 
 import { EditorSaveCancelButton } from '../Shared';

@@ -17,16 +17,17 @@
  */
 
 import { Box, Flex } from 'design';
-import Table, { Cell } from 'design/DataTable';
-import { ResourceIcon } from 'design/ResourceIcon';
-import { IconTooltip } from 'design/Tooltip';
 import React from 'react';
 import { useHistory } from 'react-router';
 import { Link as InternalRouteLink } from 'react-router-dom';
+import styled from 'styled-components';
+
+import Table, { Cell } from 'design/DataTable';
+import { ResourceIcon } from 'design/ResourceIcon';
+import { IconTooltip } from 'design/Tooltip';
 import { MenuButton, MenuItem } from 'shared/components/MenuAction';
 import { useAsync } from 'shared/hooks/useAsync';
 import { saveOnDisk } from 'shared/utils/saveOnDisk';
-import styled from 'styled-components';
 import cfg from 'teleport/config';
 import { getStatus } from 'teleport/Integrations/helpers';
 import api from 'teleport/services/api';

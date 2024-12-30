@@ -17,11 +17,12 @@
  */
 
 import { Box, StepSlider } from 'design';
-import Popover from 'design/Popover';
 import { useMemo, useRef } from 'react';
 import { useAppContext } from 'teleterm/ui/appContextProvider';
 import { useKeyboardShortcuts } from 'teleterm/ui/services/keyboardShortcuts';
 import { useVnetContext, VnetSliderStep } from 'teleterm/ui/Vnet';
+
+import Popover from 'design/Popover';
 
 import { Step, useConnectionsContext } from './connectionsContext';
 import { ConnectionsIcon } from './ConnectionsIcon/ConnectionsIcon';

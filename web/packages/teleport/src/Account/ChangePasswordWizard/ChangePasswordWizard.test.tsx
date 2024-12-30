@@ -18,6 +18,7 @@
 
 import { waitFor, within } from '@testing-library/react';
 import { userEvent, UserEvent } from '@testing-library/user-event';
+
 import { render, screen } from 'design/utils/testing';
 import auth, { MfaChallengeScope } from 'teleport/services/auth/auth';
 import {

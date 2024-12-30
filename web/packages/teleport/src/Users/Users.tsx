@@ -18,6 +18,7 @@
 
 import { Alert, Box, Button, Flex, Indicator, Link, Text } from 'design';
 import React from 'react';
+
 import { HoverTooltip } from 'shared/components/ToolTip';
 import {
   FeatureBox,

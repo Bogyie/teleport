@@ -17,7 +17,6 @@
  */
 
 import { act } from '@testing-library/react';
-import { render, screen, waitFor } from 'design/utils/testing';
 import React from 'react';
 import Logger, { NullService } from 'teleterm/logger';
 import {
@@ -30,6 +29,8 @@ import * as useResourcesContext from 'teleterm/ui/DocumentCluster/resourcesConte
 import { MockAppContextProvider } from 'teleterm/ui/fixtures/MockAppContextProvider';
 import { MockAppContext } from 'teleterm/ui/fixtures/mocks';
 import { MockWorkspaceContextProvider } from 'teleterm/ui/fixtures/MockWorkspaceContextProvider';
+
+import { render, screen, waitFor } from 'design/utils/testing';
 
 import * as connectMyComputerContext from '../connectMyComputerContext';
 import { Setup } from './Setup';

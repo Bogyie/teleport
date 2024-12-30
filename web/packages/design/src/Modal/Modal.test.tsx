@@ -18,8 +18,9 @@
 
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { fireEvent, render } from 'design/utils/testing';
 import { useState } from 'react';
+
+import { fireEvent, render } from 'design/utils/testing';
 
 import Modal, { ModalProps } from './Modal';
 

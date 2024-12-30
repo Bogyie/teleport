@@ -16,11 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import Indicator from 'design/Indicator';
 import { useCallback } from 'react';
 import Document from 'teleterm/ui/Document';
 import { useWorkspaceContext } from 'teleterm/ui/Documents';
 import * as types from 'teleterm/ui/services/workspacesService';
+
+import Indicator from 'design/Indicator';
 
 import { useConnectMyComputerContext } from '../connectMyComputerContext';
 import { Setup } from './Setup';

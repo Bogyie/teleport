@@ -17,8 +17,9 @@
  */
 
 import { Box, ButtonText, Flex, Text } from 'design';
-import { ArrowForward, Key } from 'design/Icon';
 import styled from 'styled-components';
+
+import { ArrowForward, Key } from 'design/Icon';
 
 import type { Props } from '../FormLogin';
 

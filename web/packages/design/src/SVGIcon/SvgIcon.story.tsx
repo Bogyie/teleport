@@ -16,9 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { IconCircle } from 'design/Icon/IconCircle';
 import { ReactNode } from 'react';
 import { useTheme } from 'styled-components';
+
+import { IconCircle } from 'design/Icon/IconCircle';
 
 import Flex from '../Flex';
 import Text from '../Text';

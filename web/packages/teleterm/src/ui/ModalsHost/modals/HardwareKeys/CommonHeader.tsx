@@ -17,9 +17,10 @@
  */
 
 import { ButtonIcon, H2 } from 'design';
+import { RootClusterUri, routing } from 'teleterm/ui/uri';
+
 import { DialogHeader } from 'design/Dialog';
 import * as icons from 'design/Icon';
-import { RootClusterUri, routing } from 'teleterm/ui/uri';
 
 export function CommonHeader(props: {
   onCancel(): void;

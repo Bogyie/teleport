@@ -17,8 +17,9 @@
  */
 
 import { Flex, Text } from 'design';
-import { CircleArrowLeft, CircleArrowRight } from 'design/Icon';
 import styled from 'styled-components';
+
+import { CircleArrowLeft, CircleArrowRight } from 'design/Icon';
 
 export default function Pager({
   startFrom = 0,

@@ -16,6 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import styled, { useTheme } from 'styled-components';
+
 import Box from 'design/Box';
 import { ButtonSecondary } from 'design/Button';
 import ButtonIcon from 'design/ButtonIcon';
@@ -29,7 +31,6 @@ import FieldSelect, {
   FieldSelectCreatable,
 } from 'shared/components/FieldSelect';
 import { precomputed } from 'shared/components/Validation/rules';
-import styled, { useTheme } from 'styled-components';
 import { LabelsInput } from 'teleport/components/LabelsInput';
 
 import { SectionBox, SectionProps } from './sections';

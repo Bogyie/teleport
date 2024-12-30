@@ -17,6 +17,7 @@
  */
 
 import { Flex } from 'design';
+
 import { StyledArrowBtn } from 'design/DataTable/Pager/StyledPager';
 import { StyledPanel } from 'design/DataTable/StyledTable';
 import { CircleArrowLeft, CircleArrowRight } from 'design/Icon';

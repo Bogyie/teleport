@@ -17,7 +17,6 @@
  */
 
 import { Box } from 'design';
-import Popover from 'design/Popover';
 import { TrustedDeviceRequirement } from 'gen-proto-ts/teleport/legacy/types/trusted_device_requirement_pb';
 import {
   forwardRef,
@@ -33,6 +32,8 @@ import {
   useKeyboardShortcutFormatters,
   useKeyboardShortcuts,
 } from 'teleterm/ui/services/keyboardShortcuts';
+
+import Popover from 'design/Popover';
 
 import { EmptyIdentityList } from './EmptyIdentityList/EmptyIdentityList';
 import { IdentityList } from './IdentityList/IdentityList';

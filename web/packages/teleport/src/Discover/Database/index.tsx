@@ -17,6 +17,7 @@
  */
 
 import React from 'react';
+
 import cfg from 'teleport/config';
 import { CreateDatabase } from 'teleport/Discover/Database/CreateDatabase';
 import { DatabaseWrapper } from 'teleport/Discover/Database/DatabaseWrapper';

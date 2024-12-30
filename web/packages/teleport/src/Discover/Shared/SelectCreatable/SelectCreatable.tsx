@@ -16,10 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Cross } from 'design/Icon';
 import React from 'react';
 import ReactSelectCreatable from 'react-select/creatable';
 import { useTheme } from 'styled-components';
+
+import { Cross } from 'design/Icon';
 
 export const styles = theme => ({
   multiValue: (base, state) => {

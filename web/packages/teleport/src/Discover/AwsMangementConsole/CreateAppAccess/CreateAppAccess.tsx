@@ -17,12 +17,13 @@
  */
 
 import { Box, Flex, H3, Link, Mark } from 'design';
+import styled from 'styled-components';
+
 import { Danger } from 'design/Alert';
 import { P } from 'design/Text/Text';
 import { IconTooltip } from 'design/Tooltip';
 import TextEditor from 'shared/components/TextEditor';
 import { useAsync } from 'shared/hooks/useAsync';
-import styled from 'styled-components';
 import { TextSelectCopyMulti } from 'teleport/components/TextSelectCopy';
 import cfg from 'teleport/config';
 import { Container } from 'teleport/Discover/Shared/CommandBox';

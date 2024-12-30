@@ -16,6 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import * as whatwg from 'whatwg-url';
+
 import {
   AuthenticateWebDeviceDeepURL,
   ConnectMyComputerDeepURL,
@@ -23,7 +25,6 @@ import {
   DeepURL,
   Path,
 } from 'shared/deepLinks';
-import * as whatwg from 'whatwg-url';
 
 export type DeepLinkParseResult =
   // Just having a field like `ok: true` for success and `status: 'error'` for errors would be much more

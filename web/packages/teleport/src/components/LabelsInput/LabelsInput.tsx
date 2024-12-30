@@ -17,6 +17,8 @@
  */
 
 import { Box, ButtonIcon, ButtonSecondary, Flex } from 'design';
+import styled from 'styled-components';
+
 import * as Icons from 'design/Icon';
 import { inputGeometry } from 'design/Input/Input';
 import FieldInput from 'shared/components/FieldInput';
@@ -31,7 +33,6 @@ import {
   Rule,
   ValidationResult,
 } from 'shared/components/Validation/rules';
-import styled from 'styled-components';
 
 export type Label = {
   name: string;

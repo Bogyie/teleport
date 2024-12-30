@@ -17,8 +17,6 @@
  */
 
 import { Box, ButtonBorder, ButtonSecondary, Flex, Text } from 'design';
-import { Danger } from 'design/Alert';
-import { Icon, Magnifier, PushPin } from 'design/Icon';
 import React, {
   Children,
   PropsWithChildren,
@@ -30,9 +28,11 @@ import React, {
 } from 'react';
 import styled from 'styled-components';
 
+import { Danger } from 'design/Alert';
+import { Icon, Magnifier, PushPin } from 'design/Icon';
+
 import './unifiedStyles.css';
 
-import { HoverTooltip } from 'design/Tooltip';
 import {
   AvailableResourceMode,
   DefaultTab,
@@ -40,6 +40,8 @@ import {
   UnifiedResourcePreferences,
   ViewMode,
 } from 'gen-proto-ts/teleport/userpreferences/v1/unified_resource_preferences_pb';
+
+import { HoverTooltip } from 'design/Tooltip';
 import {
   Attempt as AsyncAttempt,
   hasFinished,

@@ -16,9 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { BoxProps } from 'design/Box';
 import React from 'react';
 import { GroupBase, OnChangeValue } from 'react-select';
+
+import { BoxProps } from 'design/Box';
 import { useAsync } from 'shared/hooks/useAsync';
 
 import {

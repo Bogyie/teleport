@@ -16,8 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import Table, { LabelCell } from 'design/DataTable';
 import { useState } from 'react';
+
+import Table, { LabelCell } from 'design/DataTable';
 import { DeleteBot } from 'teleport/Bots/DeleteBot';
 import { EditBot } from 'teleport/Bots/EditBot';
 import { BotOptionsCell } from 'teleport/Bots/List/ActionCell';

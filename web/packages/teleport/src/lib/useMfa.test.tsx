@@ -18,6 +18,7 @@
 
 import { renderHook, waitFor } from '@testing-library/react';
 import { useState } from 'react';
+
 import { CreateAuthenticateChallengeRequest } from 'teleport/services/auth';
 import auth, { MfaChallengeScope } from 'teleport/services/auth/auth';
 import {

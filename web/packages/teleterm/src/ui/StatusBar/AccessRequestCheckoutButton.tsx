@@ -17,8 +17,9 @@
  */
 
 import { ButtonPrimary, Text } from 'design';
-import { ListAddCheck } from 'design/Icon';
 import { useAccessRequestsButton } from 'teleterm/ui/StatusBar/useAccessRequestCheckoutButton';
+
+import { ListAddCheck } from 'design/Icon';
 
 export function AccessRequestCheckoutButton() {
   const { toggleAccessRequestBar, getAddedItemsCount, isCollapsed } =

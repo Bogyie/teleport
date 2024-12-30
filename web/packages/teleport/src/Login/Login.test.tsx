@@ -17,8 +17,9 @@
  */
 
 import { userEvent, UserEvent } from '@testing-library/user-event';
-import { fireEvent, render, screen, waitFor } from 'design/utils/testing';
 import selectEvent from 'react-select-event';
+
+import { fireEvent, render, screen, waitFor } from 'design/utils/testing';
 import cfg from 'teleport/config';
 import auth from 'teleport/services/auth/auth';
 import history from 'teleport/services/history';

@@ -17,10 +17,11 @@
  */
 
 import { Popover, Text } from 'design';
-import * as Icons from 'design/Icon';
-import { Position } from 'design/Popover/Popover';
 import React, { PropsWithChildren, useState } from 'react';
 import styled, { useTheme } from 'styled-components';
+
+import * as Icons from 'design/Icon';
+import { Position } from 'design/Popover/Popover';
 
 import { anchorOriginForPosition, transformOriginForPosition } from './shared';
 

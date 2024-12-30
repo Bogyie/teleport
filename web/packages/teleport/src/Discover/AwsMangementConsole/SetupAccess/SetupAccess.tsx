@@ -17,13 +17,14 @@
  */
 
 import { LabelInput, Link, Mark } from 'design';
+import React, { useEffect, useState } from 'react';
+import { useTheme } from 'styled-components';
+
 import { OutlineInfo } from 'design/Alert/Alert';
 import { Cross } from 'design/Icon';
 import { P } from 'design/Text/Text';
-import React, { useEffect, useState } from 'react';
 import { FieldSelectCreatable } from 'shared/components/FieldSelect';
 import Validation, { Validator } from 'shared/components/Validation';
-import { useTheme } from 'styled-components';
 import { AWS_TAG_INFO_LINK } from 'teleport/Discover/Shared/const';
 import { Option } from 'teleport/Discover/Shared/SelectCreatable';
 import { styles } from 'teleport/Discover/Shared/SelectCreatable/SelectCreatable';

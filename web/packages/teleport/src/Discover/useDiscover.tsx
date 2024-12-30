@@ -18,6 +18,7 @@
 
 import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { useHistory, useLocation } from 'react-router';
+
 import {
   addIndexToViews,
   findViewAtIndex,

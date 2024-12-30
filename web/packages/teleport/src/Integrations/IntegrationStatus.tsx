@@ -17,6 +17,7 @@
  */
 
 import { useParams } from 'react-router';
+
 import { AwsOidcRoutes } from 'teleport/Integrations/status/AwsOidc/AwsOidcRoutes';
 import { IntegrationKind, PluginKind } from 'teleport/services/integrations';
 

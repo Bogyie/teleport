@@ -17,10 +17,11 @@
  */
 
 import { Box } from 'design';
-import Popover from 'design/Popover';
 import { useMemo, useRef, useState } from 'react';
-import { debounce } from 'shared/utils/highbar';
 import styled from 'styled-components';
+
+import Popover from 'design/Popover';
+import { debounce } from 'shared/utils/highbar';
 
 export default function JoinedUsers(props) {
   const { active, users, open = false, ml, mr } = props;

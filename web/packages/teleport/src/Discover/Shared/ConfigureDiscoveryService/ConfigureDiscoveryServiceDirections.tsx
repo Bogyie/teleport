@@ -16,9 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import { Box, Flex, H3, Input, Mark, Subtitle3, Text } from 'design';
+import styled from 'styled-components';
+
 import { P } from 'design/Text/Text';
 import { IconTooltip } from 'design/Tooltip';
-import styled from 'styled-components';
 import { Tabs } from 'teleport/components/Tabs';
 import { TextSelectCopyMulti } from 'teleport/components/TextSelectCopy';
 

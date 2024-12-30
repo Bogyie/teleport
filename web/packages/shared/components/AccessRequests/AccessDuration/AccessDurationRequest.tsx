@@ -17,6 +17,7 @@
  */
 
 import { Flex, LabelInput, Text } from 'design';
+
 import { IconTooltip } from 'design/Tooltip';
 import Select, { Option } from 'shared/components/Select';
 

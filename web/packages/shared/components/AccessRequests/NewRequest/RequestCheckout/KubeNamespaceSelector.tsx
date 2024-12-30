@@ -19,9 +19,10 @@
 import { Box } from 'design';
 import { useState } from 'react';
 import { ActionMeta } from 'react-select';
+import styled from 'styled-components';
+
 import { FieldSelectAsync } from 'shared/components/FieldSelect';
 import { Option } from 'shared/components/Select';
-import styled from 'styled-components';
 
 import { CheckableOptionComponent } from '../CheckableOption';
 import { PendingKubeResourceItem, PendingListItem } from './RequestCheckout';

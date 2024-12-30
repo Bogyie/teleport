@@ -17,6 +17,9 @@
  */
 
 import { ButtonIcon, ButtonPrimary, ButtonSecondary, H2, Input } from 'design';
+import { useRef, useState } from 'react';
+import styled from 'styled-components';
+
 import DialogConfirmation, {
   DialogContent,
   DialogFooter,
@@ -24,8 +27,6 @@ import DialogConfirmation, {
 } from 'design/DialogConfirmation';
 import { Cross } from 'design/Icon';
 import { RadioGroup } from 'design/RadioGroup';
-import { useRef, useState } from 'react';
-import styled from 'styled-components';
 
 const JOB_OPTIONS = [
   'Software Engineer',

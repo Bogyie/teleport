@@ -16,11 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { IconProps } from 'design/Icon/Icon';
-import { StatusIcon, StatusKind } from 'design/StatusIcon';
 import React, { useState } from 'react';
 import styled, { useTheme } from 'styled-components';
 import { color, ColorProps, style } from 'styled-system';
+
+import { IconProps } from 'design/Icon/Icon';
+import { StatusIcon, StatusKind } from 'design/StatusIcon';
 
 import Box from '../Box';
 import { Button, ButtonFill, ButtonIntent } from '../Button';

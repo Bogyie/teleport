@@ -26,10 +26,11 @@ import {
   LabelInput,
   Text,
 } from 'design';
-import * as Alerts from 'design/Alert';
-import Dialog, { DialogHeader, DialogTitle } from 'design/Dialog';
 import PropTypes from 'prop-types';
 import { useState } from 'react';
+
+import * as Alerts from 'design/Alert';
+import Dialog, { DialogHeader, DialogTitle } from 'design/Dialog';
 import TextEditor from 'shared/components/TextEditor';
 import { useAttempt } from 'shared/hooks';
 import { CaptureEvent, userEventService } from 'teleport/services/userEvent';

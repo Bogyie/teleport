@@ -17,12 +17,13 @@
  */
 
 import { ButtonIcon, Flex, Label, Text } from 'design';
-import { Logout } from 'design/Icon';
 import { useState } from 'react';
 import { useKeyboardArrowsNavigation } from 'teleterm/ui/components/KeyboardArrowsNavigation';
 import { ListItem } from 'teleterm/ui/components/ListItem';
 import { ProfileStatusError } from 'teleterm/ui/components/ProfileStatusError';
 import { getUserWithClusterName } from 'teleterm/ui/utils';
+
+import { Logout } from 'design/Icon';
 
 import { IdentityRootCluster } from '../useIdentity';
 

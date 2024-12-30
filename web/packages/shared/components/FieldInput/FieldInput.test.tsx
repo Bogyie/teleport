@@ -17,6 +17,7 @@
  */
 
 import { screen } from '@testing-library/react';
+
 import { darkTheme } from 'design/theme';
 import { fireEvent, render } from 'design/utils/testing';
 

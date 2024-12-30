@@ -20,6 +20,8 @@ import { StoryObj } from '@storybook/react';
 import { delay, http, HttpResponse } from 'msw';
 import { MemoryRouter } from 'react-router';
 import { ContextProvider, Context as TeleportContext } from 'teleport';
+import { withoutQuery } from 'web/packages/build/storybook';
+
 import cfg from 'teleport/config';
 import { ResourceKind } from 'teleport/Discover/Shared';
 import { PingTeleportProvider } from 'teleport/Discover/Shared/PingTeleportContext';
@@ -35,7 +37,6 @@ import {
 } from 'teleport/services/integrations';
 import { INTERNAL_RESOURCE_ID_LABEL_KEY } from 'teleport/services/joinToken';
 import { DiscoverEventResource } from 'teleport/services/userEvent';
-import { withoutQuery } from 'web/packages/build/storybook';
 
 import HelmChart from './HelmChart';
 

@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { wait } from 'shared/utils/wait';
 import { MockedUnaryCall } from 'teleterm/services/tshd/cloneableClient';
 import { makeAppGateway } from 'teleterm/services/tshd/testHelpers';
 import { DocumentGatewayApp } from 'teleterm/ui/DocumentGatewayApp/DocumentGatewayApp';
@@ -24,6 +23,8 @@ import { MockAppContextProvider } from 'teleterm/ui/fixtures/MockAppContextProvi
 import { MockAppContext } from 'teleterm/ui/fixtures/mocks';
 import { MockWorkspaceContextProvider } from 'teleterm/ui/fixtures/MockWorkspaceContextProvider';
 import * as types from 'teleterm/ui/services/workspacesService';
+
+import { wait } from 'shared/utils/wait';
 
 export default {
   title: 'Teleterm/DocumentGatewayApp',

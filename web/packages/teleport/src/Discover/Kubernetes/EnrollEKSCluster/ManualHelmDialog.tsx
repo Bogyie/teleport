@@ -25,11 +25,12 @@ import {
   H3,
   Indicator,
 } from 'design';
+import React, { Suspense, useEffect, useState } from 'react';
+import styled from 'styled-components';
+
 import Dialog, { DialogContent, DialogFooter } from 'design/DialogConfirmation';
 import * as Icons from 'design/Icon';
 import { P } from 'design/Text/Text';
-import React, { Suspense, useEffect, useState } from 'react';
-import styled from 'styled-components';
 import { CatchError } from 'teleport/components/CatchError';
 import { TextSelectCopyMulti } from 'teleport/components/TextSelectCopy';
 import { ResourceKind, TextIcon } from 'teleport/Discover/Shared';

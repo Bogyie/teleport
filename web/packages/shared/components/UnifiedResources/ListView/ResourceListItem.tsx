@@ -17,12 +17,13 @@
  */
 
 import { Box, ButtonIcon, Flex, Label, Text } from 'design';
+import { useEffect, useState } from 'react';
+import styled from 'styled-components';
+
 import { CheckboxInput } from 'design/Checkbox';
 import { Tags } from 'design/Icon';
 import { ResourceIcon } from 'design/ResourceIcon';
 import { HoverTooltip } from 'design/Tooltip';
-import { useEffect, useState } from 'react';
-import styled from 'styled-components';
 import { makeLabelTag } from 'teleport/components/formatters';
 
 import { CopyButton } from '../shared/CopyButton';

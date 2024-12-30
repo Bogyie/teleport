@@ -17,8 +17,9 @@
  */
 
 import { Box, ButtonSecondary, H3, Mark, Text } from 'design';
-import * as Icons from 'design/Icon';
 import { Suspense, useEffect, useState } from 'react';
+
+import * as Icons from 'design/Icon';
 import Validation, { Validator } from 'shared/components/Validation';
 import { CatchError } from 'teleport/components/CatchError';
 import { TextSelectCopyMulti } from 'teleport/components/TextSelectCopy';

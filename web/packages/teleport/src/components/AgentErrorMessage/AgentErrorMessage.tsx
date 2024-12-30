@@ -17,6 +17,7 @@
  */
 
 import { Link } from 'design';
+
 import { Danger } from 'design/Alert';
 
 const PREDICATE_DOC =

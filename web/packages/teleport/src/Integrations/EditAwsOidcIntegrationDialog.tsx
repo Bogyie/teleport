@@ -25,6 +25,9 @@ import {
   Link,
   Text,
 } from 'design';
+import { useState } from 'react';
+import styled from 'styled-components';
+
 import { OutlineInfo, OutlineWarn } from 'design/Alert/Alert';
 import Dialog, {
   DialogContent,
@@ -32,14 +35,12 @@ import Dialog, {
   DialogHeader,
   DialogTitle,
 } from 'design/DialogConfirmation';
-import { useState } from 'react';
 import { FieldCheckbox } from 'shared/components/FieldCheckbox';
 import FieldInput from 'shared/components/FieldInput';
 import { TextSelectCopyMulti } from 'shared/components/TextSelectCopy';
 import Validation, { Validator } from 'shared/components/Validation';
 import { requiredRoleArn } from 'shared/components/Validation/rules';
 import { useAsync } from 'shared/hooks/useAsync';
-import styled from 'styled-components';
 import cfg from 'teleport/config';
 import {
   AwsOidcPolicyPreset,

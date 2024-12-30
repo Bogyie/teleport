@@ -18,6 +18,7 @@
  */
 
 import { useEffect, useRef, useState } from 'react';
+
 import { NotificationItem } from 'shared/components/Notification';
 import { Attempt } from 'shared/hooks/useAttemptNext';
 import { debounce } from 'shared/utils/highbar';

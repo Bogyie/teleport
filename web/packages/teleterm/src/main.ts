@@ -17,7 +17,6 @@
  */
 
 import { app, dialog, globalShortcut, nativeTheme, shell } from 'electron';
-import { CUSTOM_PROTOCOL } from 'shared/deepLinks';
 import { parseDeepLink } from 'teleterm/deepLinks';
 import Logger from 'teleterm/logger';
 import MainProcess from 'teleterm/mainProcess';
@@ -37,6 +36,8 @@ import { assertUnreachable } from 'teleterm/ui/utils';
 import { spawn } from 'node:child_process';
 import os from 'node:os';
 import path from 'node:path';
+
+import { CUSTOM_PROTOCOL } from 'shared/deepLinks';
 
 if (!app.isPackaged) {
   // Sets app name and data directories to Electron.

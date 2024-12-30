@@ -17,11 +17,12 @@
  */
 
 import { Box, Flex, H2, H3, Text } from 'design';
-import * as Icons from 'design/Icon';
-import { MultiRowBox, Row } from 'design/MultiRowBox';
 import React from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
+
+import * as Icons from 'design/Icon';
+import { MultiRowBox, Row } from 'design/MultiRowBox';
 import { ButtonLockedFeature } from 'teleport/components/ButtonLockedFeature';
 import {
   FeatureBox,

@@ -17,6 +17,7 @@
  */
 
 import { renderHook, waitFor } from '@testing-library/react';
+
 import { nodes } from 'teleport/Nodes/fixtures';
 import NodeService, { Node } from 'teleport/services/nodes';
 import UserService from 'teleport/services/user';

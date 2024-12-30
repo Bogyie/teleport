@@ -24,6 +24,8 @@ import {
   Indicator,
   Text,
 } from 'design';
+import React, { useEffect, useState } from 'react';
+
 import { Alert, Danger } from 'design/Alert';
 import Dialog, {
   DialogContent,
@@ -31,7 +33,6 @@ import Dialog, {
   DialogHeader,
   DialogTitle,
 } from 'design/Dialog';
-import React, { useEffect, useState } from 'react';
 import FieldInput from 'shared/components/FieldInput';
 import FieldSelect from 'shared/components/FieldSelect';
 import Validation, { Validator } from 'shared/components/Validation';

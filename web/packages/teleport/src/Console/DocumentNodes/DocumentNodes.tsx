@@ -17,10 +17,11 @@
  */
 
 import { Box, Indicator } from 'design';
-import { Danger } from 'design/Alert';
 import React, { useState } from 'react';
-import { ClusterDropdown } from 'shared/components/ClusterDropdown/ClusterDropdown';
 import styled from 'styled-components';
+
+import { Danger } from 'design/Alert';
+import { ClusterDropdown } from 'shared/components/ClusterDropdown/ClusterDropdown';
 import ErrorMessage from 'teleport/components/AgentErrorMessage';
 import { NodeList } from 'teleport/components/NodeList';
 import Document from 'teleport/Console/Document';

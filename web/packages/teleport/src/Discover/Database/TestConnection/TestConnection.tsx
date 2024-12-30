@@ -17,8 +17,9 @@
  */
 
 import { Box, H3, LabelInput, Subtitle3 } from 'design';
-import { P } from 'design/Text/Text';
 import { useState } from 'react';
+
+import { P } from 'design/Text/Text';
 import Select, { Option } from 'shared/components/Select';
 import Validation, { Validator } from 'shared/components/Validation';
 import ReAuthenticate from 'teleport/components/ReAuthenticate';

@@ -27,10 +27,11 @@ import {
   waitForElementToBeRemoved,
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { darkTheme } from 'design/theme';
-import { ConfiguredThemeProvider } from 'design/ThemeProvider';
 import { ReactNode } from 'react';
 import { MemoryRouter as Router } from 'react-router-dom';
+
+import { darkTheme } from 'design/theme';
+import { ConfiguredThemeProvider } from 'design/ThemeProvider';
 
 import '@testing-library/jest-dom';
 import 'jest-styled-components';

@@ -18,6 +18,7 @@
 
 import { within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+
 import { fireEvent, render, screen } from 'design/utils/testing';
 
 import { SortIndicator } from './Cells';

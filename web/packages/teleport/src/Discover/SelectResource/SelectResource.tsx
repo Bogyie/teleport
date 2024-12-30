@@ -17,14 +17,15 @@
  */
 
 import { Box, Flex, Link, P3, Text } from 'design';
-import * as Icons from 'design/Icon';
-import { NewTab } from 'design/Icon';
-import { getPlatform, Platform } from 'design/platform';
 import { Resource } from 'gen-proto-ts/teleport/userpreferences/v1/onboard_pb';
 import { UserPreferences } from 'gen-proto-ts/teleport/userpreferences/v1/userpreferences_pb';
 import { useEffect, useState, type ComponentPropsWithoutRef } from 'react';
 import { useHistory, useLocation } from 'react-router';
 import styled from 'styled-components';
+
+import * as Icons from 'design/Icon';
+import { NewTab } from 'design/Icon';
+import { getPlatform, Platform } from 'design/platform';
 import AddApp from 'teleport/Apps/AddApp';
 import { FeatureHeader, FeatureHeaderTitle } from 'teleport/components/Layout';
 import { ToolTipNoPermBadge } from 'teleport/components/ToolTipNoPermBadge';

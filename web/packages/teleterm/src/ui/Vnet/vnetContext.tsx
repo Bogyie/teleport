@@ -27,12 +27,13 @@ import {
   useMemo,
   useState,
 } from 'react';
-import { Attempt, useAsync } from 'shared/hooks/useAsync';
 import { isTshdRpcError } from 'teleterm/services/tshd';
 import { useAppContext } from 'teleterm/ui/appContextProvider';
 import { usePersistedState } from 'teleterm/ui/hooks/usePersistedState';
 import { useStoreSelector } from 'teleterm/ui/hooks/useStoreSelector';
 import { IAppContext } from 'teleterm/ui/types';
+
+import { Attempt, useAsync } from 'shared/hooks/useAsync';
 
 /**
  * VnetContext manages the VNet instance.

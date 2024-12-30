@@ -18,6 +18,7 @@
 
 import { Flex, Text } from 'design';
 import React from 'react';
+
 import TextEditor from 'shared/components/TextEditor';
 
 import {

@@ -17,8 +17,10 @@
  */
 
 import { Box, Flex, H2, Indicator, Subtitle2 } from 'design';
-import * as Icon from 'design/Icon';
 import React, { useState } from 'react';
+import styled, { useTheme } from 'styled-components';
+
+import * as Icon from 'design/Icon';
 import {
   Notification,
   NotificationItem,
@@ -26,7 +28,6 @@ import {
 } from 'shared/components/Notification';
 import { Attempt } from 'shared/hooks/useAttemptNext';
 import { useStore } from 'shared/libs/stores';
-import styled, { useTheme } from 'styled-components';
 import {
   FeatureBox,
   FeatureHeader,

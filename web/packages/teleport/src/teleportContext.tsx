@@ -17,6 +17,7 @@
  */
 
 import { UserPreferences } from 'gen-proto-ts/teleport/userpreferences/v1/userpreferences_pb';
+
 import cfg from 'teleport/config';
 
 import { notificationContentFactory } from './Notifications';

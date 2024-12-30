@@ -17,6 +17,7 @@
  */
 
 import { SearchAddon } from '@xterm/addon-search';
+
 import { act, render, screen } from 'design/utils/testing';
 
 import { TerminalSearch } from './TerminalSearch';

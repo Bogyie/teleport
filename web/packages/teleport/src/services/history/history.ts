@@ -18,6 +18,7 @@
 
 import { createBrowserHistory, type History } from 'history';
 import { matchPath } from 'react-router';
+
 import cfg from 'teleport/config';
 
 let _inst: History = null;

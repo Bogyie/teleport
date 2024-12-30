@@ -18,10 +18,11 @@
 
 import { Box, ButtonPrimary, ButtonSecondary, Flex, Image, Text } from 'design';
 import { useState } from 'react';
-import FieldInput from 'shared/components/FieldInput';
-import Validation from 'shared/components/Validation';
 import styled from 'styled-components';
 import { LinearProgress } from 'teleterm/ui/components/LinearProgress';
+
+import FieldInput from 'shared/components/FieldInput';
+import Validation from 'shared/components/Validation';
 
 import type { PasswordlessLoginState } from '../../useClusterLogin';
 import svgHardwareKey from './hardware.svg';

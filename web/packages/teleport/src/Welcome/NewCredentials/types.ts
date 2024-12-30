@@ -16,8 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { NewFlow, StepComponentProps } from 'design/StepSlider';
 import { ReactElement } from 'react';
+
+import { NewFlow, StepComponentProps } from 'design/StepSlider';
 import { Attempt } from 'shared/hooks/useAttemptNext';
 import { Auth2faType, PrimaryAuthType } from 'shared/services';
 import { RecoveryCodesProps } from 'teleport/components/RecoveryCodes';

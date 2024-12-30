@@ -18,6 +18,7 @@
 
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router';
+
 import type { NotificationItem } from 'shared/components/Notification';
 import useAttempt from 'shared/hooks/useAttemptNext';
 import type { UrlDesktopParams } from 'teleport/config';

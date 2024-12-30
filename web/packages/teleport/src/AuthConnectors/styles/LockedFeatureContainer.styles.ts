@@ -18,6 +18,7 @@
 
 import { Flex } from 'design';
 import styled from 'styled-components';
+
 import { ButtonLockedFeature } from 'teleport/components/ButtonLockedFeature';
 
 export const LockedFeatureContainer = styled(Flex)`

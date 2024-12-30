@@ -17,6 +17,7 @@
  */
 
 import { formatDistanceStrict } from 'date-fns';
+
 import { pluralize } from 'shared/utils/text';
 
 import { Event, eventCodes, Formatters, RawEvent, RawEvents } from './types';

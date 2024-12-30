@@ -17,6 +17,7 @@
  */
 
 import { ButtonPrimary, ButtonText, H2, Image, Text } from 'design';
+
 import Dialog, {
   DialogContent,
   DialogFooter,

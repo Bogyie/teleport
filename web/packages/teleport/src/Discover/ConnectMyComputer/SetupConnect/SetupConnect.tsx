@@ -17,12 +17,13 @@
  */
 
 import { Flex, H3, Subtitle3, Text } from 'design';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+
 import { ButtonSecondary } from 'design/Button';
 import * as Icons from 'design/Icon';
 import { getPlatform } from 'design/platform';
 import { P } from 'design/Text/Text';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
 import {
   DownloadConnect,
   getConnectDownloadLinks,

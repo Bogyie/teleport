@@ -17,13 +17,14 @@
  */
 
 import { Alert, ButtonPrimary, ButtonSecondary, P2, Text } from 'design';
+import { useState } from 'react';
+
 import Dialog, {
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from 'design/Dialog';
-import { useState } from 'react';
 import { useAttemptNext } from 'shared/hooks';
 import cfg from 'teleport/config';
 import { ResetToken } from 'teleport/services/user';

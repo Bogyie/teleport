@@ -17,8 +17,9 @@
  */
 
 import { Box, Text } from 'design';
-import { displayDateTime } from 'design/datetime';
 import { useState } from 'react';
+
+import { displayDateTime } from 'design/datetime';
 import { Option } from 'shared/components/Select';
 
 import { AccessDurationRequest, AccessDurationReview } from '../AccessDuration';

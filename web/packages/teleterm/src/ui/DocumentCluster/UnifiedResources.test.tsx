@@ -17,7 +17,6 @@
  */
 
 import { act } from '@testing-library/react';
-import { render, screen } from 'design/utils/testing';
 import { ShowResources } from 'gen-proto-ts/teleport/lib/teleterm/v1/cluster_pb';
 import {
   AvailableResourceMode,
@@ -45,6 +44,8 @@ import { MockWorkspaceContextProvider } from 'teleterm/ui/fixtures/MockWorkspace
 import { getEmptyPendingAccessRequest } from 'teleterm/ui/services/workspacesService/accessRequestsService';
 import { makeDocumentCluster } from 'teleterm/ui/services/workspacesService/documentsService/testHelpers';
 import * as uri from 'teleterm/ui/uri';
+
+import { render, screen } from 'design/utils/testing';
 
 const mio = mockIntersectionObserver();
 

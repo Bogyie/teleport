@@ -17,11 +17,12 @@
  */
 
 import * as tshdEventsApi from 'gen-proto-ts/teleport/lib/teleterm/v1/tshd_events_service_pb';
-import { useStore } from 'shared/libs/stores';
 import * as types from 'teleterm/services/tshd/types';
 import { ResourceSearchError } from 'teleterm/ui/services/resources';
 import { RootClusterUri } from 'teleterm/ui/uri';
 import type * as uri from 'teleterm/ui/uri';
+
+import { useStore } from 'shared/libs/stores';
 
 import { ImmutableStore } from '../immutableStore';
 

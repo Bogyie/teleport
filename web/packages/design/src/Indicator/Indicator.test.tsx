@@ -17,6 +17,7 @@
  */
 
 import { screen } from '@testing-library/react';
+
 import { render } from 'design/utils/testing';
 
 import { Indicator } from './Indicator';

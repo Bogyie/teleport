@@ -16,9 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import userEvent from '@testing-library/user-event';
-import { fireEvent, render, screen, waitFor } from 'design/utils/testing';
 import { useEffect } from 'react';
 import { MemoryRouter } from 'react-router';
+
+import { fireEvent, render, screen, waitFor } from 'design/utils/testing';
 import cfg from 'teleport/config';
 import {
   Integration,

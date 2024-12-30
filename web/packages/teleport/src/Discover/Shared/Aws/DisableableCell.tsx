@@ -16,8 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Cell } from 'design/DataTable';
 import React, { PropsWithChildren } from 'react';
+
+import { Cell } from 'design/DataTable';
 
 export const DisableableCell: React.FC<
   PropsWithChildren<{

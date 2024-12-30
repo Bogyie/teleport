@@ -17,12 +17,13 @@
  */
 
 import { Box, ButtonBorder, Flex, Text } from 'design';
+import React from 'react';
+import styled from 'styled-components';
+
 import { ChevronDown } from 'design/Icon';
 import Menu, { MenuItem } from 'design/Menu';
 import { space, SpaceProps } from 'design/system';
-import React from 'react';
 import { AwsRole } from 'shared/services/apps';
-import styled from 'styled-components';
 
 export class AwsLaunchButton extends React.Component<Props> {
   anchorEl: React.MutableRefObject<HTMLButtonElement> = React.createRef();

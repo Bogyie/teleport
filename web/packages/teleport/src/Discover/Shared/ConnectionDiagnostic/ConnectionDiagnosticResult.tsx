@@ -26,10 +26,11 @@ import {
   Subtitle3,
   Text,
 } from 'design';
-import * as Icons from 'design/Icon';
 import { useState } from 'react';
-import type { Attempt } from 'shared/hooks/useAttemptNext';
 import styled from 'styled-components';
+
+import * as Icons from 'design/Icon';
+import type { Attempt } from 'shared/hooks/useAttemptNext';
 import { YamlReader } from 'teleport/Discover/Shared/SetupAccess/AccessInfo';
 import type { ConnectionDiagnostic } from 'teleport/services/agents';
 

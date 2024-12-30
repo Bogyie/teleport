@@ -17,8 +17,9 @@
  */
 
 import { ButtonPrimary, Flex } from 'design';
-import * as Icons from 'design/Icon';
 import { NavLink } from 'react-router-dom';
+
+import * as Icons from 'design/Icon';
 import { MenuIcon, MenuItem, MenuItemIcon } from 'shared/components/MenuAction';
 import cfg from 'teleport/config';
 

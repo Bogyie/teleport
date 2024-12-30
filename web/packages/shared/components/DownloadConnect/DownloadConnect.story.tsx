@@ -17,6 +17,7 @@
  */
 
 import { Box, Text } from 'design';
+
 import { Platform } from 'design/platform';
 
 import { DownloadConnect, getConnectDownloadLinks } from './DownloadConnect';

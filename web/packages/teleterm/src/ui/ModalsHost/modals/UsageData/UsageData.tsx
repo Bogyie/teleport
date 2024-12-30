@@ -17,6 +17,7 @@
  */
 
 import { ButtonIcon, ButtonPrimary, ButtonSecondary, H2, Link } from 'design';
+
 import DialogConfirmation, {
   DialogContent,
   DialogFooter,

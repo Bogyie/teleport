@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { NotificationItemContent } from 'shared/components/Notification';
 import {
   cannotProxyVnetConnectionReasonIsCertReissueError,
   cannotProxyVnetConnectionReasonIsInvalidLocalPort,
@@ -32,6 +31,8 @@ import { SendNotificationRequest } from 'teleterm/services/tshdEvents';
 import { ClustersService } from 'teleterm/ui/services/clusters';
 import { NotificationsService } from 'teleterm/ui/services/notifications';
 import { ResourceUri, routing } from 'teleterm/ui/uri';
+
+import { NotificationItemContent } from 'shared/components/Notification';
 
 export class TshdNotificationsService {
   constructor(

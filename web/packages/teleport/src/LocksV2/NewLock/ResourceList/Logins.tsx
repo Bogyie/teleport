@@ -17,8 +17,9 @@
  */
 
 import { Box, ButtonSecondary, Flex, Input, Text } from 'design';
-import Table from 'design/DataTable';
 import React, { useState } from 'react';
+
+import Table from 'design/DataTable';
 
 import { LoginsProps, renderActionCell } from './common';
 

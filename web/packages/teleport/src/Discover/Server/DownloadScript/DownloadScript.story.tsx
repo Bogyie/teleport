@@ -20,6 +20,8 @@ import { StoryObj } from '@storybook/react';
 import { delay, http, HttpResponse } from 'msw';
 import { MemoryRouter } from 'react-router';
 import { ContextProvider, Context as TeleportContext } from 'teleport';
+import { withoutQuery } from 'web/packages/build/storybook';
+
 import cfg from 'teleport/config';
 import { ResourceKind } from 'teleport/Discover/Shared';
 import { PingTeleportProvider } from 'teleport/Discover/Shared/PingTeleportContext';
@@ -39,7 +41,6 @@ import {
 } from 'teleport/services/joinToken';
 import { DiscoverEventResource } from 'teleport/services/userEvent';
 import { UserContextProvider } from 'teleport/User';
-import { withoutQuery } from 'web/packages/build/storybook';
 
 import DownloadScript from './DownloadScript';
 

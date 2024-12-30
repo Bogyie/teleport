@@ -16,8 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import * as Icon from 'design/Icon';
 import styled from 'styled-components';
+
+import * as Icon from 'design/Icon';
 
 export function PasskeyIcons() {
   return (

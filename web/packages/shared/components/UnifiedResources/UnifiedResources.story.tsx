@@ -25,6 +25,7 @@ import {
   ViewMode,
 } from 'gen-proto-ts/teleport/userpreferences/v1/unified_resource_preferences_pb';
 import { useState } from 'react';
+
 import { makeErrorAttempt, makeProcessingAttempt } from 'shared/hooks/useAsync';
 import { apps, moreApps } from 'teleport/Apps/fixtures';
 import { UrlResourcesParams } from 'teleport/config';

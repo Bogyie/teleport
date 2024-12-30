@@ -17,9 +17,10 @@
  */
 
 import { Box, Mark, Text } from 'design';
-import { OutlineInfo } from 'design/Alert/Alert';
 import { useState } from 'react';
 import { Link as InternalLink } from 'react-router-dom';
+
+import { OutlineInfo } from 'design/Alert/Alert';
 import useAttempt from 'shared/hooks/useAttemptNext';
 import { getErrMessage } from 'shared/utils/errorType';
 import cfg from 'teleport/config';

@@ -25,9 +25,10 @@ import {
   Label,
   Text,
 } from 'design';
-import * as Icon from 'design/Icon';
 import { useRef } from 'react';
 import { Transition } from 'react-transition-group';
+
+import * as Icon from 'design/Icon';
 import { RequestCheckoutWithSlider } from 'shared/components/AccessRequests/NewRequest';
 import { isKubeClusterWithNamespaces } from 'shared/components/AccessRequests/NewRequest/kube';
 import { pluralize } from 'shared/utils/text';

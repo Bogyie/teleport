@@ -18,6 +18,7 @@
 
 import { Flex, Text } from 'design';
 import { components, OptionProps } from 'react-select';
+
 import { Option as BaseOption } from 'shared/components/Select';
 
 export type Option = BaseOption & {

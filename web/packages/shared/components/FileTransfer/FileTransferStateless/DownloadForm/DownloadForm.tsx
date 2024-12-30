@@ -17,8 +17,9 @@
  */
 
 import { Flex, LabelInput } from 'design';
-import { ButtonPrimary } from 'design/Button';
 import { useId, useState } from 'react';
+
+import { ButtonPrimary } from 'design/Button';
 
 import { Form, PathInput } from '../CommonElements';
 

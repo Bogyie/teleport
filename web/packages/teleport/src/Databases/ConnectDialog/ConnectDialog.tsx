@@ -17,6 +17,7 @@
  */
 
 import { Box, ButtonPrimary, ButtonSecondary, Link, Text } from 'design';
+
 import Dialog, {
   DialogContent,
   DialogFooter,

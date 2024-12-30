@@ -17,10 +17,11 @@
  */
 
 import { Box, ButtonPrimary, Card, Flex, Text } from 'design';
-import { copyToClipboard } from 'design/utils/copyToClipboard';
-import selectElementContent from 'design/utils/selectElementContent';
 import { useRef } from 'react';
 import styled from 'styled-components';
+
+import { copyToClipboard } from 'design/utils/copyToClipboard';
+import selectElementContent from 'design/utils/selectElementContent';
 import { RecoveryCodes } from 'teleport/services/auth';
 import { CaptureEvent, userEventService } from 'teleport/services/userEvent';
 

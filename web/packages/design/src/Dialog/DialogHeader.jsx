@@ -16,8 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { typography } from 'design/system';
 import styled from 'styled-components';
+
+import { typography } from 'design/system';
 
 import Flex from './../Flex';
 

@@ -17,10 +17,11 @@
  */
 import { Box } from 'design';
 import { useEffect } from 'react';
-import { usePromiseRejectedOnUnmount } from 'shared/utils/wait';
 import { MockedUnaryCall } from 'teleterm/services/tshd/cloneableClient';
 import { MockAppContextProvider } from 'teleterm/ui/fixtures/MockAppContextProvider';
 import { MockAppContext } from 'teleterm/ui/fixtures/mocks';
+
+import { usePromiseRejectedOnUnmount } from 'shared/utils/wait';
 
 import { useVnetContext, VnetContextProvider } from './vnetContext';
 import { VnetSliderStep } from './VnetSliderStep';

@@ -16,6 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import React, { useEffect } from 'react';
+import { useTheme } from 'styled-components';
+
 import { Danger } from 'design/Alert';
 import Box from 'design/Box';
 import { ButtonSecondary } from 'design/Button';
@@ -26,9 +29,7 @@ import { Indicator } from 'design/Indicator';
 import { StepComponentProps, StepSlider } from 'design/StepSlider';
 import { H1 } from 'design/Text';
 import { H3, P, P3 } from 'design/Text/Text';
-import React, { useEffect } from 'react';
 import { useAsync } from 'shared/hooks/useAsync';
-import { useTheme } from 'styled-components';
 import { ButtonLockedFeature } from 'teleport/components/ButtonLockedFeature';
 import { State as ResourcesState } from 'teleport/components/useResources';
 import cfg from 'teleport/config';

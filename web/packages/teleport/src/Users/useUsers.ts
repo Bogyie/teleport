@@ -17,6 +17,7 @@
  */
 
 import { ReactElement, useEffect, useState } from 'react';
+
 import { useAttempt } from 'shared/hooks';
 import cfg from 'teleport/config';
 import auth from 'teleport/services/auth/auth';

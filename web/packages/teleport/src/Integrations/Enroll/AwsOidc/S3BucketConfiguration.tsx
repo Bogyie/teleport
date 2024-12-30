@@ -17,6 +17,7 @@
  */
 
 import { Flex, Text } from 'design';
+
 import { IconTooltip } from 'design/Tooltip';
 import FieldInput from 'shared/components/FieldInput';
 

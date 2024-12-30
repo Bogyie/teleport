@@ -17,6 +17,7 @@
  */
 
 import React from 'react';
+
 import { ResourceViewConfig } from 'teleport/Discover/flow';
 import { EnrollEksCluster } from 'teleport/Discover/Kubernetes/EnrollEKSCluster';
 import { KubeLocation, ResourceSpec } from 'teleport/Discover/SelectResource';

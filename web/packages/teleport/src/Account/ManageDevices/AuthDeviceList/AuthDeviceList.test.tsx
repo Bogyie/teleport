@@ -17,6 +17,7 @@
  */
 
 import { within } from '@testing-library/react';
+
 import { render, screen } from 'design/utils/testing';
 import { MfaDevice } from 'teleport/services/mfa';
 

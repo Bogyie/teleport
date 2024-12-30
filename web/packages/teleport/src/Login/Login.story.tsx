@@ -18,6 +18,7 @@
 
 import { useEffect } from 'react';
 import { MemoryRouter } from 'react-router';
+
 import { Route } from 'teleport/components/Router';
 import cfg from 'teleport/config';
 

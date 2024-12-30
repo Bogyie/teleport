@@ -18,10 +18,11 @@
 
 import { act } from '@testing-library/react';
 import { subMinutes, subSeconds } from 'date-fns';
-import { render, screen, userEvent } from 'design/utils/testing';
 import { createMemoryHistory } from 'history';
 import { mockIntersectionObserver } from 'jsdom-testing-mocks';
 import { Router } from 'react-router';
+
+import { render, screen, userEvent } from 'design/utils/testing';
 import { clusters } from 'teleport/Clusters/fixtures';
 import { getOSSFeatures } from 'teleport/features';
 import { FeaturesContextProvider } from 'teleport/FeaturesContext';

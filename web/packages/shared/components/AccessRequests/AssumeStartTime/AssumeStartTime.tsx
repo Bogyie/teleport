@@ -24,6 +24,7 @@ import 'react-day-picker/dist/style.css';
 
 import { addMonths } from 'date-fns';
 import { Box, ButtonIcon, Flex, LabelInput } from 'design';
+
 import { ButtonSecondary } from 'design/Button';
 import { displayShortDate } from 'design/datetime';
 import { Calendar as CalendarIcon, Refresh as RefreshIcon } from 'design/Icon';

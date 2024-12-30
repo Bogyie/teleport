@@ -18,6 +18,8 @@
 
 import { Box, Indicator } from 'design';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTheme } from 'styled-components';
+
 import {
   FileTransfer,
   FileTransferActionBar,
@@ -25,7 +27,6 @@ import {
   FileTransferRequests,
 } from 'shared/components/FileTransfer';
 import { TerminalSearch } from 'shared/components/TerminalSearch';
-import { useTheme } from 'styled-components';
 import AuthnDialog from 'teleport/components/AuthnDialog';
 import * as stores from 'teleport/Console/stores';
 import { useMfa, useMfaTty } from 'teleport/lib/useMfa';

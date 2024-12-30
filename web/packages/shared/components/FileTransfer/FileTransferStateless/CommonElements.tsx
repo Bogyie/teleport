@@ -17,10 +17,11 @@
  */
 
 import React, { forwardRef } from 'react';
+import styled from 'styled-components';
+
 import FieldInput, { FieldInputProps } from 'shared/components/FieldInput';
 import Validation from 'shared/components/Validation';
 import { requiredField } from 'shared/components/Validation/rules';
-import styled from 'styled-components';
 
 export const Form = styled.form.attrs(() => ({
   'aria-label': 'form',

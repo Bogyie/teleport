@@ -17,12 +17,13 @@
  */
 
 import { Box, Text } from 'design';
-import { ChevronDown, Logout as LogoutIcon, Moon, Sun } from 'design/Icon';
 import { Theme } from 'gen-proto-ts/teleport/userpreferences/v1/theme_pb';
 import { useRef, useState } from 'react';
-import { useRefClickOutside } from 'shared/hooks/useRefClickOutside';
 import styled, { useTheme } from 'styled-components';
 import { useTeleport } from 'teleport';
+
+import { ChevronDown, Logout as LogoutIcon, Moon, Sun } from 'design/Icon';
+import { useRefClickOutside } from 'shared/hooks/useRefClickOutside';
 import {
   Dropdown,
   DropdownDivider,

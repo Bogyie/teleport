@@ -17,11 +17,12 @@
  */
 
 import { Box, ButtonPrimary, ButtonSecondary, Flex, Text } from 'design';
-import { ArrowBack } from 'design/Icon';
 import { useRef, useState } from 'react';
 import { Prompt } from 'react-router';
 import { Link } from 'react-router-dom';
 import { Transition } from 'react-transition-group';
+
+import { ArrowBack } from 'design/Icon';
 import Select from 'shared/components/Select';
 import useAttempt from 'shared/hooks/useAttemptNext';
 import ErrorMessage from 'teleport/components/AgentErrorMessage';

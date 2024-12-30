@@ -17,14 +17,15 @@
  */
 
 import { Box, ButtonBorder, ButtonIcon, Flex, Text } from 'design';
-import { Add, Cross } from 'design/Icon';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { components } from 'react-select';
+import styled from 'styled-components';
+
+import { Add, Cross } from 'design/Icon';
 import Select, {
   ActionMeta,
   Option as BaseOption,
 } from 'shared/components/Select';
-import styled from 'styled-components';
 import { makeLabelTag } from 'teleport/components/formatters';
 import { Filter } from 'teleport/types';
 

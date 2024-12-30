@@ -17,8 +17,9 @@
  */
 
 import { screen } from '@testing-library/react';
-import { render } from 'design/utils/testing';
 import { MemoryRouter } from 'react-router';
+
+import { render } from 'design/utils/testing';
 import { ViewInPolicyButton } from 'teleport/Audit/EventList/ViewInPolicyButton';
 import cfg from 'teleport/config';
 import { RawEvents } from 'teleport/services/audit';

@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { NotFound } from 'design/CardError';
 import { useEffect } from 'react';
 import {
   Router,
@@ -26,6 +25,8 @@ import {
   withRouter,
 } from 'react-router';
 import * as RouterDOM from 'react-router-dom';
+
+import { NotFound } from 'design/CardError';
 
 const NoMatch = () => (
   <NotFound

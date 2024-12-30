@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { compareSemVers } from 'shared/utils/semVer';
 import { extract } from 'tar-fs';
 import Logger from 'teleterm/logger';
 
@@ -27,6 +26,8 @@ import path from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import { promisify } from 'node:util';
 import { createUnzip } from 'node:zlib';
+
+import { compareSemVers } from 'shared/utils/semVer';
 
 import { RuntimeSettings } from '../types';
 import type { IFileDownloader } from './fileDownloader';

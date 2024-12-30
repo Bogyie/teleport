@@ -17,6 +17,7 @@
  */
 
 import { renderHook } from '@testing-library/react';
+
 import cfg from 'teleport/config';
 import history from 'teleport/services/history';
 import session from 'teleport/services/websession';

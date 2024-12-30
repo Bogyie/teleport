@@ -17,8 +17,9 @@
  */
 
 import { H1, Text } from 'design';
-import Flex from 'design/Flex';
 import { useState } from 'react';
+
+import Flex from 'design/Flex';
 import { Navigation } from 'teleport/components/Wizard/Navigation';
 
 export type FlowStepProps = {

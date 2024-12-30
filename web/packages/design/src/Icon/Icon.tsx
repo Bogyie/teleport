@@ -16,9 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { borderRadius, color, space, SpaceProps } from 'design/system';
 import React, { PropsWithChildren } from 'react';
 import styled from 'styled-components';
+
+import { borderRadius, color, space, SpaceProps } from 'design/system';
 
 export function Icon({
   size = 'medium',

@@ -17,6 +17,7 @@
  */
 
 import { Flex } from 'design';
+
 import Dialog, { DialogTitle } from 'design/Dialog';
 import * as Icons from 'design/Icon';
 import { TabIcon } from 'teleport/components/TabIcon';

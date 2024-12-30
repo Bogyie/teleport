@@ -18,6 +18,7 @@
 
 import { Box, Button, Subtitle1 } from 'design';
 import styled from 'styled-components';
+
 import { FeatureHeader } from 'teleport/components/Layout';
 
 export const ResponsiveFeatureHeader = styled(FeatureHeader)`

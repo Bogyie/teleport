@@ -17,6 +17,7 @@
  */
 
 import { useState } from 'react';
+
 import { Kind, Resource } from 'teleport/services/resources';
 
 export default function useResources<T extends Kind>(

@@ -17,10 +17,11 @@
  */
 
 import { Box, Flex, Indicator } from 'design';
-import * as Icons from 'design/Icon';
-import { P } from 'design/Text/Text';
 import React from 'react';
 import styled from 'styled-components';
+
+import * as Icons from 'design/Icon';
+import { P } from 'design/Text/Text';
 import {
   ActionButtons,
   ButtonBlueText,

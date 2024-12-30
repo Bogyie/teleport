@@ -17,9 +17,10 @@
  */
 
 import { Flex } from 'design';
+import styled from 'styled-components';
+
 import { ShieldCheck, ShieldWarning } from 'design/Icon';
 import { IconProps } from 'design/Icon/Icon';
-import styled from 'styled-components';
 
 import { DeviceTrustStatusKind } from './DeviceTrustStatus';
 

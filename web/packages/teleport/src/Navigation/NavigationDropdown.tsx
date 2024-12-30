@@ -16,13 +16,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { ChevronRight } from 'design/Icon';
 import type { Location } from 'history';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { matchPath, useHistory } from 'react-router';
 import { NavLink } from 'react-router-dom';
 import styled from 'styled-components';
 import { useTeleport } from 'teleport';
+
+import { ChevronRight } from 'design/Icon';
 import { useFeatures } from 'teleport/FeaturesContext';
 import {
   commonNavigationItemStyles,

@@ -17,8 +17,9 @@
  */
 
 import { Box, ButtonSecondary, Flex, H1, H2, Link, Text } from 'design';
-import * as Alerts from 'design/Alert';
 import { useMemo, useRef } from 'react';
+
+import * as Alerts from 'design/Alert';
 import Validation from 'shared/components/Validation';
 import { debounce } from 'shared/utils/highbar';
 

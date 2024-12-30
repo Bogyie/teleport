@@ -16,6 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { FormEvent, JSX } from 'react';
+import styled from 'styled-components';
+
 import {
   color,
   ColorProps,
@@ -24,8 +27,6 @@ import {
   space,
   SpaceProps,
 } from 'design/system';
-import { FormEvent, JSX } from 'react';
-import styled from 'styled-components';
 
 const searchInputName = 'searchValue';
 

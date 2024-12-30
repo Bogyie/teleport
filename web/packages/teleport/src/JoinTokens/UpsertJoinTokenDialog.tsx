@@ -26,17 +26,18 @@ import {
   Flex,
   Text,
 } from 'design';
+import { useState } from 'react';
+import styled from 'styled-components';
+import { useTeleport } from 'teleport';
+
 import { Cross } from 'design/Icon';
 import { HoverTooltip } from 'design/Tooltip';
-import { useState } from 'react';
 import FieldInput from 'shared/components/FieldInput';
 import { FieldSelect } from 'shared/components/FieldSelect';
 import { Option } from 'shared/components/Select';
 import Validation from 'shared/components/Validation';
 import { requiredField } from 'shared/components/Validation/rules';
 import { useAsync } from 'shared/hooks/useAsync';
-import styled from 'styled-components';
-import { useTeleport } from 'teleport';
 import {
   AWSRules,
   CreateJoinTokenRequest,

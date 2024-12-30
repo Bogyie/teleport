@@ -17,6 +17,7 @@
  */
 
 import React, { PropsWithChildren } from 'react';
+
 import { TeleportProvider } from 'teleport/Discover/Fixtures/fixtures';
 import { KubeLocation, ResourceSpec } from 'teleport/Discover/SelectResource';
 import { KUBERNETES } from 'teleport/Discover/SelectResource/resources';

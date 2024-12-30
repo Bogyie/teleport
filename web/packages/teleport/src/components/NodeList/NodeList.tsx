@@ -16,9 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import React from 'react';
+
 import Table, { Cell, ClickableLabelCell } from 'design/DataTable';
 import { FetchStatus, SortType } from 'design/DataTable/types';
-import React from 'react';
 import {
   LoginItem,
   MenuInputType,

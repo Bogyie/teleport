@@ -16,9 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import userEvent from '@testing-library/user-event';
-import { act, fireEvent, render, screen, tick } from 'design/utils/testing';
 import selectEvent from 'react-select-event';
 import { ContextProvider } from 'teleport';
+
+import { act, fireEvent, render, screen, tick } from 'design/utils/testing';
 import { createTeleportContext } from 'teleport/mocks/contexts';
 import makeJoinToken from 'teleport/services/joinToken/makeJoinToken';
 

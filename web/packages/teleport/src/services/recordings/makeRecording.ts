@@ -17,6 +17,7 @@
  */
 
 import { differenceInMilliseconds, formatDistanceStrict } from 'date-fns';
+
 import cfg from 'teleport/config';
 import { eventCodes } from 'teleport/services/audit';
 

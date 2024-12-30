@@ -17,8 +17,9 @@
  */
 
 import { Box, Flex } from 'design';
-import { typography } from 'design/system';
 import styled from 'styled-components';
+
+import { typography } from 'design/system';
 
 const Tabs = props => {
   return (

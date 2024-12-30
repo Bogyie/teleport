@@ -17,6 +17,7 @@
  */
 
 import { useEffect, useState } from 'react';
+
 import useAttempt from 'shared/hooks/useAttemptNext';
 import type { JoinToken } from 'teleport/services/joinToken';
 import TeleportContext from 'teleport/teleportContext';

@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import renderHook from 'design/utils/renderHook';
 import { PropsWithChildren } from 'react';
 import AppContextProvider from 'teleterm/ui/appContextProvider';
 import { MockAppContext } from 'teleterm/ui/fixtures/mocks';
@@ -27,6 +26,8 @@ import {
 import { Document } from 'teleterm/ui/services/workspacesService/documentsService';
 import { makeDocumentCluster } from 'teleterm/ui/services/workspacesService/documentsService/testHelpers';
 import { useTabShortcuts } from 'teleterm/ui/TabHost/useTabShortcuts';
+
+import renderHook from 'design/utils/renderHook';
 
 function getMockDocuments(): Document[] {
   return [

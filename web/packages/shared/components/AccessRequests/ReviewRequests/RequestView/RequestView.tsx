@@ -28,6 +28,9 @@ import {
   LabelState,
   Text,
 } from 'design';
+import { Fragment } from 'react';
+import styled from 'styled-components';
+
 import Table from 'design/DataTable';
 import { displayDateWithPrefixedTime } from 'design/datetime';
 import {
@@ -39,7 +42,6 @@ import {
 import { LabelKind } from 'design/LabelState/LabelState';
 import { TeleportGearIcon } from 'design/SVGIcon';
 import { HoverTooltip } from 'design/Tooltip';
-import { Fragment } from 'react';
 import { Attempt, hasFinished } from 'shared/hooks/useAsync';
 import {
   AccessRequest,
@@ -49,7 +51,6 @@ import {
   RequestState,
   Resource,
 } from 'shared/services/accessRequests';
-import styled from 'styled-components';
 
 import type {
   RequestFlags,

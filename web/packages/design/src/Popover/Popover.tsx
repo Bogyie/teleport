@@ -40,9 +40,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-import Flex from 'design/Flex';
 import React, { Component, createRef } from 'react';
 import styled, { CSSProp } from 'styled-components';
+
+import Flex from 'design/Flex';
 
 import Modal, { BackdropProps, ModalProps } from '../Modal';
 import { Transition } from './Transition';

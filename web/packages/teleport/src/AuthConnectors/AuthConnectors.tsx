@@ -17,6 +17,7 @@
  */
 
 import { Alert, Box, Flex, H3, Indicator, Link } from 'design';
+
 import { P } from 'design/Text/Text';
 import {
   DesktopDescription,

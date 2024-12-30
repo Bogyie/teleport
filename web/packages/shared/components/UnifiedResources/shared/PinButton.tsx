@@ -16,10 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { useRef } from 'react';
+
 import ButtonIcon from 'design/ButtonIcon';
 import { PushPin, PushPinFilled } from 'design/Icon';
 import { HoverTooltip } from 'design/Tooltip';
-import { useRef } from 'react';
 
 import { PinningSupport } from '../types';
 import { PINNING_NOT_SUPPORTED_MESSAGE } from '../UnifiedResources';

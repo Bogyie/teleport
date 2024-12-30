@@ -16,9 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { SortType } from 'design/DataTable/types';
 import { useMemo, useState } from 'react';
 import { useLocation } from 'react-router';
+
+import { SortType } from 'design/DataTable/types';
 import { IncludedResourceMode } from 'shared/components/UnifiedResources';
 import { makeAdvancedSearchQueryForLabel } from 'shared/utils/advancedSearchLabelQuery';
 import { ResourceFilter, ResourceLabel } from 'teleport/services/agents';

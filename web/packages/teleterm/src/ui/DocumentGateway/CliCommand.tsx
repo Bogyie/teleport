@@ -17,9 +17,10 @@
  */
 
 import { Box, ButtonPrimary, Flex, Indicator } from 'design';
-import { fade } from 'design/theme/utils/colorManipulator';
 import { useEffect, useState } from 'react';
 import styled from 'styled-components';
+
+import { fade } from 'design/theme/utils/colorManipulator';
 
 interface CliCommandProps {
   cliCommand: string;

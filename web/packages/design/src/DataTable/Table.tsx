@@ -17,8 +17,9 @@
  */
 
 import { Box, Flex, Indicator, P1, Text } from 'design';
-import * as Icons from 'design/Icon';
 import React, { PropsWithChildren, ReactNode } from 'react';
+
+import * as Icons from 'design/Icon';
 
 import { SortHeaderCell, TextCell } from './Cells';
 import InputSearch from './InputSearch';

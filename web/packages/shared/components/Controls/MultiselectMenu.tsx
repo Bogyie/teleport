@@ -24,11 +24,12 @@ import {
   MenuItem,
   Text,
 } from 'design';
+import React, { ReactNode, useState } from 'react';
+import styled from 'styled-components';
+
 import { CheckboxInput } from 'design/Checkbox';
 import { ChevronDown } from 'design/Icon';
 import { HoverTooltip } from 'design/Tooltip';
-import React, { ReactNode, useState } from 'react';
-import styled from 'styled-components';
 
 type MultiselectMenuProps<T> = {
   options: {

@@ -17,6 +17,7 @@
  */
 
 import { ButtonPrimary, Text } from 'design';
+
 import { EmailSolid } from 'design/Icon';
 
 import Validation from '../../components/Validation';

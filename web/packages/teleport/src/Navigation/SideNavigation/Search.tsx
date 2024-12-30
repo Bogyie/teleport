@@ -17,10 +17,11 @@
  */
 
 import { Box, Flex, P3, Text } from 'design';
-import { color, height, space } from 'design/system';
 import React, { useEffect, useRef, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import styled from 'styled-components';
+
+import { color, height, space } from 'design/system';
 import { storageService } from 'teleport/services/storageService';
 
 import { RecentHistory, RecentHistoryItem } from '../RecentHistory';

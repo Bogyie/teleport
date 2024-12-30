@@ -17,6 +17,9 @@
  */
 
 import { H2, Text } from 'design';
+import { useState } from 'react';
+import styled from 'styled-components';
+
 import { Alert } from 'design/Alert';
 import Box from 'design/Box';
 import { ButtonSecondary } from 'design/Button';
@@ -26,11 +29,9 @@ import Flex from 'design/Flex';
 import * as Icons from 'design/Icon';
 import Input from 'design/Input';
 import Link from 'design/Link';
-import { useState } from 'react';
 import FieldInput from 'shared/components/FieldInput';
 import Select from 'shared/components/Select';
 import Validation, { Validator } from 'shared/components/Validation';
-import styled from 'styled-components';
 import cfg from 'teleport/config';
 
 import { FlowButtons } from '../Shared/FlowButtons';

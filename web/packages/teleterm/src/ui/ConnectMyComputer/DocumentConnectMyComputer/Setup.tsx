@@ -17,10 +17,7 @@
  */
 
 import { Alert, Box, ButtonPrimary, Flex, H1, Text } from 'design';
-import * as Alerts from 'design/Alert';
 import { useCallback, useEffect, useState } from 'react';
-import { Attempt, makeEmptyAttempt, useAsync } from 'shared/hooks/useAsync';
-import { wait } from 'shared/utils/wait';
 import styled from 'styled-components';
 import { isTshdRpcError } from 'teleterm/services/tshd/cloneableClient';
 import { useAppContext } from 'teleterm/ui/appContextProvider';
@@ -34,6 +31,10 @@ import { useWorkspaceContext } from 'teleterm/ui/Documents';
 import { DocumentConnectMyComputer } from 'teleterm/ui/services/workspacesService';
 import { assertUnreachable, retryWithRelogin } from 'teleterm/ui/utils';
 import { codeOrSignal } from 'teleterm/ui/utils/process';
+
+import * as Alerts from 'design/Alert';
+import { Attempt, makeEmptyAttempt, useAsync } from 'shared/hooks/useAsync';
+import { wait } from 'shared/utils/wait';
 
 import { ConnectMyComputerAccessNoAccess } from '../access';
 import { CompatibilityError } from '../CompatibilityPromise';

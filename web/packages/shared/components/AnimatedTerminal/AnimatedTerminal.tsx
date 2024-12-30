@@ -17,6 +17,7 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+
 import {
   KeywordHighlight,
   SelectedLines,

@@ -17,6 +17,9 @@
  */
 
 import { ButtonIcon, ButtonPrimary, ButtonSecondary, H2 } from 'design';
+import { useAppContext } from 'teleterm/ui/appContextProvider';
+import { RootClusterUri, routing } from 'teleterm/ui/uri';
+
 import DialogConfirmation, {
   DialogContent,
   DialogFooter,
@@ -25,8 +28,6 @@ import DialogConfirmation, {
 import { Cross } from 'design/Icon';
 import { P } from 'design/Text/Text';
 import { pluralize } from 'shared/utils/text';
-import { useAppContext } from 'teleterm/ui/appContextProvider';
-import { RootClusterUri, routing } from 'teleterm/ui/uri';
 
 export function DocumentsReopen(props: {
   rootClusterUri: RootClusterUri;

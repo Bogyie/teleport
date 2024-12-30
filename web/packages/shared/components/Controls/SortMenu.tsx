@@ -17,9 +17,10 @@
  */
 
 import { ButtonBorder, Flex, Menu, MenuItem } from 'design';
+import React, { useState } from 'react';
+
 import { ArrowDown, ArrowUp } from 'design/Icon';
 import { HoverTooltip } from 'design/Tooltip';
-import React, { useState } from 'react';
 
 type SortMenuSort<T extends object> = {
   fieldName: Exclude<keyof T, symbol | number>;

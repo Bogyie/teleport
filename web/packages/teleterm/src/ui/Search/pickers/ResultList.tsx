@@ -17,7 +17,6 @@
  */
 
 import { Flex } from 'design';
-import { IconProps } from 'design/Icon/Icon';
 import React, {
   ReactElement,
   useCallback,
@@ -25,9 +24,11 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Attempt } from 'shared/hooks/useAsync';
 import styled, { css } from 'styled-components';
 import { LinearProgress } from 'teleterm/ui/components/LinearProgress';
+
+import { IconProps } from 'design/Icon/Icon';
+import { Attempt } from 'shared/hooks/useAsync';
 
 import { AddWindowEventListener } from '../SearchContext';
 

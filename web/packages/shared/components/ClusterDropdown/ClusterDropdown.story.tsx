@@ -18,6 +18,7 @@
 
 import { Box, Text } from 'design';
 import { MemoryRouter } from 'react-router';
+
 import { ContextProvider } from 'teleport/index';
 import { createTeleportContext } from 'teleport/mocks/contexts';
 import { Cluster } from 'teleport/services/clusters';

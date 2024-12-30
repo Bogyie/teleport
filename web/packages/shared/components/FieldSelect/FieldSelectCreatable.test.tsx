@@ -17,8 +17,9 @@
  */
 
 import { screen } from '@testing-library/react';
-import { render } from 'design/utils/testing';
 import selectEvent from 'react-select-event';
+
+import { render } from 'design/utils/testing';
 
 import useRule from '../Validation/useRule';
 import { FieldSelectCreatableAsync } from './FieldSelectCreatable';

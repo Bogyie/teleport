@@ -17,9 +17,10 @@
  */
 
 import { Text } from 'design';
-import { NoteAdded } from 'design/Icon';
 import React, { useRef, useState } from 'react';
 import styled from 'styled-components';
+
+import { NoteAdded } from 'design/Icon';
 
 import { Form, PathInput } from '../CommonElements';
 

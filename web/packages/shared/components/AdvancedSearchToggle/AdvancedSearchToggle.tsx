@@ -17,6 +17,7 @@
  */
 
 import { Flex, H2, Link, Text, Toggle } from 'design';
+
 import { P } from 'design/Text/Text';
 import { IconTooltip } from 'design/Tooltip';
 

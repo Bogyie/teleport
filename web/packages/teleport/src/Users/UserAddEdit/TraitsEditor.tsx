@@ -17,8 +17,9 @@
  */
 
 import { Box, ButtonBorder, ButtonIcon, Flex, Text } from 'design';
-import { Add, Trash } from 'design/Icon';
 import { Dispatch, SetStateAction } from 'react';
+
+import { Add, Trash } from 'design/Icon';
 import { FieldSelectCreatable } from 'shared/components/FieldSelect';
 import { Option } from 'shared/components/Select';
 import { requiredAll, requiredField } from 'shared/components/Validation/rules';

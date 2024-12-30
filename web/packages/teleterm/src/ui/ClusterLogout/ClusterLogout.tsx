@@ -17,6 +17,8 @@
  */
 
 import { ButtonIcon, ButtonWarning, H2 } from 'design';
+import { RootClusterUri } from 'teleterm/ui/uri';
+
 import * as Alerts from 'design/Alert';
 import DialogConfirmation, {
   DialogContent,
@@ -25,7 +27,6 @@ import DialogConfirmation, {
 } from 'design/DialogConfirmation';
 import { Cross } from 'design/Icon';
 import { P } from 'design/Text/Text';
-import { RootClusterUri } from 'teleterm/ui/uri';
 
 import { useClusterLogout } from './useClusterLogout';
 

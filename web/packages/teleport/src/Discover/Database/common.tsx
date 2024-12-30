@@ -17,6 +17,7 @@
  */
 
 import { Box, Mark, Label as Pill } from 'design';
+
 import * as Icons from 'design/Icon';
 import { P } from 'design/Text/Text';
 import { LabelsCreater, TextIcon } from 'teleport/Discover/Shared';

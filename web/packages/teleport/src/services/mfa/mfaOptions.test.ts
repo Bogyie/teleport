@@ -17,6 +17,7 @@
  */
 
 import { SSOChallenge } from 'gen-proto-ts/teleport/lib/teleterm/v1/tshd_events_service_pb';
+
 import { Auth2faType } from 'shared/services';
 
 import { getMfaChallengeOptions, getMfaRegisterOptions } from './mfaOptions';

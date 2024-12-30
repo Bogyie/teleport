@@ -29,14 +29,15 @@ import {
   PromoteAccessRequestRequest,
   ReviewAccessRequestRequest,
 } from 'gen-proto-ts/teleport/lib/teleterm/v1/service_pb';
-import { useStore } from 'shared/libs/stores';
-import { pipe } from 'shared/utils/pipe';
 import { MainProcessClient } from 'teleterm/mainProcess/types';
 import type { CloneableAbortSignal, TshdClient } from 'teleterm/services/tshd';
 import { AssumedRequest } from 'teleterm/services/tshd/types';
 import { NotificationsService } from 'teleterm/ui/services/notifications';
 import { UsageService } from 'teleterm/ui/services/usage';
 import * as uri from 'teleterm/ui/uri';
+
+import { useStore } from 'shared/libs/stores';
+import { pipe } from 'shared/utils/pipe';
 
 import { ImmutableStore } from '../immutableStore';
 import type * as types from './types';

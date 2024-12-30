@@ -17,6 +17,7 @@
  */
 
 import React, { createContext, useContext } from 'react';
+
 import { Attempt } from 'shared/hooks/useAsync';
 import type { ResourceSpec } from 'teleport/Discover/SelectResource/types';
 import { SamlMeta } from 'teleport/Discover/useDiscover';

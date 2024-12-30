@@ -17,9 +17,10 @@
  */
 
 import { Component } from 'react';
-import { UnhandledCaseError } from 'shared/utils/assertUnreachable';
 import Logger from 'teleterm/logger';
 import { FailedApp } from 'teleterm/ui/components/App';
+
+import { UnhandledCaseError } from 'shared/utils/assertUnreachable';
 
 export class CatchError extends Component {
   logger = new Logger('CatchError');

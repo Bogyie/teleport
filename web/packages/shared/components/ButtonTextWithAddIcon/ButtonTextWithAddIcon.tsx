@@ -17,6 +17,7 @@
  */
 
 import { ButtonText } from 'design';
+
 import { Add as AddIcon } from 'design/Icon';
 import type { IconSize } from 'design/Icon/Icon';
 

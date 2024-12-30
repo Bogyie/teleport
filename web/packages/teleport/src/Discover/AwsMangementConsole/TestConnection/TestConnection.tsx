@@ -17,9 +17,10 @@
  */
 
 import { Box, H3, Link, Mark } from 'design';
+import { useState } from 'react';
+
 import { OutlineInfo } from 'design/Alert/Alert';
 import { P } from 'design/Text/Text';
-import { useState } from 'react';
 import Select, { type Option } from 'shared/components/Select';
 import { TextSelectCopy } from 'shared/components/TextSelectCopy';
 import cfg from 'teleport/config';

@@ -24,6 +24,8 @@ import {
   Text,
   Toggle,
 } from 'design';
+import { useState } from 'react';
+
 import Dialog, {
   DialogContent,
   DialogFooter,
@@ -31,7 +33,6 @@ import Dialog, {
   DialogTitle,
 } from 'design/Dialog';
 import { IconTooltip } from 'design/Tooltip';
-import { useState } from 'react';
 import FieldInput from 'shared/components/FieldInput';
 import Validation from 'shared/components/Validation';
 import { requiredField } from 'shared/components/Validation/rules';

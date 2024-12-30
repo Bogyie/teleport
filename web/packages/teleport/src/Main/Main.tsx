@@ -17,8 +17,6 @@
  */
 
 import { Box, Flex, Indicator } from 'design';
-import { Failed } from 'design/CardError';
-import Dialog from 'design/Dialog';
 import React, {
   createContext,
   ReactNode,
@@ -30,8 +28,11 @@ import React, {
   useState,
 } from 'react';
 import { matchPath, useHistory } from 'react-router';
-import useAttempt from 'shared/hooks/useAttemptNext';
 import styled from 'styled-components';
+
+import { Failed } from 'design/CardError';
+import Dialog from 'design/Dialog';
+import useAttempt from 'shared/hooks/useAttemptNext';
 import { BannerList } from 'teleport/components/BannerList';
 import type { BannerType } from 'teleport/components/BannerList/BannerList';
 import { useAlerts } from 'teleport/components/BannerList/useAlerts';

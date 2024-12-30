@@ -17,16 +17,17 @@
  */
 
 import { ButtonPrimary, ButtonSecondary, Flex, Text } from 'design';
+import { Location } from 'history';
+import React from 'react';
+import { useLocation } from 'react-router';
+import { Link } from 'react-router-dom';
+
 import Dialog, {
   DialogContent,
   DialogFooter,
   DialogHeader,
 } from 'design/Dialog';
 import { CircleCheck } from 'design/Icon';
-import { Location } from 'history';
-import React from 'react';
-import { useLocation } from 'react-router';
-import { Link } from 'react-router-dom';
 import cfg from 'teleport/config';
 import { DiscoverUrlLocationState } from 'teleport/Discover/useDiscover';
 import { Integration } from 'teleport/services/integrations';

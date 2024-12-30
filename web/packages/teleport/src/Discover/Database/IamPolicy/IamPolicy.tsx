@@ -17,6 +17,7 @@
  */
 
 import { Box, Flex, H3, Indicator, Link, Text } from 'design';
+
 import * as Icons from 'design/Icon';
 import { P } from 'design/Text/Text';
 import { TextSelectCopyMulti } from 'teleport/components/TextSelectCopy';

@@ -17,6 +17,7 @@
  */
 
 import { ButtonPrimary, Flex, Text } from 'design';
+
 import Dialog, { DialogContent } from 'design/DialogConfirmation';
 import * as Icons from 'design/Icon';
 

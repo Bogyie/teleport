@@ -20,13 +20,14 @@ import { subDays, subHours, subMinutes, subSeconds } from 'date-fns';
 import { Flex, H2 } from 'design';
 import { delay, http, HttpResponse } from 'msw';
 import { MemoryRouter } from 'react-router';
+import { withoutQuery } from 'web/packages/build/storybook';
+
 import cfg from 'teleport/config';
 import { createTeleportContext } from 'teleport/mocks/contexts';
 import {
   NotificationSubKind,
   UpsertNotificationStateRequest,
 } from 'teleport/services/notifications';
-import { withoutQuery } from 'web/packages/build/storybook';
 
 import { ContextProvider } from '..';
 import { notifications as mockNotifications } from './fixtures';

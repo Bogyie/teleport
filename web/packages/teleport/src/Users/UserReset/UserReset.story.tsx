@@ -18,6 +18,7 @@
 
 import { Meta } from '@storybook/react';
 import { useEffect, useState } from 'react';
+
 import { Attempt } from 'shared/hooks/useAttemptNext';
 import cfg from 'teleport/config';
 

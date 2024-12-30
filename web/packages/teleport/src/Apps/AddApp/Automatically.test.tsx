@@ -17,6 +17,7 @@
  */
 
 import { act } from '@testing-library/react';
+
 import { fireEvent, render, screen } from 'design/utils/testing';
 
 import { Automatically, createAppBashCommand } from './Automatically';

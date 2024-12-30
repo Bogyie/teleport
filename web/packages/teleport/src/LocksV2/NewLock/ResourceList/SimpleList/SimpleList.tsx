@@ -17,6 +17,7 @@
  */
 
 import React, { useEffect, useMemo, useState } from 'react';
+
 import { MfaDevice } from 'teleport/services/mfa';
 import { User } from 'teleport/services/user';
 import useTeleport from 'teleport/useTeleport';

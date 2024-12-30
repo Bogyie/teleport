@@ -17,9 +17,10 @@
  */
 
 import { screen } from '@testing-library/react';
+import selectEvent from 'react-select-event';
+
 import { darkTheme } from 'design/theme';
 import { fireEvent, render } from 'design/utils/testing';
-import selectEvent from 'react-select-event';
 
 import useRule from '../Validation/useRule';
 import { FieldSelect, FieldSelectAsync } from './FieldSelect';

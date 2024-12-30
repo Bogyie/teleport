@@ -18,8 +18,9 @@
 
 import { within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { render, screen, waitFor } from 'design/utils/testing';
 import { ContextProvider } from 'teleport';
+
+import { render, screen, waitFor } from 'design/utils/testing';
 import { AccountPage as Account } from 'teleport/Account/Account';
 import cfg from 'teleport/config';
 import { createTeleportContext } from 'teleport/mocks/contexts';

@@ -17,12 +17,13 @@
  */
 
 import { Box, ButtonPrimary, ButtonSecondary, Flex, Link, Text } from 'design';
-import * as Icons from 'design/Icon';
 import { Link as InternalRouteLink } from 'react-router-dom';
+import styled from 'styled-components';
+
+import * as Icons from 'design/Icon';
 import FieldInput from 'shared/components/FieldInput';
 import Validation from 'shared/components/Validation';
 import { requiredIamRoleName } from 'shared/components/Validation/rules';
-import styled from 'styled-components';
 import { TextSelectCopyMulti } from 'teleport/components/TextSelectCopy';
 import cfg from 'teleport/config';
 import { Header } from 'teleport/Discover/Shared';

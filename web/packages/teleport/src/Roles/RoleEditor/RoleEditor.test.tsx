@@ -18,6 +18,7 @@
 
 import { within } from '@testing-library/react';
 import { UserEvent } from '@testing-library/user-event';
+
 import { render, screen, userEvent } from 'design/utils/testing';
 import { createTeleportContext } from 'teleport/mocks/contexts';
 import { Role } from 'teleport/services/resources';

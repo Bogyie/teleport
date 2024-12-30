@@ -17,8 +17,9 @@
  */
 
 import { Box, Indicator } from 'design';
-import { Danger } from 'design/Alert';
 import { useEffect, useState } from 'react';
+
+import { Danger } from 'design/Alert';
 import useAttempt from 'shared/hooks/useAttemptNext';
 import {
   FeatureBox,

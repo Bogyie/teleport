@@ -28,15 +28,16 @@ import {
   Subtitle2,
   Text,
 } from 'design';
-import Table, { Cell } from 'design/DataTable';
-import { ArrowBack } from 'design/Icon';
 import { forwardRef, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { TransitionStatus } from 'react-transition-group';
+import styled from 'styled-components';
+
+import Table, { Cell } from 'design/DataTable';
+import { ArrowBack } from 'design/Icon';
 import useAttempt from 'shared/hooks/useAttemptNext';
 import { mergeRefs } from 'shared/libs/mergeRefs';
 import { pluralize } from 'shared/utils/text';
-import styled from 'styled-components';
 import shieldCheck from 'teleport/assets/shield-check.png';
 import cfg from 'teleport/config';
 import { TrashButton } from 'teleport/LocksV2/common';

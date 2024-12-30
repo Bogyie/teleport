@@ -17,11 +17,12 @@
  */
 
 import { Box, Flex, H3, Indicator, Text } from 'design';
+import React, { useEffect, useState } from 'react';
+
 import { Danger } from 'design/Alert';
 import Table from 'design/DataTable';
 import { FetchStatus } from 'design/DataTable/types';
 import { Warning } from 'design/Icon';
-import React, { useEffect, useState } from 'react';
 import useAttempt, { Attempt } from 'shared/hooks/useAttemptNext';
 import { getErrMessage } from 'shared/utils/errorType';
 import {

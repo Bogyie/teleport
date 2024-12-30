@@ -21,6 +21,7 @@ import { createMemoryHistory } from 'history';
 import { http, HttpResponse } from 'msw';
 import { useState } from 'react';
 import { Route, Router } from 'react-router';
+
 import cfg from 'teleport/config';
 
 import Console from './Console';

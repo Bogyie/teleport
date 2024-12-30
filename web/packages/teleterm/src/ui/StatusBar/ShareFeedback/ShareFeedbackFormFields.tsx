@@ -17,6 +17,7 @@
  */
 
 import { Text, Toggle } from 'design';
+
 import FieldInput from 'shared/components/FieldInput';
 import { FieldTextArea } from 'shared/components/FieldTextArea';
 import { requiredField } from 'shared/components/Validation/rules';

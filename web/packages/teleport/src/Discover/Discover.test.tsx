@@ -16,9 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { render, screen } from 'design/utils/testing';
 import { Resource } from 'gen-proto-ts/teleport/userpreferences/v1/onboard_pb';
 import { MemoryRouter } from 'react-router';
+
+import { render, screen } from 'design/utils/testing';
 import cfg from 'teleport/config';
 import { Discover, DiscoverComponent } from 'teleport/Discover/Discover';
 import { ResourceViewConfig } from 'teleport/Discover/flow';

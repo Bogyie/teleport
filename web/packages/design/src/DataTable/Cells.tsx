@@ -16,8 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Theme } from 'design/theme';
 import { TdHTMLAttributes } from 'react';
+
+import { Theme } from 'design/theme';
 
 import { displayDate } from '../datetime';
 import Flex from '../Flex';

@@ -17,6 +17,7 @@
  */
 
 import { action } from '@storybook/addon-actions';
+
 import { Restore } from 'design/Icon';
 
 import { Box } from '..';

@@ -16,8 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import * as Icons from 'design/Icon';
 import { MemoryRouter } from 'react-router';
+
+import * as Icons from 'design/Icon';
 import { getOSSFeatures } from 'teleport/features';
 import { FeaturesContextProvider } from 'teleport/FeaturesContext';
 import { makeUserContext } from 'teleport/services/user';

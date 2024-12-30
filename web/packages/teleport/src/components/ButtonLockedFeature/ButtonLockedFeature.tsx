@@ -17,10 +17,11 @@
  */
 
 import { ButtonPrimary, Link } from 'design';
-import Flex from 'design/Flex';
-import { Unlock } from 'design/Icon';
 import React from 'react';
 import styled from 'styled-components';
+
+import Flex from 'design/Flex';
+import { Unlock } from 'design/Icon';
 import cfg from 'teleport/config';
 import { getSalesURL } from 'teleport/services/sales';
 import { CtaEvent, userEventService } from 'teleport/services/userEvent';

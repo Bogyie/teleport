@@ -17,8 +17,9 @@
  */
 
 import { Box, Flex, H3, Link, Mark, Text } from 'design';
-import { Info as InfoIcon } from 'design/Icon';
 import React, { useEffect, useState } from 'react';
+
+import { Info as InfoIcon } from 'design/Icon';
 import { Tabs } from 'teleport/components/Tabs';
 import { TextSelectCopyMulti } from 'teleport/components/TextSelectCopy';
 import { StyledBox } from 'teleport/Discover/Shared';

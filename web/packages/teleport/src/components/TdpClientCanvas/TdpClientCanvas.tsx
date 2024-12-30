@@ -17,6 +17,7 @@
  */
 
 import { memo, useEffect, useRef, type CSSProperties } from 'react';
+
 import { DebouncedFunc } from 'shared/utils/highbar';
 import { TdpClient, TdpClientEvent } from 'teleport/lib/tdp';
 import { BitmapFrame } from 'teleport/lib/tdp/client';

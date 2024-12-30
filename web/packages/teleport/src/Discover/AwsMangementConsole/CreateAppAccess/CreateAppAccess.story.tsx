@@ -16,10 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { Info } from 'design/Alert';
 import { delay, http, HttpResponse } from 'msw';
 import { MemoryRouter } from 'react-router';
 import { ContextProvider } from 'teleport';
+
+import { Info } from 'design/Alert';
 import cfg from 'teleport/config';
 import { ResourceKind } from 'teleport/Discover/Shared';
 import {

@@ -17,6 +17,7 @@
  */
 
 import styled from 'styled-components';
+
 import { useFeatures } from 'teleport/FeaturesContext';
 import {
   MANAGEMENT_NAVIGATION_SECTIONS,

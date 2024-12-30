@@ -17,8 +17,9 @@
  */
 
 import { Box, Indicator } from 'design';
-import { Danger } from 'design/Alert';
 import { useState } from 'react';
+
+import { Danger } from 'design/Alert';
 import { ClusterDropdown } from 'shared/components/ClusterDropdown/ClusterDropdown';
 import { ButtonLockedFeature } from 'teleport/components/ButtonLockedFeature';
 import {

@@ -17,6 +17,7 @@
  */
 
 import { MenuItem } from 'design';
+
 import { render, screen, userEvent } from 'design/utils/testing';
 
 import { ButtonWithMenu } from './ButtonWithMenu';

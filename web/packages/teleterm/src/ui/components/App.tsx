@@ -15,10 +15,11 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-import { Failed } from 'design/CardError';
 import styled from 'styled-components';
 import { StaticThemeProvider } from 'teleterm/ui/ThemeProvider';
 import { darkTheme } from 'teleterm/ui/ThemeProvider/theme';
+
+import { Failed } from 'design/CardError';
 
 export const StyledApp = styled.div`
   left: 0;

@@ -17,14 +17,15 @@
  */
 
 import isPropValid from '@emotion/is-prop-valid';
-import { Theme } from 'design/theme';
-import { GlobalStyle } from 'design/ThemeProvider/globals';
 import { ReactNode } from 'react';
 import {
   ThemeProvider as StyledThemeProvider,
   StyleSheetManager,
   WebTarget,
 } from 'styled-components';
+
+import { Theme } from 'design/theme';
+import { GlobalStyle } from 'design/ThemeProvider/globals';
 
 /**
  * This function has been taken from the [styled-components library

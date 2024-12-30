@@ -17,13 +17,14 @@
  */
 
 import { Alert, Box, Flex, H1, Text } from 'design';
+import styled from 'styled-components';
+
 import { ArrowBack } from 'design/Icon';
 import {
   RequestDelete,
   RequestView,
 } from 'shared/components/AccessRequests/ReviewRequests';
 import { makeEmptyAttempt } from 'shared/hooks/useAsync';
-import styled from 'styled-components';
 
 import { useAssumeAccess } from '../useAssumeAccess';
 import { useReviewAccessRequest } from './useReviewAccessRequest';

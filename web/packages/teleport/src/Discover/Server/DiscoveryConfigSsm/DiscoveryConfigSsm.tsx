@@ -26,17 +26,18 @@ import {
   Subtitle3,
   Text,
 } from 'design';
+import React, { useRef, useState } from 'react';
+import styled from 'styled-components';
+
 import { Danger, Info } from 'design/Alert';
 import { P } from 'design/Text/Text';
 import { IconTooltip } from 'design/Tooltip';
-import React, { useRef, useState } from 'react';
 import FieldInput from 'shared/components/FieldInput';
 import TextEditor from 'shared/components/TextEditor';
 import { TextSelectCopyMulti } from 'shared/components/TextSelectCopy';
 import Validation, { Validator } from 'shared/components/Validation';
 import { Rule } from 'shared/components/Validation/rules';
 import { makeEmptyAttempt, useAsync } from 'shared/hooks/useAsync';
-import styled from 'styled-components';
 import cfg from 'teleport/config';
 import { AwsRegionSelector } from 'teleport/Discover/Shared/AwsRegionSelector';
 import { useDiscover } from 'teleport/Discover/useDiscover';

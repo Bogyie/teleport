@@ -17,8 +17,9 @@
  */
 
 import { Box } from 'design';
-import { NewFlow, StepSlider } from 'design/StepSlider';
 import { useState } from 'react';
+
+import { NewFlow, StepSlider } from 'design/StepSlider';
 import { OnboardCard } from 'teleport/components/Onboard';
 import OSSRecoveryCodes from 'teleport/components/RecoveryCodes';
 import cfg from 'teleport/config';

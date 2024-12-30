@@ -17,9 +17,10 @@
  */
 
 import { ButtonIcon, Flex, Text } from 'design';
-import { CircleCheck, Cross, Warning } from 'design/Icon';
 import { FC, PropsWithChildren, useEffect } from 'react';
 import styled from 'styled-components';
+
+import { CircleCheck, Cross, Warning } from 'design/Icon';
 
 import { TransferredFile } from '../types';
 

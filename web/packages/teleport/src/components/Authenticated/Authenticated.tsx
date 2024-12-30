@@ -19,6 +19,7 @@
 import { Box, Indicator } from 'design';
 import { TrustedDeviceRequirement } from 'gen-proto-ts/teleport/legacy/types/trusted_device_requirement_pb';
 import React, { PropsWithChildren, useEffect } from 'react';
+
 import useAttempt from 'shared/hooks/useAttemptNext';
 import Logger from 'shared/libs/logger';
 import { getErrMessage } from 'shared/utils/errorType';

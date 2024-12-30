@@ -17,11 +17,12 @@
  */
 
 import { Box, ButtonPrimary, Flex, Image, Text } from 'design';
+import React, { useState } from 'react';
+
 import { Danger } from 'design/Alert';
 import { ArrowBack } from 'design/Icon';
 import { RadioGroup } from 'design/RadioGroup';
 import { StepHeader } from 'design/StepSlider';
-import React, { useState } from 'react';
 import FieldInput from 'shared/components/FieldInput';
 import Validation, { Validator } from 'shared/components/Validation';
 import { requiredField } from 'shared/components/Validation/rules';

@@ -21,6 +21,7 @@ import { UserPreferences } from 'gen-proto-ts/teleport/userpreferences/v1/userpr
 import React from 'react';
 import { MemoryRouter } from 'react-router';
 import { ContextProvider } from 'teleport';
+
 import {
   createTeleportContext,
   getAcl,

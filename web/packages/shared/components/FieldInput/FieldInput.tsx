@@ -17,17 +17,18 @@
  */
 
 import { Box, Input, LabelInput, Text } from 'design';
-import { BoxProps } from 'design/Box';
-import { IconProps } from 'design/Icon/Icon';
-import { InputMode, InputSize, InputType } from 'design/Input';
-import { IconTooltip } from 'design/Tooltip';
 import React, {
   forwardRef,
   HTMLInputAutoCompleteAttribute,
   useId,
 } from 'react';
-import { useRule } from 'shared/components/Validation';
 import styled, { useTheme } from 'styled-components';
+
+import { BoxProps } from 'design/Box';
+import { IconProps } from 'design/Icon/Icon';
+import { InputMode, InputSize, InputType } from 'design/Input';
+import { IconTooltip } from 'design/Tooltip';
+import { useRule } from 'shared/components/Validation';
 
 const FieldInput = forwardRef<HTMLInputElement, FieldInputProps>(
   (

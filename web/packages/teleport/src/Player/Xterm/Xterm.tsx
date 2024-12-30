@@ -16,10 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { getPlatformType } from 'design/platform';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { TerminalSearch } from 'shared/components/TerminalSearch';
 import styled, { useTheme } from 'styled-components';
+
+import { getPlatformType } from 'design/platform';
+import { TerminalSearch } from 'shared/components/TerminalSearch';
 import StyledXterm from 'teleport/Console/StyledXterm';
 import { TermEvent } from 'teleport/lib/term/enums';
 import Terminal from 'teleport/lib/term/terminal';

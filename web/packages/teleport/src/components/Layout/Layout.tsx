@@ -17,8 +17,9 @@
  */
 
 import { Flex, H1 } from 'design';
-import { alignItems, space } from 'design/system';
 import styled from 'styled-components';
+
+import { alignItems, space } from 'design/system';
 
 /**
  * Header

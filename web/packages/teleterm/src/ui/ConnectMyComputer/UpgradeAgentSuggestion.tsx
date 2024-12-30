@@ -17,9 +17,10 @@
  */
 
 import { Alert, Text } from 'design';
+import { RuntimeSettings } from 'teleterm/mainProcess/types';
+
 import Link from 'design/Link';
 import { compareSemVers } from 'shared/utils/semVer';
-import { RuntimeSettings } from 'teleterm/mainProcess/types';
 
 import { checkAgentCompatibility } from './CompatibilityPromise';
 

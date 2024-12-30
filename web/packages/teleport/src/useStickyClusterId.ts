@@ -18,6 +18,7 @@
 
 import { useRef } from 'react';
 import { useRouteMatch } from 'react-router';
+
 import cfg from 'teleport/config';
 import { StickyCluster } from 'teleport/types';
 

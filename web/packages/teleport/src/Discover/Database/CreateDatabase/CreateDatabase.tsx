@@ -17,8 +17,9 @@
  */
 
 import { Box, Flex, Mark, Text } from 'design';
-import { P } from 'design/Text/Text';
 import { useEffect, useState } from 'react';
+
+import { P } from 'design/Text/Text';
 import FieldInput from 'shared/components/FieldInput';
 import TextEditor from 'shared/components/TextEditor';
 import Validation, { Validator } from 'shared/components/Validation';

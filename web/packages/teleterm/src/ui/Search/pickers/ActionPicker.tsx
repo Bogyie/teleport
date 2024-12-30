@@ -17,16 +17,7 @@
  */
 
 import { Box, ButtonBorder, Label as DesignLabel, Flex, Text } from 'design';
-import * as icons from 'design/Icon';
-import { Cross as CloseIcon } from 'design/Icon';
 import React, { ReactElement, useCallback, useMemo } from 'react';
-import { AdvancedSearchToggle } from 'shared/components/AdvancedSearchToggle';
-import { Highlight } from 'shared/components/Highlight';
-import {
-  Attempt,
-  hasFinished,
-  makeSuccessAttempt,
-} from 'shared/hooks/useAsync';
 import styled from 'styled-components';
 import { isWebApp } from 'teleterm/services/tshd/app';
 import * as tsh from 'teleterm/services/tshd/types';
@@ -50,6 +41,16 @@ import * as uri from 'teleterm/ui/uri';
 import { assertUnreachable } from 'teleterm/ui/utils';
 import { isRetryable } from 'teleterm/ui/utils/retryWithRelogin';
 import { useVnetContext } from 'teleterm/ui/Vnet';
+
+import * as icons from 'design/Icon';
+import { Cross as CloseIcon } from 'design/Icon';
+import { AdvancedSearchToggle } from 'shared/components/AdvancedSearchToggle';
+import { Highlight } from 'shared/components/Highlight';
+import {
+  Attempt,
+  hasFinished,
+  makeSuccessAttempt,
+} from 'shared/hooks/useAsync';
 
 import { SearchAction } from '../actions';
 import { useSearchContext } from '../SearchContext';

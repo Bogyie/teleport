@@ -17,9 +17,10 @@
  */
 
 import { ButtonBorder, Flex } from 'design';
+import { useState } from 'react';
+
 import Table, { Cell } from 'design/DataTable';
 import { dateTimeMatcher } from 'design/utils/match';
-import { useState } from 'react';
 import { Event } from 'teleport/services/audit';
 
 import EventDialog from '../EventDialog';

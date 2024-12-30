@@ -17,8 +17,9 @@
  */
 
 import { Box, Indicator } from 'design';
-import { Danger } from 'design/Alert';
 import { useState } from 'react';
+
+import { Danger } from 'design/Alert';
 import { ClusterDropdown } from 'shared/components/ClusterDropdown/ClusterDropdown';
 import RangePicker from 'teleport/components/EventRangePicker';
 import {
@@ -28,7 +29,6 @@ import {
 } from 'teleport/components/Layout';
 import useStickyClusterId from 'teleport/useStickyClusterId';
 import useTeleport from 'teleport/useTeleport';
-
 import { ExternalAuditStorageCta } from '@gravitational/teleport/src/components/ExternalAuditStorageCta';
 
 import EventList from './EventList';

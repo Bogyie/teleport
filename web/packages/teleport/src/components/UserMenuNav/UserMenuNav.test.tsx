@@ -16,12 +16,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { MemoryRouter } from 'react-router';
+
 import {
   fireEvent,
   screen,
   render as testingRender,
 } from 'design/utils/testing';
-import { MemoryRouter } from 'react-router';
 import cfg from 'teleport/config';
 import { getOSSFeatures } from 'teleport/features';
 import { FeaturesContextProvider } from 'teleport/FeaturesContext';

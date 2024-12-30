@@ -17,12 +17,13 @@
  */
 
 import { Box, ButtonSecondary, Flex } from 'design';
+import { useRef } from 'react';
+import styled from 'styled-components';
+
 import { Check, Copy, Download } from 'design/Icon';
 import { copyToClipboard } from 'design/utils/copyToClipboard';
 import selectElementContent from 'design/utils/selectElementContent';
-import { useRef } from 'react';
 import { saveOnDisk } from 'shared/utils/saveOnDisk';
-import styled from 'styled-components';
 
 const ONE_SECOND_IN_MS = 1000;
 

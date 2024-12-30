@@ -19,6 +19,7 @@
 import { TrustedDeviceRequirement } from 'gen-proto-ts/teleport/legacy/types/trusted_device_requirement_pb';
 import { useEffect, useState } from 'react';
 import { matchPath } from 'react-router';
+
 import { useAttempt } from 'shared/hooks';
 import { AuthProvider } from 'shared/services';
 import cfg from 'teleport/config';

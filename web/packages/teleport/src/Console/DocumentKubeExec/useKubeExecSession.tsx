@@ -18,6 +18,7 @@
 
 import { context, trace } from '@opentelemetry/api';
 import { useEffect, useRef, useState } from 'react';
+
 import cfg from 'teleport/config';
 import ConsoleContext from 'teleport/Console/consoleContext';
 import { useConsoleContext } from 'teleport/Console/consoleContextProvider';

@@ -17,11 +17,12 @@
  */
 
 import { Flex } from 'design';
+import { useEffect, useState } from 'react';
+import styled from 'styled-components';
+
 import InputSearch from 'design/DataTable/InputSearch';
 import { PageIndicatorText } from 'design/DataTable/Pager/PageIndicatorText';
-import { useEffect, useState } from 'react';
 import { AdvancedSearchToggle } from 'shared/components/AdvancedSearchToggle';
-import styled from 'styled-components';
 import { ResourceFilter } from 'teleport/services/agents';
 
 export function SearchPanel({

@@ -18,7 +18,6 @@
 
 import { Alert, Box, ButtonPrimary, Flex, H2, Text } from 'design';
 import { useEffect } from 'react';
-import { Attempt, useAsync } from 'shared/hooks/useAsync';
 import styled from 'styled-components';
 import { Cluster } from 'teleterm/services/tshd/types';
 import { useAppContext } from 'teleterm/ui/appContextProvider';
@@ -28,6 +27,8 @@ import { DocumentClusterQueryParams } from 'teleterm/ui/services/workspacesServi
 import * as uri from 'teleterm/ui/uri';
 import { routing } from 'teleterm/ui/uri';
 import { retryWithRelogin } from 'teleterm/ui/utils';
+
+import { Attempt, useAsync } from 'shared/hooks/useAsync';
 
 import { UnifiedResources } from './UnifiedResources';
 

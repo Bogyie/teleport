@@ -17,11 +17,12 @@
  */
 
 import { Flex, H2, Text } from 'design';
+import React from 'react';
+import styled from 'styled-components';
+
 import * as Icons from 'design/Icon';
 import { TeleportGearIcon } from 'design/SVGIcon';
-import React from 'react';
 import { MenuIcon } from 'shared/components/MenuAction';
-import styled from 'styled-components';
 import { DocumentSsh } from 'teleport/Console/stores';
 
 export const WARN_THRESHOLD = 150;

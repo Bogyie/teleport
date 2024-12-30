@@ -17,6 +17,7 @@
  */
 
 import { Flex } from 'design';
+
 import { CircleArrowLeft, CircleArrowRight } from 'design/Icon';
 
 import { StyledArrowBtn } from './StyledPager';

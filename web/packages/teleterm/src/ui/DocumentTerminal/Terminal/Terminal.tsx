@@ -18,6 +18,13 @@
 
 import { Box, Flex } from 'design';
 import React, { useEffect, useRef, useState } from 'react';
+import styled, { useTheme } from 'styled-components';
+import { ConfigService } from 'teleterm/services/config';
+import { WindowsPty } from 'teleterm/services/pty';
+import { IPtyProcess } from 'teleterm/sharedProcess/ptyHost';
+import { KeyboardShortcutsService } from 'teleterm/ui/services/keyboardShortcuts';
+import { DocumentTerminal } from 'teleterm/ui/services/workspacesService';
+
 import {
   Attempt,
   makeEmptyAttempt,
@@ -25,12 +32,6 @@ import {
   makeSuccessAttempt,
 } from 'shared/hooks/useAsync';
 import { debounce } from 'shared/utils/highbar';
-import styled, { useTheme } from 'styled-components';
-import { ConfigService } from 'teleterm/services/config';
-import { WindowsPty } from 'teleterm/services/pty';
-import { IPtyProcess } from 'teleterm/sharedProcess/ptyHost';
-import { KeyboardShortcutsService } from 'teleterm/ui/services/keyboardShortcuts';
-import { DocumentTerminal } from 'teleterm/ui/services/workspacesService';
 
 import { Reconnect } from '../Reconnect';
 import XTermCtrl from './ctrl';

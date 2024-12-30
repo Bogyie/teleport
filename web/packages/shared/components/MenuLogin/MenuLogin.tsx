@@ -17,9 +17,6 @@
  */
 
 import { ButtonBorder, Flex, Indicator } from 'design';
-import { ChevronDown } from 'design/Icon';
-import Menu, { MenuItem } from 'design/Menu';
-import { space, SpaceProps } from 'design/system';
 import React, {
   ChangeEvent,
   useImperativeHandle,
@@ -27,8 +24,12 @@ import React, {
   useState,
 } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Attempt, useAsync } from 'shared/hooks/useAsync';
 import styled from 'styled-components';
+
+import { ChevronDown } from 'design/Icon';
+import Menu, { MenuItem } from 'design/Menu';
+import { space, SpaceProps } from 'design/system';
+import { Attempt, useAsync } from 'shared/hooks/useAsync';
 
 import {
   LoginItem,

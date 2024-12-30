@@ -16,10 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import { forwardRef } from 'react';
+
 import { ButtonProps, ButtonSecondary } from 'design/Button';
 import * as Icons from 'design/Icon';
 import { ResourceIcon } from 'design/ResourceIcon';
-import { forwardRef } from 'react';
 import { AuthProviderType, SSOType } from 'shared/services';
 
 const ButtonSso = forwardRef<HTMLButtonElement, Props>((props: Props, ref) => {

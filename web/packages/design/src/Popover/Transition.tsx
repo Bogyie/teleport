@@ -16,8 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { useResizeObserver } from 'design/utils/useResizeObserver';
 import React, { RefObject, useLayoutEffect } from 'react';
+
+import { useResizeObserver } from 'design/utils/useResizeObserver';
 
 /**
  * Transition is a helper for firing certain effects from Popover, as it's way easier to use them

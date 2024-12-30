@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import * as connectMyComputer from 'shared/connectMyComputer';
 import { RuntimeSettings } from 'teleterm/mainProcess/types';
 import { RootClusterUri, routing } from 'teleterm/ui/uri';
 
@@ -24,6 +23,8 @@ import { execFile } from 'node:child_process';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { promisify } from 'node:util';
+
+import * as connectMyComputer from 'shared/connectMyComputer';
 
 export interface CreateAgentConfigFileArgs {
   rootClusterUri: RootClusterUri;

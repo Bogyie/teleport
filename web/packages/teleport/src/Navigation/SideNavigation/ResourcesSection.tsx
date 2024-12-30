@@ -17,11 +17,12 @@
  */
 
 import { Box, Flex, Text } from 'design';
-import * as Icons from 'design/Icon';
 import { DefaultTab } from 'gen-proto-ts/teleport/userpreferences/v1/unified_resource_preferences_pb';
 import { UserPreferences } from 'gen-proto-ts/teleport/userpreferences/v1/userpreferences_pb';
 import { matchPath } from 'react-router';
 import styled from 'styled-components';
+
+import * as Icons from 'design/Icon';
 import { encodeUrlQueryParams } from 'teleport/components/hooks/useUrlFiltering';
 import { EncodeUrlQueryParamsProps } from 'teleport/components/hooks/useUrlFiltering/encodeUrlQueryParams';
 import cfg from 'teleport/config';

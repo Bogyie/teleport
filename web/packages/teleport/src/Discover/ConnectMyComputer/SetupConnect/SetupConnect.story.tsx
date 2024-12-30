@@ -18,16 +18,17 @@
 
 import { http, HttpResponse } from 'msw';
 import { MemoryRouter } from 'react-router';
+import { ContextProvider } from 'teleport';
+import { withoutQuery } from 'web/packages/build/storybook';
+
 import {
   OverrideUserAgent,
   UserAgent,
 } from 'shared/components/OverrideUserAgent';
-import { ContextProvider } from 'teleport';
 import cfg from 'teleport/config';
 import { createTeleportContext } from 'teleport/mocks/contexts';
 import { makeDefaultUserPreferences } from 'teleport/services/userPreferences/userPreferences';
 import { UserContext } from 'teleport/User/UserContext';
-import { withoutQuery } from 'web/packages/build/storybook';
 
 import { SetupConnect } from './SetupConnect';
 

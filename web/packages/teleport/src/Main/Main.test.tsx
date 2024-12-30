@@ -16,9 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { render, screen } from 'design/utils/testing';
 import { MemoryRouter } from 'react-router';
 import { Context, ContextProvider } from 'teleport';
+
+import { render, screen } from 'design/utils/testing';
 import { apps } from 'teleport/Apps/fixtures';
 import { events } from 'teleport/Audit/fixtures';
 import { clusters } from 'teleport/Clusters/fixtures';

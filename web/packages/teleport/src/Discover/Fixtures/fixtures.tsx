@@ -19,6 +19,7 @@
 import React, { PropsWithChildren } from 'react';
 import { MemoryRouter } from 'react-router';
 import { ContextProvider } from 'teleport';
+
 import cfg from 'teleport/config';
 import { ResourceSpec } from 'teleport/Discover/SelectResource';
 import { ResourceKind } from 'teleport/Discover/Shared';

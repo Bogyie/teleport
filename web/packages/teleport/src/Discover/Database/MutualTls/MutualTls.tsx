@@ -17,9 +17,10 @@
  */
 
 import { Box, Flex, Link, Mark, Text } from 'design';
+import { useState } from 'react';
+
 import { Danger } from 'design/Alert';
 import { Info } from 'design/Icon';
-import { useState } from 'react';
 import { FieldTextArea } from 'shared/components/FieldTextArea';
 import TextEditor from 'shared/components/TextEditor';
 import Validation from 'shared/components/Validation';

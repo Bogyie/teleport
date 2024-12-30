@@ -17,13 +17,14 @@
  */
 
 import { Box, ButtonBorder, ButtonPrimary } from 'design';
+import styled from 'styled-components';
+
 import Table, { Cell } from 'design/DataTable';
 import {
   CustomSort,
   FetchStatus,
   LabelDescription,
 } from 'design/DataTable/types';
-import styled from 'styled-components';
 
 import { LockResourceMap, ToggleSelectResourceFn } from '../common';
 

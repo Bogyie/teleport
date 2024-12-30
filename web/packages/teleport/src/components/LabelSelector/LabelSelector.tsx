@@ -17,11 +17,12 @@
  */
 
 import { Box, Flex, Link, Pill, Popover, Text } from 'design';
-import { Info, Warning } from 'design/Icon';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import styled from 'styled-components';
+
+import { Info, Warning } from 'design/Icon';
 import { useClickOutside } from 'shared/hooks/useClickOutside';
 import { useEscape } from 'shared/hooks/useEscape';
-import styled from 'styled-components';
 
 const VALID_LABEL = /^[a-z]+:\s?[0-9a-z-.]+$/;
 

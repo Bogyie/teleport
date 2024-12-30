@@ -17,10 +17,11 @@
  */
 
 import { Flex } from 'design';
+import { ReactNode } from 'react';
+
 import { FieldRadio } from 'design/FieldRadio';
 import { FlexProps } from 'design/Flex';
 import { RadioButton, RadioButtonSize } from 'design/RadioButton';
-import { ReactNode } from 'react';
 
 interface RadioObjectOption {
   value: string;

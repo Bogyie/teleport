@@ -17,8 +17,9 @@
  */
 
 import { Box, ButtonSecondary, Flex, LabelInput } from 'design';
-import { Refresh as RefreshIcon } from 'design/Icon';
 import React, { useState } from 'react';
+
+import { Refresh as RefreshIcon } from 'design/Icon';
 import Select, { Option } from 'shared/components/Select';
 import { awsRegionMap, Regions } from 'teleport/services/integrations';
 

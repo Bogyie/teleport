@@ -18,6 +18,7 @@
 
 import { UserPreferences } from 'gen-proto-ts/teleport/lib/teleterm/v1/service_pb';
 import React from 'react';
+
 import {
   ManagementSection,
   NavigationCategory,

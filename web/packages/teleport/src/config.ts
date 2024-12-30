@@ -17,6 +17,7 @@
  */
 
 import { generatePath } from 'react-router';
+
 import { IncludedResourceMode } from 'shared/components/UnifiedResources';
 import type {
   Auth2faType,

@@ -17,7 +17,6 @@
  */
 
 import { act, renderHook, waitFor } from '@testing-library/react';
-import { makeErrorAttempt } from 'shared/hooks/useAsync';
 import Logger, { NullService } from 'teleterm/logger';
 import { AgentProcessState } from 'teleterm/mainProcess/types';
 import {
@@ -33,6 +32,8 @@ import { MockAppContext } from 'teleterm/ui/fixtures/mocks';
 import type { IAppContext } from 'teleterm/ui/types';
 
 import { EventEmitter } from 'node:events';
+
+import { makeErrorAttempt } from 'shared/hooks/useAsync';
 
 import {
   AgentCompatibilityError,

@@ -17,9 +17,10 @@
  */
 
 import { Box, Flex } from 'design';
-import { ShimmerBox } from 'design/ShimmerBox';
 import { useState } from 'react';
 import styled from 'styled-components';
+
+import { ShimmerBox } from 'design/ShimmerBox';
 
 export function LoadingListItem() {
   const [randomizedSize] = useState(() => ({
