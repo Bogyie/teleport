@@ -27,6 +27,9 @@ service VnetUserProcessService {
   // is still running, and to share the Teleport version between the two
   // processes to make sure they are compatible.
   rpc Ping(PingRequest) returns (PingResponse);
+  // AuthenticateProcess authenticates the server (which is tsh or tshd) to the
+  // caller (which is the administrative Windows service).
+  rpc AuthenticateProcess(AuthenticateProcessRequest) returns (AuthenticateProcessResponse);
 }
 
 // PingRequest is a request for the Ping rpc.
@@ -40,3 +43,11 @@ message PingResponse {
   // Version is the user process version.
   string version = 1;
 }
+
+// AuthenticateProcessRequest is a request for AuthenticateProcess.
+message AuthenticateProcessRequest {
+  string pipe_path = 1;
+}
+
+// AuthenticateProcessResponse is a response for AuthenticateProcess.
+message AuthenticateProcessResponse {}

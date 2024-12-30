@@ -35,7 +35,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	VnetUserProcessService_Ping_FullMethodName = "/teleport.lib.vnet.v1.VnetUserProcessService/Ping"
+	VnetUserProcessService_Ping_FullMethodName                = "/teleport.lib.vnet.v1.VnetUserProcessService/Ping"
+	VnetUserProcessService_AuthenticateProcess_FullMethodName = "/teleport.lib.vnet.v1.VnetUserProcessService/AuthenticateProcess"
 )
 
 // VnetUserProcessServiceClient is the client API for VnetUserProcessService service.
@@ -49,6 +50,9 @@ type VnetUserProcessServiceClient interface {
 	// is still running, and to share the Teleport version between the two
 	// processes to make sure they are compatible.
 	Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*PingResponse, error)
+	// AuthenticateProcess authenticates the server (which is tsh or tshd) to the
+	// caller (which is the administrative Windows service).
+	AuthenticateProcess(ctx context.Context, in *AuthenticateProcessRequest, opts ...grpc.CallOption) (*AuthenticateProcessResponse, error)
 }
 
 type vnetUserProcessServiceClient struct {
@@ -69,6 +73,16 @@ func (c *vnetUserProcessServiceClient) Ping(ctx context.Context, in *PingRequest
 	return out, nil
 }
 
+func (c *vnetUserProcessServiceClient) AuthenticateProcess(ctx context.Context, in *AuthenticateProcessRequest, opts ...grpc.CallOption) (*AuthenticateProcessResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AuthenticateProcessResponse)
+	err := c.cc.Invoke(ctx, VnetUserProcessService_AuthenticateProcess_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // VnetUserProcessServiceServer is the server API for VnetUserProcessService service.
 // All implementations must embed UnimplementedVnetUserProcessServiceServer
 // for forward compatibility.
@@ -80,6 +94,9 @@ type VnetUserProcessServiceServer interface {
 	// is still running, and to share the Teleport version between the two
 	// processes to make sure they are compatible.
 	Ping(context.Context, *PingRequest) (*PingResponse, error)
+	// AuthenticateProcess authenticates the server (which is tsh or tshd) to the
+	// caller (which is the administrative Windows service).
+	AuthenticateProcess(context.Context, *AuthenticateProcessRequest) (*AuthenticateProcessResponse, error)
 	mustEmbedUnimplementedVnetUserProcessServiceServer()
 }
 
@@ -92,6 +109,9 @@ type UnimplementedVnetUserProcessServiceServer struct{}
 
 func (UnimplementedVnetUserProcessServiceServer) Ping(context.Context, *PingRequest) (*PingResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
+}
+func (UnimplementedVnetUserProcessServiceServer) AuthenticateProcess(context.Context, *AuthenticateProcessRequest) (*AuthenticateProcessResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AuthenticateProcess not implemented")
 }
 func (UnimplementedVnetUserProcessServiceServer) mustEmbedUnimplementedVnetUserProcessServiceServer() {
 }
@@ -133,6 +153,24 @@ func _VnetUserProcessService_Ping_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _VnetUserProcessService_AuthenticateProcess_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthenticateProcessRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(VnetUserProcessServiceServer).AuthenticateProcess(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: VnetUserProcessService_AuthenticateProcess_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(VnetUserProcessServiceServer).AuthenticateProcess(ctx, req.(*AuthenticateProcessRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // VnetUserProcessService_ServiceDesc is the grpc.ServiceDesc for VnetUserProcessService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -143,6 +181,10 @@ var VnetUserProcessService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Ping",
 			Handler:    _VnetUserProcessService_Ping_Handler,
+		},
+		{
+			MethodName: "AuthenticateProcess",
+			Handler:    _VnetUserProcessService_AuthenticateProcess_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

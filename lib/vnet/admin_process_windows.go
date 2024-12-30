@@ -19,9 +19,13 @@ package vnet
 import (
 	"context"
 	"io"
+	"syscall"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/gravitational/trace"
+	"golang.org/x/sync/errgroup"
+	"golang.org/x/sys/windows"
 	"golang.zx2c4.com/wireguard/tun"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -73,13 +77,21 @@ func RunAdminProcess(ctx context.Context, cfg AdminProcessConfig) error {
 		return trace.Wrap(err, "getting TUN device name")
 	}
 	log.InfoContext(ctx, "Created TUN interface", "tun", tunName)
+
+	clt, err := newUserProcessClient(ctx, cfg.UserProcessServiceAddr)
+	if err != nil {
+		return trace.Wrap(err, "creating user process client")
+	}
+	defer clt.Close()
+
+	if err := authenticateUserProcess(ctx, clt); err != nil {
+		log.ErrorContext(ctx, "Failed to authenticate user process", "error", err)
+		return trace.Wrap(err, "authenticating user process")
+	}
+
 	for {
 		select {
 		case <-time.After(time.Second):
-			clt, err := newUserProcessClient(ctx, cfg.UserProcessServiceAddr)
-			if err != nil {
-				return trace.Wrap(err, "creating user process client")
-			}
 			resp, err := clt.Ping(ctx, &vnetv1.PingRequest{
 				Version: api.Version,
 			})
@@ -91,11 +103,53 @@ func RunAdminProcess(ctx context.Context, cfg AdminProcessConfig) error {
 					resp.Version, api.Version)
 			}
 			log.DebugContext(ctx, "Pinged user process")
-			clt.Close()
 		case <-ctx.Done():
 			return ctx.Err()
 		}
 	}
+}
+
+func authenticateUserProcess(ctx context.Context, clt *userProcessClient) error {
+	pipeID := uuid.NewString()
+	pipePathStr := `\\.\pipe\` + pipeID
+	pipePath, err := syscall.UTF16PtrFromString(pipePathStr)
+	if err != nil {
+		return trace.Wrap(err, "converting string to UTF16")
+	}
+	pipe, err := windows.CreateNamedPipe(
+		pipePath,
+		windows.PIPE_ACCESS_DUPLEX,
+		windows.PIPE_TYPE_BYTE|windows.PIPE_WAIT,
+		windows.PIPE_UNLIMITED_INSTANCES,
+		1024,
+		1024,
+		0,
+		nil,
+	)
+	if err != nil {
+		return trace.Wrap(err, "creating named pipe")
+	}
+	defer windows.CloseHandle(pipe)
+	log.DebugContext(ctx, "Created named pipe")
+
+	g, ctx := errgroup.WithContext(ctx)
+	g.Go(func() error {
+		_, err := clt.AuthenticateProcess(ctx, &vnetv1.AuthenticateProcessRequest{
+			PipePath: pipePathStr,
+		})
+		return trace.Wrap(err, "authenticating user process")
+	})
+	g.Go(func() error {
+		if err := windows.ConnectNamedPipe(pipe, nil); err != nil {
+			return trace.Wrap(err, "waiting for client to connect to named pipe")
+		}
+		log.DebugContext(ctx, "Got connection on named pipe")
+		return nil
+	})
+	if err := g.Wait(); err != nil {
+		return trace.Wrap(err)
+	}
+	return nil
 }
 
 type userProcessClient struct {

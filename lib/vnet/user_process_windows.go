@@ -20,9 +20,11 @@ import (
 	"context"
 	"net"
 	"os"
+	"syscall"
 	"time"
 
 	"github.com/gravitational/trace"
+	"golang.org/x/sys/windows"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
@@ -158,6 +160,29 @@ func (s *userProcessService) Ping(ctx context.Context, req *vnetv1.PingRequest) 
 	return &vnetv1.PingResponse{
 		Version: api.Version,
 	}, nil
+}
+
+func (s *userProcessService) AuthenticateProcess(ctx context.Context, req *vnetv1.AuthenticateProcessRequest) (*vnetv1.AuthenticateProcessResponse, error) {
+	log.DebugContext(ctx, "Received AuthenticateProcess request from admin process")
+	pipePathPtr, err := syscall.UTF16PtrFromString(req.GetPipePath())
+	if err != nil {
+		return nil, trace.Wrap(err, "converting string to UTF16")
+	}
+	handle, err := windows.CreateFile(
+		pipePathPtr,
+		windows.GENERIC_READ|windows.GENERIC_WRITE,
+		0,
+		nil,
+		windows.OPEN_EXISTING,
+		0,
+		0,
+	)
+	if err != nil {
+		return nil, trace.Wrap(err, "opening named pipe")
+	}
+	defer windows.CloseHandle(handle)
+	log.DebugContext(ctx, "Connected to named pipe")
+	return &vnetv1.AuthenticateProcessResponse{}, nil
 }
 
 type loggingListener struct {
