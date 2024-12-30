@@ -10,6 +10,8 @@ module.exports = {
     '',
     '<BUILTIN_MODULES>',
     '',
+    '^@gravitational/(.*)$',
+    '',
     '^[./]',
   ],
   importOrderParserPlugins: [

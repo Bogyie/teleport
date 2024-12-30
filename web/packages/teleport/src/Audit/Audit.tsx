@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { ExternalAuditStorageCta } from '@gravitational/teleport/src/components/ExternalAuditStorageCta';
 import { Box, Indicator } from 'design';
 import { Danger } from 'design/Alert';
 import { useState } from 'react';
@@ -29,6 +28,8 @@ import {
 } from 'teleport/components/Layout';
 import useStickyClusterId from 'teleport/useStickyClusterId';
 import useTeleport from 'teleport/useTeleport';
+
+import { ExternalAuditStorageCta } from '@gravitational/teleport/src/components/ExternalAuditStorageCta';
 
 import EventList from './EventList';
 import useAuditEvents, { State } from './useAuditEvents';

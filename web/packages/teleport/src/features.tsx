@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import { IntegrationEnroll } from '@gravitational/teleport/src/Integrations/Enroll';
 import {
   Bots as BotsIcon,
   CirclePlay,
@@ -43,6 +42,8 @@ import {
   NavigationCategory,
 } from 'teleport/Navigation/categories';
 import { NavigationCategory as SideNavigationCategory } from 'teleport/Navigation/SideNavigation/categories';
+
+import { IntegrationEnroll } from '@gravitational/teleport/src/Integrations/Enroll';
 
 import { LockedAccessRequests } from './AccessRequests';
 import { AccountPage } from './Account';
