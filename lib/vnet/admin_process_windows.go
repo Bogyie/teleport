@@ -111,26 +111,57 @@ func RunAdminProcess(ctx context.Context, cfg AdminProcessConfig) error {
 }
 
 func authenticateUserProcess(ctx context.Context, clt *userProcessClient) error {
-	pipeID := uuid.NewString()
-	pipePathStr := `\\.\pipe\` + pipeID
-	pipePath, err := syscall.UTF16PtrFromString(pipePathStr)
+	pipe, err := createNamedPipe(ctx)
 	if err != nil {
-		return trace.Wrap(err, "converting string to UTF16")
+		return trace.Wrap(err, "creating named pipe")
 	}
+	defer pipe.Close()
+	g, ctx := errgroup.WithContext(ctx)
+	g.Go(func() error {
+		_, err := clt.AuthenticateProcess(ctx, &vnetv1.AuthenticateProcessRequest{
+			PipePath: pipe.name,
+		})
+		return trace.Wrap(err, "authenticating user process")
+	})
+	g.Go(func() error {
+		clientExe, err := pipe.waitForClient(ctx)
+		if err != nil {
+			return trace.Wrap(err, "waiting for client to connect to named pipe")
+		}
+		log.DebugContext(ctx, "Got connection on named pipe", "exe", clientExe)
+		return nil
+	})
+	if err := g.Wait(); err != nil {
+		return trace.Wrap(err)
+	}
+	return nil
+}
 
+type winpipe struct {
+	pipeHandle  windows.Handle
+	eventHandle windows.Handle
+	name        string
+}
+
+func createNamedPipe(ctx context.Context) (*winpipe, error) {
+	pipeName := `\\.\pipe\` + uuid.NewString()
+	pipePath, err := syscall.UTF16PtrFromString(pipeName)
+	if err != nil {
+		return nil, trace.Wrap(err, "converting string to UTF16")
+	}
 	// This allows pipe access to everyone
 	// TODO(nklaassen): restrict access to only the calling user.
 	sddl := "D:P(A;;GA;;;WD)"
 	sd, err := windows.SecurityDescriptorFromString(sddl)
 	if err != nil {
-		return trace.Wrap(err, "creating security descriptor from string")
+		return nil, trace.Wrap(err, "creating security descriptor from string")
 	}
 	sa := windows.SecurityAttributes{
 		Length:             uint32(unsafe.Sizeof(windows.SecurityAttributes{})),
 		SecurityDescriptor: sd,
 		InheritHandle:      0,
 	}
-	pipe, err := windows.CreateNamedPipe(
+	pipeHandle, err := windows.CreateNamedPipe(
 		pipePath,
 		windows.PIPE_ACCESS_DUPLEX|windows.FILE_FLAG_OVERLAPPED,
 		windows.PIPE_TYPE_BYTE|windows.PIPE_WAIT,
@@ -141,44 +172,54 @@ func authenticateUserProcess(ctx context.Context, clt *userProcessClient) error 
 		&sa,
 	)
 	if err != nil {
-		return trace.Wrap(err, "creating named pipe")
+		return nil, trace.Wrap(err, "creating named pipe")
 	}
-	defer windows.CloseHandle(pipe)
-	log.DebugContext(ctx, "Created named pipe")
-
-	overlapped := new(windows.Overlapped)
+	log.DebugContext(ctx, "Created named pipe", "name", pipeName)
 	eventHandle, err := windows.CreateEvent(nil, 1, 0, nil)
 	if err != nil {
-		return trace.Wrap(err, "creating Windows event handle")
+		return nil, trace.Wrap(err, "creating Windows event handle")
 	}
-	defer windows.CloseHandle(eventHandle)
-	overlapped.HEvent = eventHandle
+	overlapped := &windows.Overlapped{HEvent: eventHandle}
+	if err := windows.ConnectNamedPipe(pipeHandle, overlapped); err != nil && err != windows.ERROR_IO_PENDING {
+		return nil, trace.Wrap(err, "connecting to named pipe")
+	}
+	return &winpipe{
+		pipeHandle:  pipeHandle,
+		eventHandle: overlapped.HEvent,
+		name:        pipeName,
+	}, nil
+}
 
-	g, ctx := errgroup.WithContext(ctx)
-	g.Go(func() error {
-		_, err := clt.AuthenticateProcess(ctx, &vnetv1.AuthenticateProcessRequest{
-			PipePath: pipePathStr,
-		})
-		return trace.Wrap(err, "authenticating user process")
-	})
-	g.Go(func() error {
-		if err := windows.ConnectNamedPipe(pipe, overlapped); err != nil && err != windows.ERROR_IO_PENDING {
-			return trace.Wrap(err, "connecting to named pipe")
-		}
-		evt, err := windows.WaitForSingleObject(eventHandle, 500 /*milliseconds*/)
-		if err != nil {
-			return trace.Wrap(err, "waiting for connection on named pipe")
-		}
-		if evt != windows.WAIT_OBJECT_0 {
-			return trace.Errorf("failed to wait for connection on named pipe, error code: %d", evt)
-		}
-		log.DebugContext(ctx, "Got connection on named pipe")
-		return nil
-	})
-	if err := g.Wait(); err != nil {
-		return trace.Wrap(err)
+func (p *winpipe) waitForClient(ctx context.Context) (string, error) {
+	evt, err := windows.WaitForSingleObject(p.eventHandle, 500 /*milliseconds*/)
+	if err != nil {
+		return "", trace.Wrap(err, "waiting for connection on named pipe")
 	}
-	return nil
+	if evt != windows.WAIT_OBJECT_0 {
+		return "", trace.Errorf("failed to wait for connection on named pipe, error code: %d", evt)
+	}
+	log.DebugContext(ctx, "Got connection on named pipe")
+	var pid uint32
+	if err := windows.GetNamedPipeClientProcessId(p.pipeHandle, &pid); err != nil {
+		return "", trace.Wrap(err, "getting named pipe client process ID")
+	}
+	processHandle, err := windows.OpenProcess(windows.PROCESS_QUERY_LIMITED_INFORMATION, false, pid)
+	if err != nil {
+		return "", trace.Wrap(err, "opening client process")
+	}
+	buf := make([]uint16, windows.MAX_PATH)
+	size := uint32(len(buf))
+	if err := windows.QueryFullProcessImageName(processHandle, 0, &buf[0], &size); err != nil {
+		return "", trace.Wrap(err, "querying pipe client process image name")
+	}
+	return windows.UTF16PtrToString(&buf[0]), nil
+}
+
+func (p *winpipe) Close() error {
+	return trace.NewAggregate(
+		trace.Wrap(windows.CloseHandle(p.pipeHandle), "closing pipe handle"),
+		trace.Wrap(windows.CloseHandle(p.eventHandle), "closing pipe event handle"),
+	)
 }
 
 type userProcessClient struct {
