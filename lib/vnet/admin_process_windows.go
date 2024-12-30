@@ -21,6 +21,7 @@ import (
 	"io"
 	"syscall"
 	"time"
+	"unsafe"
 
 	"github.com/google/uuid"
 	"github.com/gravitational/trace"
@@ -116,20 +117,42 @@ func authenticateUserProcess(ctx context.Context, clt *userProcessClient) error 
 	if err != nil {
 		return trace.Wrap(err, "converting string to UTF16")
 	}
+
+	// This allows pipe access to everyone
+	// TODO(nklaassen): restrict access to only the calling user.
+	sddl := "D:P(A;;GA;;;WD)"
+	sd, err := windows.SecurityDescriptorFromString(sddl)
+	if err != nil {
+		return trace.Wrap(err, "creating security descriptor from string")
+	}
+	sa := windows.SecurityAttributes{
+		Length:             uint32(unsafe.Sizeof(windows.SecurityAttributes{})),
+		SecurityDescriptor: sd,
+		InheritHandle:      0,
+	}
 	pipe, err := windows.CreateNamedPipe(
 		pipePath,
-		windows.PIPE_ACCESS_DUPLEX,
+		windows.PIPE_ACCESS_DUPLEX|windows.FILE_FLAG_OVERLAPPED,
 		windows.PIPE_TYPE_BYTE|windows.PIPE_WAIT,
 		windows.PIPE_UNLIMITED_INSTANCES,
 		1024,
 		1024,
 		0,
-		nil,
+		&sa,
 	)
 	if err != nil {
 		return trace.Wrap(err, "creating named pipe")
 	}
+	defer windows.CloseHandle(pipe)
 	log.DebugContext(ctx, "Created named pipe")
+
+	overlapped := new(windows.Overlapped)
+	eventHandle, err := windows.CreateEvent(nil, 1, 0, nil)
+	if err != nil {
+		return trace.Wrap(err, "creating Windows event handle")
+	}
+	defer windows.CloseHandle(eventHandle)
+	overlapped.HEvent = eventHandle
 
 	g, ctx := errgroup.WithContext(ctx)
 	g.Go(func() error {
@@ -139,15 +162,18 @@ func authenticateUserProcess(ctx context.Context, clt *userProcessClient) error 
 		return trace.Wrap(err, "authenticating user process")
 	})
 	g.Go(func() error {
-		if err := windows.ConnectNamedPipe(pipe, nil); err != nil {
-			return trace.Wrap(err, "waiting for client to connect to named pipe")
+		if err := windows.ConnectNamedPipe(pipe, overlapped); err != nil && err != windows.ERROR_IO_PENDING {
+			return trace.Wrap(err, "connecting to named pipe")
+		}
+		evt, err := windows.WaitForSingleObject(eventHandle, 500 /*milliseconds*/)
+		if err != nil {
+			return trace.Wrap(err, "waiting for connection on named pipe")
+		}
+		if evt != windows.WAIT_OBJECT_0 {
+			return trace.Errorf("failed to wait for connection on named pipe, error code: %d", evt)
 		}
 		log.DebugContext(ctx, "Got connection on named pipe")
 		return nil
-	})
-	g.Go(func() error {
-		<-ctx.Done()
-		return trace.Wrap(windows.CloseHandle(pipe), "closing pipe")
 	})
 	if err := g.Wait(); err != nil {
 		return trace.Wrap(err)
