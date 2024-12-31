@@ -89,13 +89,15 @@ func TestConfig_SetFromURL(t *testing.T) {
 		},
 		{
 			name: "params to batcher",
-			url:  "athena://db.tbl/?queueURL=https://queueURL&batchMaxItems=1000&batchMaxInterval=10s",
+			url:  "athena://db.tbl/?queueURL=https://queueURL&batchMaxItems=1000&batchMaxInterval=10s&consumerLockName=mylock&consumerDisabled=true",
 			want: Config{
 				TableName:        "tbl",
 				Database:         "db",
 				QueueURL:         "https://queueURL",
 				BatchMaxItems:    1000,
 				BatchMaxInterval: 10 * time.Second,
+				ConsumerLockName: "mylock",
+				ConsumerDisabled: true,
 			},
 		},
 		{
@@ -183,6 +185,7 @@ func TestConfig_CheckAndSetDefaults(t *testing.T) {
 				GetQueryResultsInterval:    100 * time.Millisecond,
 				BatchMaxItems:              20000,
 				BatchMaxInterval:           1 * time.Minute,
+				ConsumerLockName:           "",
 				PublisherConsumerAWSConfig: dummyAWSCfg,
 				StorerQuerierAWSConfig:     dummyAWSCfg,
 				Backend:                    mockBackend{},
@@ -208,6 +211,7 @@ func TestConfig_CheckAndSetDefaults(t *testing.T) {
 				GetQueryResultsInterval:    100 * time.Millisecond,
 				BatchMaxItems:              20000,
 				BatchMaxInterval:           1 * time.Minute,
+				ConsumerLockName:           "",
 				PublisherConsumerAWSConfig: dummyAWSCfg,
 				StorerQuerierAWSConfig:     dummyAWSCfg,
 				Backend:                    mockBackend{},
@@ -232,7 +236,7 @@ func TestConfig_CheckAndSetDefaults(t *testing.T) {
 				cfg.TableName = "table with space"
 				return cfg
 			},
-			wantErr: "TableName can contains only alphanumeric or underscore character",
+			wantErr: "TableName can only contain alphanumeric or underscore character",
 		},
 		{
 			name: "missing topicARN",
@@ -331,7 +335,7 @@ func TestPublisherConsumer(t *testing.T) {
 			ID:   uuid.NewString(),
 			Time: time.Now().UTC(),
 			Type: events.AppCreateEvent,
-			Code: strings.Repeat("d", 2*maxSNSMessageSize),
+			Code: strings.Repeat("d", 2*maxDirectMessageSize),
 		},
 		AppMetadata: apievents.AppMetadata{
 			AppName: "app-large",
@@ -414,8 +418,8 @@ func TestPublisherConsumer(t *testing.T) {
 			fq := newFakeQueue()
 			p := &publisher{
 				PublisherConfig: PublisherConfig{
-					SNSPublisher: fq,
-					Uploader:     fS3,
+					MessagePublisher: fq,
+					Uploader:         fS3,
 				},
 			}
 			cfg := validCollectCfgForTests(t)

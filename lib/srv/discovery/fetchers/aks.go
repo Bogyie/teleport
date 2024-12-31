@@ -19,10 +19,10 @@ package fetchers
 import (
 	"context"
 	"fmt"
+	"slices"
 
 	"github.com/gravitational/trace"
 	"github.com/sirupsen/logrus"
-	"golang.org/x/exp/slices"
 
 	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/cloud/azure"
@@ -88,7 +88,7 @@ func (a *aksFetcher) Get(ctx context.Context) (types.ResourcesWithLabels, error)
 			a.Log.Debugf("Cluster region %q does not match with allowed values.", cluster.Location)
 			continue
 		}
-		kubeCluster, err := services.NewKubeClusterFromAzureAKS(cluster)
+		kubeCluster, err := common.NewKubeClusterFromAzureAKS(cluster)
 		if err != nil {
 			a.Log.WithError(err).Warn("Unable to create Kubernetes cluster from azure.AKSCluster.")
 			continue

@@ -17,8 +17,9 @@
 import React from 'react';
 import styled from 'styled-components';
 
-import logoLight from 'teleport/Navigation/logoLight.svg';
-import logoDark from 'teleport/Navigation/logoDark.svg';
+import logoDark from 'design/assets/images/enterprise-dark.svg';
+import logoLight from 'design/assets/images/enterprise-light.svg';
+
 import { ViewMode } from 'teleport/Assist/types';
 import { Description, Title } from 'teleport/Assist/Settings/shared';
 
@@ -149,8 +150,10 @@ const PageNavigation = styled.div`
   background: ${p => p.theme.colors.levels.surface};
   flex: 0 0 45px;
   height: inherit;
-  box-shadow: 0px 2px 1px -1px rgba(0, 0, 0, 0.2),
-    0px 1px 1px rgba(0, 0, 0, 0.14), 0px 1px 3px rgba(0, 0, 0, 0.12);
+  box-shadow:
+    0px 2px 1px -1px rgba(0, 0, 0, 0.2),
+    0px 1px 1px rgba(0, 0, 0, 0.14),
+    0px 1px 3px rgba(0, 0, 0, 0.12);
 `;
 
 const NavigationLogo = styled.div`
@@ -189,8 +192,10 @@ const PageTable = styled.div`
   width: 100%;
   height: 40px;
   border-radius: 3px;
-  box-shadow: 0px 2px 1px -1px rgba(0, 0, 0, 0.1),
-    0px 1px 1px rgba(0, 0, 0, 0.07), 0px 1px 3px rgba(0, 0, 0, 0.06);
+  box-shadow:
+    0px 2px 1px -1px rgba(0, 0, 0, 0.1),
+    0px 1px 1px rgba(0, 0, 0, 0.07),
+    0px 1px 3px rgba(0, 0, 0, 0.06);
 `;
 
 function MockPage() {

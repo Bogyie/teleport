@@ -52,7 +52,10 @@ func TestAuditPostgres(t *testing.T) {
 	// Connect should trigger successful session start event.
 	psql, err := testCtx.postgresClient(ctx, "alice", "postgres", "postgres", "postgres")
 	require.NoError(t, err)
-	requireEvent(t, testCtx, libevents.DatabaseSessionStartCode)
+	startEvt, ok := requireEvent(t, testCtx, libevents.DatabaseSessionStartCode).(*events.DatabaseSessionStart)
+	require.True(t, ok)
+	require.NotNil(t, startEvt)
+	require.NotZero(t, startEvt.PostgresPID)
 
 	// Simple query should trigger the query event.
 	_, err = psql.Exec(ctx, "select 1").ReadAll()
@@ -165,7 +168,17 @@ func TestAuditMySQL(t *testing.T) {
 	// Simple query should trigger the query event.
 	_, err = mysql.Execute("select 1")
 	require.NoError(t, err)
-	requireQueryEvent(t, testCtx, libevents.DatabaseSessionQueryCode, "select 1")
+	requireQueryEventWithDBName(t, testCtx, libevents.DatabaseSessionQueryCode, "select 1", "")
+
+	// Switch to another database.
+	err = mysql.UseDB("foo")
+	require.NoError(t, err)
+	requireEvent(t, testCtx, libevents.MySQLInitDBCode)
+
+	// Check DatabaseName is updated.
+	_, err = mysql.Execute("select 2")
+	require.NoError(t, err)
+	requireQueryEventWithDBName(t, testCtx, libevents.DatabaseSessionQueryCode, "select 2", "foo")
 
 	// Closing connection should trigger session end event.
 	err = mysql.Close()
@@ -369,6 +382,17 @@ func requireQueryEvent(t *testing.T, testCtx *testContext, code, query string) {
 	event := waitForAnyEvent(t, testCtx)
 	require.Equal(t, code, event.GetCode())
 	require.Equal(t, query, event.(*events.DatabaseSessionQuery).DatabaseQuery)
+}
+
+func requireQueryEventWithDBName(t *testing.T, testCtx *testContext, code, query, dbName string) {
+	t.Helper()
+	event := waitForAnyEvent(t, testCtx)
+	require.Equal(t, code, event.GetCode())
+
+	queryEvent, ok := event.(*events.DatabaseSessionQuery)
+	require.True(t, ok)
+	require.Equal(t, query, queryEvent.DatabaseQuery)
+	require.Equal(t, dbName, queryEvent.DatabaseName)
 }
 
 func waitForAnyEvent(t *testing.T, testCtx *testContext) events.AuditEvent {

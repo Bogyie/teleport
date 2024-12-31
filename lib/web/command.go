@@ -47,7 +47,7 @@ import (
 	"github.com/gravitational/teleport/lib/agentless"
 	"github.com/gravitational/teleport/lib/ai/tokens"
 	assistlib "github.com/gravitational/teleport/lib/assist"
-	"github.com/gravitational/teleport/lib/auth"
+	"github.com/gravitational/teleport/lib/auth/authclient"
 	"github.com/gravitational/teleport/lib/client"
 	"github.com/gravitational/teleport/lib/defaults"
 	"github.com/gravitational/teleport/lib/httplib"
@@ -56,6 +56,7 @@ import (
 	"github.com/gravitational/teleport/lib/services"
 	"github.com/gravitational/teleport/lib/session"
 	"github.com/gravitational/teleport/lib/teleagent"
+	"github.com/gravitational/teleport/lib/web/terminal"
 )
 
 // summaryBufferCapacity is the summary buffer size in bytes. The summary buffer
@@ -128,6 +129,7 @@ func (h *Handler) executeCommand(
 	_ httprouter.Params,
 	sessionCtx *SessionContext,
 	site reversetunnelclient.RemoteSite,
+	rawWS *websocket.Conn,
 ) (any, error) {
 	q := r.URL.Query()
 	params := q.Get("params")
@@ -170,20 +172,6 @@ func (h *Handler) executeCommand(
 	}
 
 	clusterName := site.GetName()
-
-	upgrader := websocket.Upgrader{
-		ReadBufferSize:  1024,
-		WriteBufferSize: 1024,
-		CheckOrigin:     func(r *http.Request) bool { return true },
-	}
-
-	rawWS, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		errMsg := "Error upgrading to websocket"
-		h.log.WithError(err).Error(errMsg)
-		http.Error(w, errMsg, http.StatusInternalServerError)
-		return nil, nil
-	}
 
 	defer func() {
 		rawWS.WriteMessage(websocket.CloseMessage, nil)
@@ -308,7 +296,11 @@ func (h *Handler) executeCommand(
 		}
 	}
 
-	prompt, completion := tokens.CountTokens(tokenCount)
+	prompt, completion := 0, 0
+	if tokenCount != nil {
+		prompt = tokenCount.Prompt.CountAll()
+		completion = tokenCount.Completion.CountAll()
+	}
 
 	usageEventReq := &clientproto.SubmitUsageEventRequest{
 		Event: &usageeventsv1.UsageEventOneOf{
@@ -333,7 +325,7 @@ func (h *Handler) executeCommand(
 type summaryRequest struct {
 	hosts          []hostInfo
 	output         map[string][]byte
-	authClient     auth.ClientI
+	authClient     authclient.ClientI
 	username       string
 	executionID    string
 	conversationID string
@@ -343,7 +335,7 @@ type summaryRequest struct {
 func (h *Handler) computeAndSendSummary(
 	ctx context.Context,
 	req *summaryRequest,
-	ws WSConn,
+	ws terminal.WSConn,
 ) (*tokens.TokenCount, error) {
 	// Convert the map nodeId->output into a map nodeName->output
 	namedOutput := outputByName(req.hosts, req.output)
@@ -401,7 +393,7 @@ func (h *Handler) computeAndSendSummary(
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
-	stream := NewWStream(ctx, ws, log, nil)
+	stream := terminal.NewWStream(ctx, ws, log, nil)
 	_, err = stream.Write(data)
 	return tokenCount, trace.Wrap(err)
 }
@@ -572,10 +564,10 @@ type commandHandler struct {
 	sshBaseHandler
 
 	// stream is the websocket stream to the client.
-	stream *WSStream
+	stream *terminal.WSStream
 
 	// ws a raw websocket connection to the client.
-	ws WSConn
+	ws terminal.WSConn
 
 	// mfaAuthCache is a function that caches the result of a function that
 	// returns a list of ssh.AuthMethods. It is used to cache the result of
@@ -588,8 +580,8 @@ type commandHandler struct {
 }
 
 // sendError sends an error message to the client using the provided websocket.
-func (t *sshBaseHandler) sendError(errMsg string, err error, ws WSConn) {
-	envelope := &Envelope{
+func (t *sshBaseHandler) sendError(errMsg string, err error, ws terminal.WSConn) {
+	envelope := &terminal.Envelope{
 		Version: defaults.WebsocketVersion,
 		Type:    defaults.WebsocketError,
 		Payload: fmt.Sprintf("%s: %s", errMsg, err.Error()),
@@ -616,7 +608,7 @@ func (t *commandHandler) ServeHTTP(_ http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	envelope := &Envelope{
+	envelope := &terminal.Envelope{
 		Version: defaults.WebsocketVersion,
 		Type:    defaults.WebsocketSessionMetadata,
 		Payload: string(sessionMetadataResponse),
@@ -638,7 +630,7 @@ func (t *commandHandler) ServeHTTP(_ http.ResponseWriter, r *http.Request) {
 }
 
 func (t *commandHandler) handler(r *http.Request) {
-	t.stream = NewWStream(r.Context(), t.ws, t.log, nil)
+	t.stream = terminal.NewWStream(r.Context(), t.ws, t.log, nil)
 
 	// Create a Teleport client, if not able to, show the reason to the user in
 	// the terminal.
@@ -652,7 +644,7 @@ func (t *commandHandler) handler(r *http.Request) {
 	t.log.Debug("Creating websocket stream")
 
 	// Start sending ping frames through websocket to the client.
-	go startPingLoop(r.Context(), t.ws, t.keepAliveInterval, t.log, t.Close)
+	go startWSPingLoop(r.Context(), t.ws, t.keepAliveInterval, t.log, t.Close)
 
 	// Pump raw terminal in/out and audit events into the websocket.
 	t.streamOutput(r.Context(), tc)
@@ -673,9 +665,6 @@ func (t *commandHandler) streamOutput(ctx context.Context, tc *client.TeleportCl
 
 	defer nc.Close()
 
-	// Enable session recording
-	nc.AddEnv(teleport.EnableNonInteractiveSessionRecording, "true")
-
 	// Establish SSH connection to the server. This function will block until
 	// either an error occurs or it completes successfully.
 	if err = nc.RunCommand(ctx, t.interactiveCommand); err != nil {
@@ -684,7 +673,7 @@ func (t *commandHandler) streamOutput(ctx context.Context, tc *client.TeleportCl
 		return
 	}
 
-	if err := t.stream.SendCloseMessage(sessionEndEvent{NodeID: t.sessionData.ServerID}); err != nil {
+	if err := t.stream.SendCloseMessage(t.sessionData.ServerID); err != nil {
 		t.log.WithError(err).Error("Unable to send close event to web client.")
 		return
 	}
@@ -695,7 +684,7 @@ func (t *commandHandler) streamOutput(ctx context.Context, tc *client.TeleportCl
 // connectToNodeWithMFA attempts to perform the mfa ceremony and then dial the
 // host with the retrieved single use certs.
 // If called multiple times, the mfa ceremony will only be performed once.
-func (t *commandHandler) connectToNodeWithMFA(ctx context.Context, ws WSConn, tc *client.TeleportClient, accessChecker services.AccessChecker, getAgent teleagent.Getter, signer agentless.SignerCreator) (*client.NodeClient, error) {
+func (t *commandHandler) connectToNodeWithMFA(ctx context.Context, ws terminal.WSConn, tc *client.TeleportClient, accessChecker services.AccessChecker, getAgent teleagent.Getter, signer agentless.SignerCreator) (*client.NodeClient, error) {
 	authMethods, err := t.mfaAuthCache(func() ([]ssh.AuthMethod, error) {
 		// perform mfa ceremony and retrieve new certs
 		authMethods, err := t.issueSessionMFACerts(ctx, tc, t.stream)
@@ -719,7 +708,7 @@ func (t *commandHandler) Close() error {
 }
 
 // makeClient builds a *client.TeleportClient for the connection.
-func (t *commandHandler) makeClient(ctx context.Context, ws WSConn) (*client.TeleportClient, error) {
+func (t *commandHandler) makeClient(ctx context.Context, ws terminal.WSConn) (*client.TeleportClient, error) {
 	ctx, span := tracing.DefaultProvider().Tracer("command").Start(ctx, "commandHandler/makeClient")
 	defer span.End()
 

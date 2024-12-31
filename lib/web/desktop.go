@@ -44,7 +44,7 @@ import (
 	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/api/utils/keys"
-	"github.com/gravitational/teleport/lib/auth"
+	"github.com/gravitational/teleport/lib/auth/authclient"
 	wantypes "github.com/gravitational/teleport/lib/auth/webauthntypes"
 	"github.com/gravitational/teleport/lib/authz"
 	"github.com/gravitational/teleport/lib/client"
@@ -63,6 +63,7 @@ func (h *Handler) desktopConnectHandle(
 	p httprouter.Params,
 	sctx *SessionContext,
 	site reversetunnelclient.RemoteSite,
+	ws *websocket.Conn,
 ) (interface{}, error) {
 	desktopName := p.ByName("desktopName")
 	if desktopName == "" {
@@ -72,7 +73,7 @@ func (h *Handler) desktopConnectHandle(
 	log := sctx.cfg.Log.WithField("desktop-name", desktopName).WithField("cluster-name", site.GetName())
 	log.Debug("New desktop access websocket connection")
 
-	if err := h.createDesktopConnection(w, r, desktopName, site.GetName(), log, sctx, site); err != nil {
+	if err := h.createDesktopConnection(w, r, desktopName, site.GetName(), log, sctx, site, ws); err != nil {
 		// createDesktopConnection makes a best effort attempt to send an error to the user
 		// (via websocket) before terminating the connection. We log the error here, but
 		// return nil because our HTTP middleware will try to write the returned error in JSON
@@ -97,15 +98,8 @@ func (h *Handler) createDesktopConnection(
 	log *logrus.Entry,
 	sctx *SessionContext,
 	site reversetunnelclient.RemoteSite,
+	ws *websocket.Conn,
 ) error {
-	upgrader := websocket.Upgrader{
-		ReadBufferSize:  1024,
-		WriteBufferSize: 1024,
-	}
-	ws, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		return trace.Wrap(err)
-	}
 	defer ws.Close()
 
 	sendTDPError := func(err error) error {
@@ -224,7 +218,7 @@ const (
 	SNISuffix = ".desktop." + constants.APIDomain
 )
 
-func (h *Handler) desktopTLSConfig(ctx context.Context, ws *websocket.Conn, clusterClient auth.ClientI, sessCtx *SessionContext, desktopName, username, siteName string) (_ *tls.Config, err error) {
+func (h *Handler) desktopTLSConfig(ctx context.Context, ws *websocket.Conn, clusterClient authclient.ClientI, sessCtx *SessionContext, desktopName, username, siteName string) (_ *tls.Config, err error) {
 	ctx, span := h.tracer.Start(ctx, "desktop/TLSConfig")
 	defer func() {
 		span.RecordError(err)
@@ -305,7 +299,7 @@ func (h *Handler) desktopTLSConfig(ctx context.Context, ws *websocket.Conn, clus
 // performMFACeremony completes the mfa ceremony and returns the raw TLS certificate
 // on success. The user will be prompted to tap their security key by the UI
 // in order to perform the assertion.
-func (h *Handler) performMFACeremony(ctx context.Context, authClient auth.ClientI, ws *websocket.Conn, certsReq *proto.UserCertsRequest) (_ []byte, err error) {
+func (h *Handler) performMFACeremony(ctx context.Context, authClient authclient.ClientI, ws *websocket.Conn, certsReq *proto.UserCertsRequest) (_ []byte, err error) {
 	ctx, span := h.tracer.Start(ctx, "desktop/performMFACeremony")
 	defer func() {
 		span.RecordError(err)
@@ -343,7 +337,7 @@ func (h *Handler) performMFACeremony(ctx context.Context, authClient auth.Client
 	codec := tdpMFACodec{}
 
 	// Send the challenge over the socket.
-	msg, err := codec.encode(
+	msg, err := codec.Encode(
 		&client.MFAAuthenticateChallenge{
 			WebauthnChallenge: wantypes.CredentialAssertionFromProto(c.WebauthnChallenge),
 		},
@@ -367,7 +361,7 @@ func (h *Handler) performMFACeremony(ctx context.Context, authClient auth.Client
 		return nil, trace.BadParameter("received unexpected web socket message type %d", ty)
 	}
 
-	assertion, err := codec.decodeResponse(buf, defaults.WebsocketWebauthnChallenge)
+	assertion, err := codec.DecodeResponse(buf, defaults.WebsocketWebauthnChallenge)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
@@ -398,7 +392,7 @@ func (h *Handler) performMFACeremony(ctx context.Context, authClient auth.Client
 
 type connector struct {
 	log           *logrus.Entry
-	clt           auth.ClientI
+	clt           authclient.ClientI
 	site          reversetunnelclient.RemoteSite
 	clientSrcAddr net.Addr
 	clientDstAddr net.Addr

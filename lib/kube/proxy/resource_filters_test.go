@@ -21,13 +21,13 @@ import (
 	"io"
 	"path"
 	"path/filepath"
+	"slices"
 	"testing"
 	"text/template"
 
 	"github.com/gravitational/trace"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/exp/slices"
 	appsv1 "k8s.io/api/apps/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -114,6 +114,26 @@ func Test_filterBuffer(t *testing.T) {
 			name: "table response uncompressed",
 			args: args{
 				dataFile:        "testing/data/partial_table.json",
+				contentEncoding: "",
+			},
+			want: []string{
+				"default/kubernetes",
+			},
+		},
+		{
+			name: "table response full object compressed with gzip",
+			args: args{
+				dataFile:        "testing/data/partial_table_full_obj.json",
+				contentEncoding: "gzip",
+			},
+			want: []string{
+				"default/kubernetes",
+			},
+		},
+		{
+			name: "table response full object uncompressed",
+			args: args{
+				dataFile:        "testing/data/partial_table_full_obj.json",
 				contentEncoding: "",
 			},
 			want: []string{
@@ -207,7 +227,7 @@ func Test_filterBuffer(t *testing.T) {
 						if row.Object.Object == nil {
 							var err error
 							// decode only if row.Object.Object was not decoded before.
-							row.Object.Object, err = decodeAndSetGVK(decoder, row.Object.Raw)
+							row.Object.Object, err = decodeAndSetGVK(decoder, row.Object.Raw, nil)
 							require.NoError(t, err)
 						}
 

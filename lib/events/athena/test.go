@@ -43,6 +43,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/gravitational/teleport"
+	auditlogpb "github.com/gravitational/teleport/api/gen/proto/go/teleport/auditlog/v1"
+	"github.com/gravitational/teleport/api/internalutils/stream"
 	apievents "github.com/gravitational/teleport/api/types/events"
 	"github.com/gravitational/teleport/lib/backend/memory"
 	"github.com/gravitational/teleport/lib/events"
@@ -102,6 +104,7 @@ func (a *AthenaContext) GetLog() *Log {
 // AthenaContextConfig is optional config to override defaults in athena context.
 type AthenaContextConfig struct {
 	MaxBatchSize int
+	BypassSNS    bool
 }
 
 type InfraOutputs struct {
@@ -143,6 +146,28 @@ func (e *EventuallyConsistentAuditLogger) SearchEvents(ctx context.Context, req 
 		e.emitWasAfterLastDelay = false
 	}
 	return e.Inner.SearchEvents(ctx, req)
+}
+
+func (e *EventuallyConsistentAuditLogger) ExportUnstructuredEvents(ctx context.Context, req *auditlogpb.ExportUnstructuredEventsRequest) stream.Stream[*auditlogpb.ExportEventUnstructured] {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	if e.emitWasAfterLastDelay {
+		time.Sleep(e.QueryDelay)
+		// clear emit delay
+		e.emitWasAfterLastDelay = false
+	}
+	return e.Inner.ExportUnstructuredEvents(ctx, req)
+}
+
+func (e *EventuallyConsistentAuditLogger) GetEventExportChunks(ctx context.Context, req *auditlogpb.GetEventExportChunksRequest) stream.Stream[*auditlogpb.EventExportChunk] {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	if e.emitWasAfterLastDelay {
+		time.Sleep(e.QueryDelay)
+		// clear emit delay
+		e.emitWasAfterLastDelay = false
+	}
+	return e.Inner.GetEventExportChunks(ctx, req)
 }
 
 func (e *EventuallyConsistentAuditLogger) SearchSessionEvents(ctx context.Context, req events.SearchSessionEventsRequest) ([]apievents.AuditEvent, string, error) {
@@ -196,12 +221,16 @@ func SetupAthenaContext(t *testing.T, ctx context.Context, cfg AthenaContextConf
 		region = "eu-central-1"
 	}
 
+	topicARN := infraOut.TopicARN
+	if cfg.BypassSNS {
+		topicARN = topicARNBypass
+	}
 	log, err := New(ctx, Config{
 		Region:           region,
 		Clock:            clock,
 		Database:         ac.Database,
 		TableName:        ac.TableName,
-		TopicARN:         infraOut.TopicARN,
+		TopicARN:         topicARN,
 		QueueURL:         infraOut.QueueURL,
 		LocationS3:       ac.s3eventsLocation,
 		QueryResultsS3:   ac.S3ResultsLocation,
@@ -326,7 +355,7 @@ func (ac *AthenaContext) setupInfraWithCleanup(t *testing.T, ctx context.Context
 		if errors.As(err, &notFound) {
 			_, err = s3Client.CreateBucket(ctx, &s3.CreateBucketInput{
 				Bucket:                     aws.String(ac.bucketForEvents),
-				ObjectLockEnabledForBucket: true,
+				ObjectLockEnabledForBucket: aws.Bool(true),
 				CreateBucketConfiguration: &s3Types.CreateBucketConfiguration{
 					LocationConstraint: s3Types.BucketLocationConstraint(awsCfg.Region),
 				},
@@ -338,7 +367,7 @@ func (ac *AthenaContext) setupInfraWithCleanup(t *testing.T, ctx context.Context
 					ObjectLockEnabled: s3Types.ObjectLockEnabledEnabled,
 					Rule: &s3Types.ObjectLockRule{
 						DefaultRetention: &s3Types.DefaultRetention{
-							Days: 1,
+							Days: aws.Int32(1),
 							Mode: s3Types.ObjectLockRetentionModeGovernance,
 						},
 					},
@@ -376,7 +405,7 @@ func (ac *AthenaContext) setupInfraWithCleanup(t *testing.T, ctx context.Context
 				{
 					Status: s3Types.ExpirationStatusEnabled,
 					Expiration: &s3Types.LifecycleExpiration{
-						Days: 1,
+						Days: aws.Int32(1),
 					},
 					// Prefix is required field, empty means set to whole bucket.
 					Prefix: aws.String(""),

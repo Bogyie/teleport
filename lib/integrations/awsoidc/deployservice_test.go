@@ -17,15 +17,19 @@ limitations under the License.
 package awsoidc
 
 import (
+	"context"
 	"regexp"
 	"testing"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	ecstypes "github.com/aws/aws-sdk-go-v2/service/ecs/types"
 	"github.com/google/go-cmp/cmp"
 	"github.com/gravitational/trace"
 	"github.com/stretchr/testify/require"
 
 	"github.com/gravitational/teleport"
 	"github.com/gravitational/teleport/api/types"
+	"github.com/gravitational/teleport/lib/automaticupgrades"
 )
 
 func TestDeployServiceRequest(t *testing.T) {
@@ -35,14 +39,14 @@ func TestDeployServiceRequest(t *testing.T) {
 
 	baseReqFn := func() DeployServiceRequest {
 		return DeployServiceRequest{
-			TeleportClusterName:           "mycluster",
-			Region:                        "r",
-			SubnetIDs:                     []string{"1"},
-			TaskRoleARN:                   "arn",
-			ProxyServerHostPort:           "proxy.example.com:3080",
-			IntegrationName:               "teleportdev",
-			DeploymentMode:                DatabaseServiceDeploymentMode,
-			DatabaseResourceMatcherLabels: types.Labels{types.Wildcard: []string{types.Wildcard}},
+			TeleportClusterName:     "mycluster",
+			Region:                  "r",
+			SubnetIDs:               []string{"1"},
+			TaskRoleARN:             "arn",
+			IntegrationName:         "teleportdev",
+			DeploymentMode:          DatabaseServiceDeploymentMode,
+			TeleportConfigString:    "config using b64",
+			DeploymentJoinTokenName: "discover-aws-oidc-iam-token",
 		}
 	}
 
@@ -123,10 +127,10 @@ func TestDeployServiceRequest(t *testing.T) {
 			errCheck: isBadParamErrFn,
 		},
 		{
-			name: "no label matchers",
+			name: "no teleport service config string",
 			req: func() DeployServiceRequest {
 				r := baseReqFn()
-				r.DatabaseResourceMatcherLabels = types.Labels{}
+				r.TeleportConfigString = ""
 				return r
 			},
 			errCheck: isBadParamErrFn,
@@ -136,24 +140,23 @@ func TestDeployServiceRequest(t *testing.T) {
 			req:      baseReqFn,
 			errCheck: require.NoError,
 			reqWithDefaults: DeployServiceRequest{
-				TeleportClusterName:  "mycluster",
-				TeleportVersionTag:   teleport.Version,
-				Region:               "r",
-				SubnetIDs:            []string{"1"},
-				TaskRoleARN:          "arn",
-				ClusterName:          stringPointer("mycluster-teleport"),
-				ServiceName:          stringPointer("mycluster-teleport-database-service"),
-				TaskName:             stringPointer("mycluster-teleport-database-service"),
-				TeleportIAMTokenName: "discover-aws-oidc-iam-token",
-				IntegrationName:      "teleportdev",
-				ProxyServerHostPort:  "proxy.example.com:3080",
+				TeleportClusterName:     "mycluster",
+				TeleportVersionTag:      teleport.Version,
+				Region:                  "r",
+				SubnetIDs:               []string{"1"},
+				TaskRoleARN:             "arn",
+				ClusterName:             stringPointer("mycluster-teleport"),
+				ServiceName:             stringPointer("mycluster-teleport-database-service"),
+				TaskName:                stringPointer("mycluster-teleport-database-service"),
+				DeploymentJoinTokenName: "discover-aws-oidc-iam-token",
+				IntegrationName:         "teleportdev",
 				ResourceCreationTags: AWSTags{
 					"teleport.dev/origin":      "integration_awsoidc",
 					"teleport.dev/cluster":     "mycluster",
 					"teleport.dev/integration": "teleportdev",
 				},
-				DeploymentMode:                DatabaseServiceDeploymentMode,
-				DatabaseResourceMatcherLabels: types.Labels{types.Wildcard: []string{types.Wildcard}},
+				DeploymentMode:       DatabaseServiceDeploymentMode,
+				TeleportConfigString: "config using b64",
 			},
 		},
 	} {
@@ -208,4 +211,31 @@ func TestNormalizeECSResourceName(t *testing.T) {
 			require.Equal(t, normalizeECSResourceName(tt.input), tt.expected)
 		})
 	}
+}
+
+func TestUpsertTask(t *testing.T) {
+	ctx := context.Background()
+
+	mockClient := &mockDeployServiceClient{
+		clusters:        map[string]*ecstypes.Cluster{},
+		taskDefinitions: map[string]*ecstypes.TaskDefinition{},
+		services:        map[string]*ecstypes.Service{},
+		accountId:       aws.String("123456789012"),
+		iamTokenMissing: true,
+	}
+
+	expected := []ecstypes.KeyValuePair{
+		{
+			Name:  aws.String(types.InstallMethodAWSOIDCDeployServiceEnvVar),
+			Value: aws.String("true"),
+		},
+		{
+			Name:  aws.String(automaticupgrades.EnvUpgraderVersion),
+			Value: aws.String(teleport.Version),
+		},
+	}
+
+	taskDefinition, err := upsertTask(ctx, mockClient, upsertTaskRequest{})
+	require.NoError(t, err)
+	require.Equal(t, expected, taskDefinition.ContainerDefinitions[0].Environment)
 }

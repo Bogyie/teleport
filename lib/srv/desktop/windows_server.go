@@ -38,6 +38,7 @@ import (
 	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/api/types/events"
 	"github.com/gravitational/teleport/lib/auth"
+	"github.com/gravitational/teleport/lib/auth/authclient"
 	"github.com/gravitational/teleport/lib/auth/windows"
 	"github.com/gravitational/teleport/lib/authz"
 	"github.com/gravitational/teleport/lib/defaults"
@@ -159,9 +160,9 @@ type WindowsServiceConfig struct {
 	// TLS is the TLS server configuration.
 	TLS *tls.Config
 	// AccessPoint is the Auth API client (with caching).
-	AccessPoint auth.WindowsDesktopAccessPoint
+	AccessPoint authclient.WindowsDesktopAccessPoint
 	// AuthClient is the Auth API client (without caching).
-	AuthClient auth.ClientI
+	AuthClient authclient.ClientI
 	// ConnLimiter limits the number of active connections per client IP.
 	ConnLimiter *limiter.ConnectionsLimiter
 	// Heartbeat contains configuration for service heartbeats.
@@ -868,6 +869,7 @@ func (s *WindowsService) connectRDP(ctx context.Context, log logrus.FieldLogger,
 	tdpConn.OnSend = s.makeTDPSendHandler(ctx, recorder, delay, tdpConn, audit)
 	tdpConn.OnRecv = s.makeTDPReceiveHandler(ctx, recorder, delay, tdpConn, audit)
 
+	//nolint:staticcheck // SA4023. False positive, depends on build tags.
 	rdpc, err := rdpclient.New(rdpclient.Config{
 		Log: log,
 		GenerateUserCert: func(ctx context.Context, username string, ttl time.Duration) (certDER, keyDER []byte, err error) {
@@ -875,6 +877,7 @@ func (s *WindowsService) connectRDP(ctx context.Context, log logrus.FieldLogger,
 		},
 		CertTTL:               windows.CertTTL,
 		Addr:                  addr.String(),
+		HostID:                s.cfg.Heartbeat.HostUUID,
 		Conn:                  tdpConn,
 		AuthorizeFn:           authorize,
 		AllowClipboard:        authCtx.Checker.DesktopClipboard(),
@@ -888,6 +891,7 @@ func (s *WindowsService) connectRDP(ctx context.Context, log logrus.FieldLogger,
 		windowsUser = rdpc.GetClientUsername()
 		audit.windowsUser = windowsUser
 	}
+	//nolint:staticcheck // SA4023. False positive, depends on build tags.
 	if err != nil {
 		startEvent := audit.makeSessionStart(err)
 		s.record(ctx, recorder, startEvent)
@@ -904,7 +908,7 @@ func (s *WindowsService) connectRDP(ctx context.Context, log logrus.FieldLogger,
 		Conn:                  tdpConn,
 		Clock:                 s.cfg.Clock,
 		ClientIdleTimeout:     authCtx.Checker.AdjustClientIdleTimeout(netConfig.GetClientIdleTimeout()),
-		DisconnectExpiredCert: srv.GetDisconnectExpiredCertFromIdentity(authCtx.Checker, authPref, &identity),
+		DisconnectExpiredCert: authCtx.GetDisconnectCertExpiry(authPref),
 		Entry:                 log,
 		Emitter:               s.cfg.Emitter,
 		EmitterContext:        s.closeCtx,
@@ -915,10 +919,7 @@ func (s *WindowsService) connectRDP(ctx context.Context, log logrus.FieldLogger,
 		TeleportUser:          identity.Username,
 		ServerID:              s.cfg.Heartbeat.HostUUID,
 		IdleTimeoutMessage:    netConfig.GetClientIdleTimeoutMessage(),
-		MessageWriter: &monitorErrorSender{
-			log:     log,
-			tdpConn: tdpConn,
-		},
+		MessageWriter:         &monitorErrorSender{tdpConn: tdpConn},
 	}
 
 	// UpdateClientActivity before starting monitor to
@@ -1315,15 +1316,12 @@ func (s *WindowsService) trackSession(ctx context.Context, id *tlsca.Identity, w
 // monitor disconnect messages back to the frontend
 // over the tdp.Conn
 type monitorErrorSender struct {
-	log     logrus.FieldLogger
 	tdpConn *tdp.Conn
 }
 
 func (m *monitorErrorSender) WriteString(s string) (n int, err error) {
 	if err := m.tdpConn.SendNotification(s, tdp.SeverityError); err != nil {
-		errMsg := fmt.Sprintf("Failed to send TDP error message %v: %v", s, err)
-		m.log.Error(errMsg)
-		return 0, trace.Errorf(errMsg)
+		return 0, trace.Wrap(err, "sending TDP error message")
 	}
 
 	return len(s), nil

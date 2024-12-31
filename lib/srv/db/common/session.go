@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/gravitational/trace"
 	"github.com/sirupsen/logrus"
 
 	"github.com/gravitational/teleport/api/types"
@@ -59,6 +60,8 @@ type Session struct {
 	LockTargets []types.LockTarget
 	// AuthContext is the identity context of the user.
 	AuthContext *authz.Context
+	// PostgresPID is the Postgres backend PID for the session.
+	PostgresPID uint32
 }
 
 // String returns string representation of the session parameters.
@@ -91,4 +94,28 @@ func (c *Session) WithUserAndDatabase(user string, defaultDatabase string) *Sess
 	copy := c.WithUser(user)
 	copy.DatabaseName = defaultDatabase
 	return copy
+}
+
+// CheckUsernameForAutoUserProvisioning checks the username when using
+// auto-provisioning.
+//
+// When using auto-provisioning, force the database username to be same
+// as Teleport username. If it's not provided explicitly, some database
+// clients get confused and display incorrect username.
+func (c *Session) CheckUsernameForAutoUserProvisioning() error {
+	if !c.AutoCreateUserMode.IsEnabled() {
+		return nil
+	}
+
+	if c.DatabaseUser == c.Identity.Username {
+		return nil
+	}
+
+	if c.AuthContext != nil && authz.IsRemoteUser(*c.AuthContext) {
+		return trace.AccessDenied("please use your mapped remote username (%q) to connect instead of %q",
+			c.Identity.Username, c.DatabaseUser)
+	}
+
+	return trace.AccessDenied("please use your Teleport username (%q) to connect instead of %q",
+		c.Identity.Username, c.DatabaseUser)
 }

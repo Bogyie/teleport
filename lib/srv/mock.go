@@ -126,12 +126,16 @@ func newMockServer(t *testing.T) *mockServer {
 		StaticTokens: []types.ProvisionTokenV1{},
 	})
 	require.NoError(t, err)
+	t.Cleanup(func() {
+		require.NoError(t, bk.Close())
+	})
 
 	authCfg := &auth.InitConfig{
-		Backend:      bk,
-		Authority:    testauthority.New(),
-		ClusterName:  clusterName,
-		StaticTokens: staticTokens,
+		Backend:        bk,
+		VersionStorage: auth.NewFakeTeleportVersion(),
+		Authority:      testauthority.New(),
+		ClusterName:    clusterName,
+		StaticTokens:   staticTokens,
 		KeyStoreConfig: keystore.Config{
 			Software: keystore.SoftwareConfig{
 				RSAKeyPairSource: testauthority.New().GenerateKeyPair,
@@ -156,6 +160,7 @@ type mockServer struct {
 	auth      *auth.Server
 	component string
 	clock     clockwork.FakeClock
+	bpf       bpf.BPF
 }
 
 // ID is the unique ID of the server.
@@ -250,6 +255,10 @@ func (m *mockServer) UseTunnel() bool {
 
 // GetBPF returns the BPF service used for enhanced session recording.
 func (m *mockServer) GetBPF() bpf.BPF {
+	if m.bpf != nil {
+		return m.bpf
+	}
+
 	return &bpf.NOP{}
 }
 
@@ -390,4 +399,24 @@ func (c *mockSSHChannel) SendRequest(name string, wantReply bool, payload []byte
 // Read and Write respectively.
 func (c *mockSSHChannel) Stderr() io.ReadWriter {
 	return c.stdErr
+}
+
+type fakeBPF struct {
+	bpf bpf.NOP
+}
+
+func (f fakeBPF) OpenSession(ctx *bpf.SessionContext) (uint64, error) {
+	return f.bpf.OpenSession(ctx)
+}
+
+func (f fakeBPF) CloseSession(ctx *bpf.SessionContext) error {
+	return f.bpf.CloseSession(ctx)
+}
+
+func (f fakeBPF) Close(restarting bool) error {
+	return f.bpf.Close(restarting)
+}
+
+func (f fakeBPF) Enabled() bool {
+	return true
 }

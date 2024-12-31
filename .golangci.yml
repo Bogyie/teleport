@@ -1,4 +1,12 @@
 issues:
+  exclude-dirs:
+    - (^|/)node_modules/
+    - ^api/gen/
+    - ^docs/
+    - ^gen/
+    - ^rfd/
+    - ^web/
+  exclude-dirs-use-default: false
   exclude-rules:
     - linters:
       - gosimple
@@ -10,6 +18,8 @@ issues:
     - linters:
       - unused
       path: 'integrations/operator/controllers/resources/(.+)_controller_test\.go'
+    - linters: [govet]
+      text: "non-constant format string in call to github.com/gravitational/trace."
   exclude-use-default: true
   max-same-issues: 0
   max-issues-per-linter: 0
@@ -50,6 +60,10 @@ linters-settings:
             desc: 'use "github.com/sirupsen/logrus" instead'
           - pkg: go.uber.org/atomic
             desc: 'use "sync/atomic" instead'
+          - pkg: golang.design
+            desc: 'experimental project, not to be confused with official Go packages'
+          - pkg: github.com/hashicorp/go-version
+            desc: 'use "golang.org/x/mod/semver" or "coreos/go-semver/semver" instead'
   gci:
     sections:
       - standard # Standard section: captures all standard packages.
@@ -74,12 +88,4 @@ output:
 run:
   go: '1.21'
   build-tags: []
-  skip-dirs:
-    - (^|/)node_modules/
-    - ^api/gen/
-    - ^docs/
-    - ^gen/
-    - ^rfd/
-    - ^web/
-  skip-dirs-use-default: false
   timeout: 15m

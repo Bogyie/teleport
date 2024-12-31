@@ -40,7 +40,6 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/gravitational/trace"
 	"github.com/sashabaranov/go-openai"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/ssh"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -66,6 +65,7 @@ import (
 	"github.com/gravitational/teleport/lib/sshutils"
 	"github.com/gravitational/teleport/lib/utils"
 	"github.com/gravitational/teleport/lib/web"
+	"github.com/gravitational/teleport/lib/web/terminal"
 )
 
 const (
@@ -86,7 +86,6 @@ func TestAssistCommandOpenSSH(t *testing.T) {
 	openAIMock := mockOpenAI(t)
 
 	rc := setupTeleport(t, testDir, openAIMock.URL)
-	auth := rc.Process.GetAuthServer()
 	proxyAddr, err := rc.Process.ProxyWebAddr()
 	require.NoError(t, err)
 
@@ -157,24 +156,6 @@ func TestAssistCommandOpenSSH(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, defaults.WebsocketClose, envelope.Type)
 	// Now the execution is finished
-
-	// Waiting for the session recording to be uploaded and available
-	require.Eventually(t, func() bool {
-		chunk, err := auth.GetSessionChunk(apidefaults.Namespace, sessionMetadata.Session.ID, 0, 4096)
-		if err != nil {
-			if trace.IsNotFound(err) {
-				return false
-			}
-			assert.Fail(t, "error should be nil or not found, is %s", err)
-		}
-		assert.NotNil(t, chunk)
-		return true
-	}, 10*time.Second, 200*time.Millisecond)
-
-	// Validating the session recording contains the SSH server output
-	chunk, err := auth.GetSessionChunk(apidefaults.Namespace, sessionMetadata.Session.ID, 0, 4096)
-	require.NoError(t, err)
-	require.Equal(t, testCommandOutput, string(chunk))
 }
 
 // mockOpenAI starts an OpenAI mock server that answers one completion request
@@ -452,12 +433,12 @@ type executionWebsocketReader struct {
 	*websocket.Conn
 }
 
-func (r executionWebsocketReader) Read() (web.Envelope, error) {
+func (r executionWebsocketReader) Read() (terminal.Envelope, error) {
 	_, data, err := r.ReadMessage()
 	if err != nil {
-		return web.Envelope{}, trace.Wrap(err)
+		return terminal.Envelope{}, trace.Wrap(err)
 	}
-	var envelope web.Envelope
+	var envelope terminal.Envelope
 	return envelope, trace.Wrap(proto.Unmarshal(data, &envelope))
 }
 

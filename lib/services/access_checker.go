@@ -18,13 +18,13 @@ package services
 
 import (
 	"context"
+	"slices"
 	"strings"
 	"time"
 
 	"github.com/gravitational/trace"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
-	"golang.org/x/exp/slices"
 
 	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/api/types"
@@ -57,7 +57,7 @@ type AccessChecker interface {
 	CheckAccessToRemoteCluster(cluster types.RemoteCluster) error
 
 	// CheckAccessToRule checks access to a rule within a namespace.
-	CheckAccessToRule(context RuleContext, namespace string, rule string, verb string, silent bool) error
+	CheckAccessToRule(context RuleContext, namespace string, rule string, verb string) error
 
 	// CheckLoginDuration checks if role set can login up to given duration and
 	// returns a combined list of allowed logins.
@@ -347,7 +347,7 @@ func NewAccessCheckerForRemoteCluster(ctx context.Context, localAccessInfo *Acce
 	}
 
 	remoteAccessInfo := &AccessInfo{
-		Username: localAccessInfo.Username,
+		Username: remoteUser.GetName(),
 		Traits:   remoteUser.GetTraits(),
 		// Will fill this in with the names of the remote/mapped roles we got
 		// from GetCurrentUserRoles.
@@ -926,7 +926,7 @@ func (a *accessChecker) HostUsers(s types.Server) (*HostUsersInfo, error) {
 		// if any of the matching roles do not enable create host
 		// user, the user should not be allowed on
 		if createHostUserMode == types.CreateHostUserMode_HOST_USER_MODE_OFF {
-			return nil, trace.AccessDenied("user is not allowed to create host users")
+			return nil, trace.AccessDenied("role %q prevents creating host users", role.GetName())
 		}
 
 		if mode == types.CreateHostUserMode_HOST_USER_MODE_UNSPECIFIED {

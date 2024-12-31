@@ -18,6 +18,7 @@ package filesessions
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -26,6 +27,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/gravitational/trace"
@@ -120,12 +122,19 @@ func (h *Handler) UploadPart(ctx context.Context, upload events.StreamUpload, pa
 	}
 
 	// Rename reservation to part file.
-	err = os.Rename(reservationPath, h.partPath(upload, partNumber))
+	partPath := h.partPath(upload, partNumber)
+	err = os.Rename(reservationPath, partPath)
 	if err != nil {
 		return nil, trace.ConvertSystemError(err)
 	}
 
-	return &events.StreamPart{Number: partNumber}, nil
+	var lastModified time.Time
+	fi, err := os.Stat(partPath)
+	if err == nil {
+		lastModified = fi.ModTime()
+	}
+
+	return &events.StreamPart{Number: partNumber, LastModified: lastModified}, nil
 }
 
 // CompleteUpload completes the upload
@@ -147,9 +156,43 @@ func (h *Handler) CompleteUpload(ctx context.Context, upload events.StreamUpload
 		return trace.ConvertSystemError(err)
 	}
 	unlock, err := utils.FSTryWriteLock(uploadPath)
-	if err != nil {
-		return trace.WrapWithMessage(err, "could not acquire file lock for %q", uploadPath)
+Loop:
+	for i := 0; i < 3; i++ {
+		switch {
+		case err == nil:
+			break Loop
+		case errors.Is(err, utils.ErrUnsuccessfulLockTry):
+			// If unable to lock the file, try again with some backoff
+			// to allow the UploadCompleter to finish and remove its
+			// file lock before giving up.
+			select {
+			case <-ctx.Done():
+				if err := f.Close(); err != nil {
+					h.WithError(err).Errorf("Failed to close file %q.", uploadPath)
+				}
+
+				return nil
+			case <-time.After(50 * time.Millisecond):
+				unlock, err = utils.FSTryWriteLock(uploadPath)
+				continue
+			}
+		default:
+			if err := f.Close(); err != nil {
+				h.WithError(err).Errorf("Failed to close file %q.", uploadPath)
+			}
+
+			return trace.Wrap(err, "handler could not acquire file lock for %q", uploadPath)
+		}
 	}
+
+	if unlock == nil {
+		if err := f.Close(); err != nil {
+			h.WithError(err).Errorf("Failed to close file %q.", uploadPath)
+		}
+
+		return trace.Wrap(err, "handler could not acquire file lock for %q", uploadPath)
+	}
+
 	defer func() {
 		if err := unlock(); err != nil {
 			h.WithError(err).Errorf("Failed to unlock filesystem lock.")
@@ -216,7 +259,8 @@ func (h *Handler) ListParts(ctx context.Context, upload events.StreamUpload) ([]
 			return nil
 		}
 		parts = append(parts, events.StreamPart{
-			Number: part,
+			Number:       part,
+			LastModified: info.ModTime(),
 		})
 		return nil
 	})

@@ -21,12 +21,12 @@ import (
 	"io"
 	"net/http"
 	"path"
+	"slices"
 
 	"github.com/gravitational/trace"
 	"github.com/julienschmidt/httprouter"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	oteltrace "go.opentelemetry.io/otel/trace"
-	"golang.org/x/exp/slices"
 	authv1 "k8s.io/api/authorization/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 
@@ -76,7 +76,7 @@ func (f *Forwarder) selfSubjectAccessReviews(authCtx *authContext, w http.Respon
 
 	// only allow self subject access reviews for the service that proxies the
 	// request to the kubernetes API server.
-	if f.isLocalKubeCluster(sess.teleportCluster.isRemote, sess.kubeClusterName) {
+	if sess.isLocalKubernetesCluster {
 		if err := f.validateSelfSubjectAccessReview(sess, w, req); trace.IsAccessDenied(err) {
 			return nil, nil
 		} else if err != nil {
@@ -237,7 +237,8 @@ func parseSelfSubjectAccessReviewRequest(decoder runtime.Decoder, req *http.Requ
 	req.Body.Close()
 
 	req.Body = io.NopCloser(bytes.NewReader(payload))
-	obj, err := decodeAndSetGVK(decoder, payload)
+	gvk := authv1.SchemeGroupVersion.WithKind("SelfSubjectAccessReview")
+	obj, err := decodeAndSetGVK(decoder, payload, &gvk)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}

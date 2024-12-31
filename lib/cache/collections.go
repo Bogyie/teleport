@@ -26,6 +26,8 @@ import (
 	"github.com/gravitational/teleport/api/client"
 	"github.com/gravitational/teleport/api/client/proto"
 	apidefaults "github.com/gravitational/teleport/api/defaults"
+	"github.com/gravitational/teleport/api/gen/proto/go/teleport/autoupdate/v1"
+	kubewaitingcontainerpb "github.com/gravitational/teleport/api/gen/proto/go/teleport/kubewaitingcontainer/v1"
 	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/api/types/accesslist"
 	"github.com/gravitational/teleport/api/types/discoveryconfig"
@@ -52,7 +54,7 @@ type collection interface {
 
 // executor[T, R] is a specific way to run the collector operations that we need
 // for the genericCollector for a generic resource type T and its reader type R.
-type executor[T types.Resource, R any] interface {
+type executor[T any, R any] interface {
 	// getAll returns all of the target resources from the auth server.
 	// For singleton objects, this should be a size-1 slice.
 	getAll(ctx context.Context, cache *Cache, loadSecrets bool) ([]T, error)
@@ -82,7 +84,7 @@ type noReader struct{}
 // genericCollection is a generic collection implementation for resource type T with collection-specific logic
 // encapsulated in executor type E. Type R provides getter methods related to the collection, e.g. GetNodes(),
 // GetRoles().
-type genericCollection[T types.Resource, R any, E executor[T, R]] struct {
+type genericCollection[T any, R any, E executor[T, R]] struct {
 	cache *Cache
 	watch types.WatchKind
 	exec  E
@@ -141,10 +143,18 @@ func (g *genericCollection[T, R, _]) processEvent(ctx context.Context, event typ
 			}
 		}
 	case types.OpPut:
-		resource, ok := event.Resource.(T)
+		var resource T
+		var ok bool
+		switch r := event.Resource.(type) {
+		case types.Resource153Unwrapper:
+			resource, ok = r.Unwrap().(T)
+		default:
+			resource, ok = event.Resource.(T)
+		}
 		if !ok {
 			return trace.BadParameter("unexpected type %T", event.Resource)
 		}
+
 		if err := g.exec.upsert(ctx, g.cache, resource); err != nil {
 			return trace.Wrap(err)
 		}
@@ -197,6 +207,7 @@ type cacheCollections struct {
 	installers               collectionReader[installerGetter]
 	integrations             collectionReader[services.IntegrationsGetter]
 	kubeClusters             collectionReader[kubernetesClusterGetter]
+	kubeWaitingContainers    collectionReader[kubernetesWaitingContainerGetter]
 	kubeServers              collectionReader[kubeServerGetter]
 	locks                    collectionReader[services.LockGetter]
 	namespaces               collectionReader[namespaceGetter]
@@ -221,6 +232,8 @@ type cacheCollections struct {
 	webTokens                collectionReader[webTokenGetter]
 	windowsDesktops          collectionReader[windowsDesktopsGetter]
 	windowsDesktopServices   collectionReader[windowsDesktopServiceGetter]
+	autoUpdateConfigs        collectionReader[autoUpdateConfigGetter]
+	autoUpdateVersions       collectionReader[autoUpdateVersionGetter]
 }
 
 // setupCollections returns a registry of collections.
@@ -653,6 +666,33 @@ func setupCollections(c *Cache, watches []types.WatchKind) (*cacheCollections, e
 			}
 			collections.accessListReviews = &genericCollection[*accesslist.Review, accessListReviewsGetter, accessListReviewExecutor]{cache: c, watch: watch}
 			collections.byKind[resourceKind] = collections.accessListReviews
+		case types.KindKubeWaitingContainer:
+			if c.KubeWaitingContainers == nil {
+				return nil, trace.BadParameter("missing parameter KubeWaitingContainers")
+			}
+			collections.kubeWaitingContainers = &genericCollection[*kubewaitingcontainerpb.KubernetesWaitingContainer, kubernetesWaitingContainerGetter, kubeWaitingContainerExecutor]{
+				cache: c,
+				watch: watch,
+			}
+			collections.byKind[resourceKind] = collections.kubeWaitingContainers
+		case types.KindAutoUpdateConfig:
+			if c.AutoUpdateService == nil {
+				return nil, trace.BadParameter("missing parameter AutoUpdateService")
+			}
+			collections.autoUpdateConfigs = &genericCollection[*autoupdate.AutoUpdateConfig, autoUpdateConfigGetter, autoUpdateConfigExecutor]{
+				cache: c,
+				watch: watch,
+			}
+			collections.byKind[resourceKind] = collections.autoUpdateConfigs
+		case types.KindAutoUpdateVersion:
+			if c.AutoUpdateService == nil {
+				return nil, trace.BadParameter("missing parameter AutoUpdateService")
+			}
+			collections.autoUpdateVersions = &genericCollection[*autoupdate.AutoUpdateVersion, autoUpdateVersionGetter, autoUpdateVersionExecutor]{
+				cache: c,
+				watch: watch,
+			}
+			collections.byKind[resourceKind] = collections.autoUpdateVersions
 		default:
 			return nil, trace.BadParameter("resource %q is not supported", watch.Kind)
 		}
@@ -1008,8 +1048,11 @@ func (e certAuthorityExecutor) getAll(ctx context.Context, cache *Cache, loadSec
 		cas, err := cache.Trust.GetCertAuthorities(ctx, caType, loadSecrets)
 		// if caType was added in this major version we might get a BadParameter
 		// error if we're connecting to an older upstream that doesn't know about it
-		if err != nil && !(caType.NewlyAdded() && trace.IsBadParameter(err)) {
-			return nil, trace.Wrap(err)
+		if err != nil {
+			if !(types.IsUnsupportedAuthorityErr(err) && caType.NewlyAdded()) {
+				return nil, trace.Wrap(err)
+			}
+			continue
 		}
 
 		// this can be removed once we get the ability to fetch CAs with a filter,
@@ -1155,6 +1198,76 @@ type clusterNameGetter interface {
 
 var _ executor[types.ClusterName, clusterNameGetter] = clusterNameExecutor{}
 
+type autoUpdateConfigExecutor struct{}
+
+func (autoUpdateConfigExecutor) getAll(ctx context.Context, cache *Cache, loadSecrets bool) ([]*autoupdate.AutoUpdateConfig, error) {
+	config, err := cache.AutoUpdateService.GetAutoUpdateConfig(ctx)
+	return []*autoupdate.AutoUpdateConfig{config}, trace.Wrap(err)
+}
+
+func (autoUpdateConfigExecutor) upsert(ctx context.Context, cache *Cache, resource *autoupdate.AutoUpdateConfig) error {
+	_, err := cache.autoUpdateCache.UpsertAutoUpdateConfig(ctx, resource)
+	return trace.Wrap(err)
+}
+
+func (autoUpdateConfigExecutor) deleteAll(ctx context.Context, cache *Cache) error {
+	return cache.autoUpdateCache.DeleteAutoUpdateConfig(ctx)
+}
+
+func (autoUpdateConfigExecutor) delete(ctx context.Context, cache *Cache, resource types.Resource) error {
+	return cache.autoUpdateCache.DeleteAutoUpdateConfig(ctx)
+}
+
+func (autoUpdateConfigExecutor) isSingleton() bool { return true }
+
+func (autoUpdateConfigExecutor) getReader(cache *Cache, cacheOK bool) autoUpdateConfigGetter {
+	if cacheOK {
+		return cache.autoUpdateCache
+	}
+	return cache.Config.AutoUpdateService
+}
+
+type autoUpdateConfigGetter interface {
+	GetAutoUpdateConfig(ctx context.Context) (*autoupdate.AutoUpdateConfig, error)
+}
+
+var _ executor[*autoupdate.AutoUpdateConfig, autoUpdateConfigGetter] = autoUpdateConfigExecutor{}
+
+type autoUpdateVersionExecutor struct{}
+
+func (autoUpdateVersionExecutor) getAll(ctx context.Context, cache *Cache, loadSecrets bool) ([]*autoupdate.AutoUpdateVersion, error) {
+	version, err := cache.AutoUpdateService.GetAutoUpdateVersion(ctx)
+	return []*autoupdate.AutoUpdateVersion{version}, trace.Wrap(err)
+}
+
+func (autoUpdateVersionExecutor) upsert(ctx context.Context, cache *Cache, resource *autoupdate.AutoUpdateVersion) error {
+	_, err := cache.autoUpdateCache.UpsertAutoUpdateVersion(ctx, resource)
+	return trace.Wrap(err)
+}
+
+func (autoUpdateVersionExecutor) deleteAll(ctx context.Context, cache *Cache) error {
+	return cache.autoUpdateCache.DeleteAutoUpdateVersion(ctx)
+}
+
+func (autoUpdateVersionExecutor) delete(ctx context.Context, cache *Cache, resource types.Resource) error {
+	return cache.autoUpdateCache.DeleteAutoUpdateVersion(ctx)
+}
+
+func (autoUpdateVersionExecutor) isSingleton() bool { return true }
+
+func (autoUpdateVersionExecutor) getReader(cache *Cache, cacheOK bool) autoUpdateVersionGetter {
+	if cacheOK {
+		return cache.autoUpdateCache
+	}
+	return cache.Config.AutoUpdateService
+}
+
+type autoUpdateVersionGetter interface {
+	GetAutoUpdateVersion(ctx context.Context) (*autoupdate.AutoUpdateVersion, error)
+}
+
+var _ executor[*autoupdate.AutoUpdateVersion, autoUpdateVersionGetter] = autoUpdateVersionExecutor{}
+
 type userExecutor struct{}
 
 func (userExecutor) getAll(ctx context.Context, cache *Cache, loadSecrets bool) ([]types.User, error) {
@@ -1219,6 +1332,7 @@ func (roleExecutor) getReader(cache *Cache, cacheOK bool) roleGetter {
 type roleGetter interface {
 	GetRoles(ctx context.Context) ([]types.Role, error)
 	GetRole(ctx context.Context, name string) (types.Role, error)
+	ListRoles(ctx context.Context, req *proto.ListRolesRequest) (*proto.ListRolesResponse, error)
 }
 
 var _ executor[types.Role, roleGetter] = roleExecutor{}
@@ -1423,6 +1537,12 @@ func (appSessionExecutor) getAll(ctx context.Context, cache *Cache, loadSecrets 
 			return nil, trace.Wrap(err)
 		}
 
+		if !loadSecrets {
+			for i := 0; i < len(webSessions); i++ {
+				webSessions[i] = webSessions[i].WithoutSecrets()
+			}
+		}
+
 		sessions = append(sessions, webSessions...)
 
 		if nextKey == "" {
@@ -1458,6 +1578,7 @@ func (appSessionExecutor) getReader(cache *Cache, cacheOK bool) appSessionGetter
 
 type appSessionGetter interface {
 	GetAppSession(ctx context.Context, req types.GetAppSessionRequest) (types.WebSession, error)
+	ListAppSessions(ctx context.Context, pageSize int, pageToken, user string) ([]types.WebSession, string, error)
 }
 
 var _ executor[types.WebSession, appSessionGetter] = appSessionExecutor{}
@@ -1465,7 +1586,18 @@ var _ executor[types.WebSession, appSessionGetter] = appSessionExecutor{}
 type snowflakeSessionExecutor struct{}
 
 func (snowflakeSessionExecutor) getAll(ctx context.Context, cache *Cache, loadSecrets bool) ([]types.WebSession, error) {
-	return cache.SnowflakeSession.GetSnowflakeSessions(ctx)
+	webSessions, err := cache.SnowflakeSession.GetSnowflakeSessions(ctx)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	if !loadSecrets {
+		for i := 0; i < len(webSessions); i++ {
+			webSessions[i] = webSessions[i].WithoutSecrets()
+		}
+	}
+
+	return webSessions, nil
 }
 
 func (snowflakeSessionExecutor) upsert(ctx context.Context, cache *Cache, resource types.WebSession) error {
@@ -1511,6 +1643,12 @@ func (samlIdPSessionExecutor) getAll(ctx context.Context, cache *Cache, loadSecr
 			return nil, trace.Wrap(err)
 		}
 
+		if !loadSecrets {
+			for i := 0; i < len(webSessions); i++ {
+				webSessions[i] = webSessions[i].WithoutSecrets()
+			}
+		}
+
 		sessions = append(sessions, webSessions...)
 
 		if nextKey == "" {
@@ -1553,7 +1691,18 @@ var _ executor[types.WebSession, samlIdPSessionGetter] = samlIdPSessionExecutor{
 type webSessionExecutor struct{}
 
 func (webSessionExecutor) getAll(ctx context.Context, cache *Cache, loadSecrets bool) ([]types.WebSession, error) {
-	return cache.WebSession.List(ctx)
+	webSessions, err := cache.WebSession.List(ctx)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	if !loadSecrets {
+		for i := 0; i < len(webSessions); i++ {
+			webSessions[i] = webSessions[i].WithoutSecrets()
+		}
+	}
+
+	return webSessions, nil
 }
 
 func (webSessionExecutor) upsert(ctx context.Context, cache *Cache, resource types.WebSession) error {
@@ -2066,7 +2215,72 @@ type kubernetesClusterGetter interface {
 	GetKubernetesCluster(ctx context.Context, name string) (types.KubeCluster, error)
 }
 
-var _ executor[types.KubeCluster, kubernetesClusterGetter] = kubeClusterExecutor{}
+type kubeWaitingContainerExecutor struct{}
+
+func (kubeWaitingContainerExecutor) getAll(ctx context.Context, cache *Cache, loadSecrets bool) ([]*kubewaitingcontainerpb.KubernetesWaitingContainer, error) {
+	var (
+		startKey string
+		allConts []*kubewaitingcontainerpb.KubernetesWaitingContainer
+	)
+	for {
+		conts, nextKey, err := cache.KubeWaitingContainers.ListKubernetesWaitingContainers(ctx, 0, startKey)
+		if err != nil {
+			return nil, trace.Wrap(err)
+		}
+
+		allConts = append(allConts, conts...)
+
+		if nextKey == "" {
+			break
+		}
+		startKey = nextKey
+	}
+	return allConts, nil
+}
+
+func (kubeWaitingContainerExecutor) upsert(ctx context.Context, cache *Cache, resource *kubewaitingcontainerpb.KubernetesWaitingContainer) error {
+	_, err := cache.kubeWaitingContsCache.UpsertKubernetesWaitingContainer(ctx, resource)
+	return trace.Wrap(err)
+}
+
+func (kubeWaitingContainerExecutor) deleteAll(ctx context.Context, cache *Cache) error {
+	return trace.Wrap(cache.kubeWaitingContsCache.DeleteAllKubernetesWaitingContainers(ctx))
+}
+
+func (kubeWaitingContainerExecutor) delete(ctx context.Context, cache *Cache, resource types.Resource) error {
+	switch r := resource.(type) {
+	case types.Resource153Unwrapper:
+		switch wc := r.Unwrap().(type) {
+		case *kubewaitingcontainerpb.KubernetesWaitingContainer:
+			err := cache.kubeWaitingContsCache.DeleteKubernetesWaitingContainer(ctx, &kubewaitingcontainerpb.DeleteKubernetesWaitingContainerRequest{
+				Username:      wc.Spec.Username,
+				Cluster:       wc.Spec.Cluster,
+				Namespace:     wc.Spec.Namespace,
+				PodName:       wc.Spec.PodName,
+				ContainerName: wc.Spec.ContainerName,
+			})
+			return trace.Wrap(err)
+		}
+	}
+
+	return trace.BadParameter("unknown KubeWaitingContainer type, expected *kubewaitingcontainerpb.KubernetesWaitingContainer, got %T", resource)
+}
+
+func (kubeWaitingContainerExecutor) isSingleton() bool { return false }
+
+func (kubeWaitingContainerExecutor) getReader(cache *Cache, cacheOK bool) kubernetesWaitingContainerGetter {
+	if cacheOK {
+		return cache.kubeWaitingContsCache
+	}
+	return cache.Config.KubeWaitingContainers
+}
+
+type kubernetesWaitingContainerGetter interface {
+	ListKubernetesWaitingContainers(ctx context.Context, pageSize int, pageToken string) ([]*kubewaitingcontainerpb.KubernetesWaitingContainer, string, error)
+	GetKubernetesWaitingContainer(ctx context.Context, req *kubewaitingcontainerpb.GetKubernetesWaitingContainerRequest) (*kubewaitingcontainerpb.KubernetesWaitingContainer, error)
+}
+
+var _ executor[*kubewaitingcontainerpb.KubernetesWaitingContainer, kubernetesWaitingContainerGetter] = kubeWaitingContainerExecutor{}
 
 //nolint:revive // Because we want this to be IdP.
 type samlIdPServiceProvidersExecutor struct{}
@@ -2701,8 +2915,10 @@ func (accessListMemberExecutor) getReader(cache *Cache, cacheOK bool) accessList
 }
 
 type accessListMembersGetter interface {
+	CountAccessListMembers(ctx context.Context, accessListName string) (uint32, error)
 	ListAccessListMembers(ctx context.Context, accessListName string, pageSize int, nextToken string) ([]*accesslist.AccessListMember, string, error)
 	GetAccessListMember(ctx context.Context, accessList string, memberName string) (*accesslist.AccessListMember, error)
+	ListAllAccessListMembers(ctx context.Context, pageSize int, pageToken string) ([]*accesslist.AccessListMember, string, error)
 }
 
 type accessListReviewExecutor struct{}

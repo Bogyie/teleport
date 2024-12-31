@@ -35,10 +35,12 @@ func TestDatabaseRDSEndpoint(t *testing.T) {
 	}
 
 	for _, tt := range []struct {
-		name        string
-		spec        DatabaseSpecV3
-		errorCheck  require.ErrorAssertionFunc
-		expectedAWS AWS
+		name                 string
+		labels               map[string]string
+		spec                 DatabaseSpecV3
+		errorCheck           require.ErrorAssertionFunc
+		expectedAWS          AWS
+		expectedEndpointType string
 	}{
 		{
 			name: "aurora instance",
@@ -53,6 +55,7 @@ func TestDatabaseRDSEndpoint(t *testing.T) {
 					InstanceID: "aurora-instance-1",
 				},
 			},
+			expectedEndpointType: "instance",
 		},
 		{
 			name: "invalid account id",
@@ -69,7 +72,7 @@ func TestDatabaseRDSEndpoint(t *testing.T) {
 			name: "valid account id",
 			spec: DatabaseSpecV3{
 				Protocol: "postgres",
-				URI:      "marcotest-db001.abcdefghijklmnop.us-east-1.rds.amazonaws.com:5432",
+				URI:      "marcotest-db001.cluster-ro-abcdefghijklmnop.us-east-1.rds.amazonaws.com:5432",
 				AWS: AWS{
 					AccountID: "123456789012",
 				},
@@ -78,17 +81,52 @@ func TestDatabaseRDSEndpoint(t *testing.T) {
 			expectedAWS: AWS{
 				Region: "us-east-1",
 				RDS: RDS{
-					InstanceID: "marcotest-db001",
+					ClusterID: "marcotest-db001",
 				},
 				AccountID: "123456789012",
 			},
+			expectedEndpointType: "reader",
+		},
+		{
+			name: "discovered instance",
+			labels: map[string]string{
+				"account-id":                        "123456789012",
+				"endpoint-type":                     "primary",
+				"engine":                            "aurora-postgresql",
+				"engine-version":                    "15.2",
+				"region":                            "us-west-1",
+				"teleport.dev/cloud":                "AWS",
+				"teleport.dev/origin":               "cloud",
+				"teleport.internal/discovered-name": "rds",
+			},
+			spec: DatabaseSpecV3{
+				Protocol: "postgres",
+				URI:      "discovered.rds.com:5432",
+				AWS: AWS{
+					Region: "us-west-1",
+					RDS: RDS{
+						InstanceID: "aurora-instance-1",
+						IAMAuth:    true,
+					},
+				},
+			},
+			errorCheck: require.NoError,
+			expectedAWS: AWS{
+				Region: "us-west-1",
+				RDS: RDS{
+					InstanceID: "aurora-instance-1",
+					IAMAuth:    true,
+				},
+			},
+			expectedEndpointType: "primary",
 		},
 	} {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			database, err := NewDatabaseV3(
 				Metadata{
-					Name: "rds",
+					Labels: tt.labels,
+					Name:   "rds",
 				},
 				tt.spec,
 			)
@@ -98,6 +136,7 @@ func TestDatabaseRDSEndpoint(t *testing.T) {
 			}
 
 			require.Equal(t, tt.expectedAWS, database.GetAWS())
+			require.Equal(t, tt.expectedEndpointType, database.GetEndpointType())
 		})
 	}
 }
@@ -275,7 +314,7 @@ func TestDatabaseAzureEndpoints(t *testing.T) {
 			},
 		},
 		{
-			name: "valid PostgresSQL",
+			name: "valid PostgreSQL",
 			spec: DatabaseSpecV3{
 				Protocol: "postgres",
 				URI:      "example-postgres.postgres.database.azure.com:5432",
@@ -943,4 +982,58 @@ func TestIAMPolicyStatusJSON(t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, status.UnmarshalJSON(data))
 	require.Equal(t, IAMPolicyStatus_IAM_POLICY_STATUS_FAILED, status)
+}
+
+func TestGetAdminUser(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		desc      string
+		specAdmin *DatabaseAdminUser
+		labels    map[string]string
+		want      DatabaseAdminUser
+	}{
+		{
+			desc: "no admin",
+			want: DatabaseAdminUser{},
+		},
+		{
+			desc:      "gets admin from spec",
+			specAdmin: &DatabaseAdminUser{Name: "llama", DefaultDatabase: "hill"},
+			want:      DatabaseAdminUser{Name: "llama", DefaultDatabase: "hill"},
+		},
+		{
+			desc: "gets admin from labels",
+			labels: map[string]string{
+				DatabaseAdminLabel:                "llama",
+				DatabaseAdminDefaultDatabaseLabel: "hill",
+			},
+			want: DatabaseAdminUser{Name: "llama", DefaultDatabase: "hill"},
+		},
+		{
+			desc:      "gets admin from spec ignoring labels",
+			specAdmin: &DatabaseAdminUser{Name: "llama", DefaultDatabase: "hill"},
+			labels: map[string]string{
+				DatabaseAdminLabel:                "horse",
+				DatabaseAdminDefaultDatabaseLabel: "pasture",
+			},
+			want: DatabaseAdminUser{Name: "llama", DefaultDatabase: "hill"},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.desc, func(t *testing.T) {
+			meta := Metadata{
+				Name:   "example",
+				Labels: test.labels,
+			}
+			spec := DatabaseSpecV3{
+				Protocol:  "postgres",
+				URI:       "aurora-instance-1.abcdefghijklmnop.us-west-1.rds.amazonaws.com:5432",
+				AdminUser: test.specAdmin,
+			}
+			d, err := NewDatabaseV3(meta, spec)
+			require.NoError(t, err)
+			require.Equal(t, test.want, d.GetAdminUser())
+		})
+	}
 }

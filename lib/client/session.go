@@ -549,13 +549,6 @@ func (ns *NodeSession) runCommand(ctx context.Context, mode types.SessionPartici
 	)
 	defer span.End()
 
-	// If stdin is not a terminal, refuse to allocate terminal on the server and
-	// fallback to non-interactive mode
-	if interactive && !ns.terminal.IsAttached() {
-		interactive = false
-		fmt.Fprintf(ns.nodeClient.TC.Stderr, "TTY will not be allocated on the server because stdin is not a terminal\n")
-	}
-
 	// Start a interactive session ("exec" request with a TTY).
 	//
 	// Note that because a TTY was allocated, the terminal is in raw mode and any
@@ -641,7 +634,7 @@ func (ns *NodeSession) watchSignals(shell io.Writer) {
 			case <-ctrlCSignal:
 				_, err := shell.Write([]byte{ctrlCharC})
 				if err != nil {
-					log.Errorf(err.Error())
+					log.Error(err.Error())
 				}
 			case <-ns.closer.C:
 				return
@@ -657,7 +650,7 @@ func (ns *NodeSession) watchSignals(shell io.Writer) {
 			if _, ok := event.(terminal.StopEvent); ok {
 				_, err := shell.Write([]byte{ctrlCharZ})
 				if err != nil {
-					log.Errorf(err.Error())
+					log.Error(err.Error())
 				}
 			}
 		}
@@ -730,7 +723,7 @@ func (ns *NodeSession) pipeInOut(ctx context.Context, shell io.ReadWriteCloser, 
 		defer ns.closer.Close()
 		_, err := io.Copy(ns.terminal.Stdout(), shell)
 		if err != nil {
-			log.Errorf(err.Error())
+			log.Error(err.Error())
 		}
 	}()
 

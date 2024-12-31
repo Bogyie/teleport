@@ -18,8 +18,10 @@ package srv
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"os/user"
 	"path/filepath"
 	"strconv"
@@ -46,6 +48,16 @@ type HostSudoersProvisioningBackend struct {
 
 // newHostUsersBackend initializes a new OS specific HostUsersBackend
 func newHostUsersBackend() (HostUsersBackend, error) {
+	var missing []string
+	for _, requiredBin := range []string{"usermod", "useradd", "getent", "groupadd", "visudo", "chage"} {
+		if _, err := exec.LookPath(requiredBin); err != nil {
+			missing = append(missing, requiredBin)
+		}
+	}
+	if len(missing) != 0 {
+		return nil, trace.NotFound("missing required binaries: %s", strings.Join(missing, ","))
+	}
+
 	return &HostUsersProvisioningBackend{}, nil
 }
 
@@ -59,7 +71,16 @@ func newHostSudoersBackend(uuid string) (HostSudoersBackend, error) {
 
 // Lookup implements host user information lookup
 func (*HostUsersProvisioningBackend) Lookup(username string) (*user.User, error) {
-	return user.Lookup(username)
+	usr, err := user.Lookup(username)
+	if err != nil {
+		if !errors.Is(err, user.UnknownUserError(username)) && strings.Contains(err.Error(), "no such file or directory") {
+			return nil, trace.Wrap(err, "looking up user %q, sources configured for passwd in host's /etc/nsswitch.conf may be misconfigured", username)
+		}
+
+		return nil, trace.Wrap(err)
+	}
+
+	return usr, nil
 }
 
 // UserGIDs returns the list of group IDs for a user
@@ -77,6 +98,12 @@ func (*HostUsersProvisioningBackend) LookupGroupByID(gid string) (*user.Group, e
 	return user.LookupGroupId(gid)
 }
 
+// SetUserGroups sets a user's groups, replacing their existing groups.
+func (*HostUsersProvisioningBackend) SetUserGroups(name string, groups []string) error {
+	_, err := host.SetUserGroups(name, groups)
+	return trace.Wrap(err)
+}
+
 // GetAllUsers returns a full list of users present on a system
 func (*HostUsersProvisioningBackend) GetAllUsers() ([]string, error) {
 	users, _, err := host.GetAllUsers()
@@ -90,12 +117,15 @@ func (*HostUsersProvisioningBackend) CreateGroup(name string, gid string) error 
 }
 
 // CreateUser creates a user on a host
-func (*HostUsersProvisioningBackend) CreateUser(name string, groups []string, uid, gid string) error {
-	home, err := readDefaultHome(name)
-	if err != nil {
-		return trace.Wrap(err)
+func (u *HostUsersProvisioningBackend) CreateUser(name string, groups []string, home, uid, gid string) error {
+	if home == "" {
+		var err error
+		home, err = u.GetDefaultHomeDirectory(name)
+		if err != nil {
+			return trace.Wrap(err)
+		}
 	}
-	_, err = host.UserAdd(name, groups, home, uid, gid)
+	_, err := host.UserAdd(name, groups, home, uid, gid)
 	return trace.Wrap(err)
 }
 
@@ -196,16 +226,16 @@ func readDefaultKey(key string, defaultValue string) (string, error) {
 	return defaultValue, nil
 }
 
-// readDefaultHome reads /etc/default/useradd for the HOME key,
+// GetDefaultHomeDirectory reads /etc/default/useradd for the HOME key,
 // defaulting to "/home" and join it with the user for the user
 // home directory
-func readDefaultHome(user string) (string, error) {
+func (u *HostUsersProvisioningBackend) GetDefaultHomeDirectory(user string) (string, error) {
 	const defaultHome = "/home"
 	home, err := readDefaultKey("HOME", defaultHome)
 	return filepath.Join(home, user), trace.Wrap(err)
 }
 
-// readDefaultHome reads /etc/default/useradd for the SKEL key, defaulting to "/etc/skel"
+// readDefaultSkel reads /etc/default/useradd for the SKEL key, defaulting to "/etc/skel"
 func readDefaultSkel() (string, error) {
 	const defaultSkel = "/etc/skel"
 	skel, err := readDefaultKey("SKEL", defaultSkel)
@@ -222,7 +252,7 @@ func (u *HostUsersProvisioningBackend) CreateHomeDirectory(user string, uidS, gi
 		return trace.Wrap(err)
 	}
 
-	userHome, err := readDefaultHome(user)
+	userHome, err := u.GetDefaultHomeDirectory(user)
 	if err != nil {
 		return trace.Wrap(err)
 	}
@@ -265,4 +295,9 @@ func (u *HostUsersProvisioningBackend) CreateHomeDirectory(user string, uidS, gi
 	}
 
 	return nil
+}
+
+func (u *HostUsersProvisioningBackend) RemoveExpirations(username string) error {
+	_, err := host.RemoveUserExpirations(username)
+	return trace.Wrap(err)
 }

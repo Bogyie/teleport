@@ -17,9 +17,11 @@ limitations under the License.
 package host
 
 import (
+	"bufio"
 	"bytes"
 	"errors"
 	"os/exec"
+	"slices"
 	"strings"
 
 	"github.com/gravitational/trace"
@@ -28,6 +30,7 @@ import (
 
 // man GROUPADD(8), exit codes section
 const GroupExistExit = 9
+const GroupInvalidArg = 3
 
 // man USERADD(8), exit codes section
 const UserExistExit = 9
@@ -49,10 +52,19 @@ func GroupAdd(groupname string, gid string) (exitCode int, err error) {
 	cmd := exec.Command(groupaddBin, args...)
 	output, err := cmd.CombinedOutput()
 	log.Debugf("%s output: %s", cmd.Path, string(output))
-	if cmd.ProcessState.ExitCode() == GroupExistExit {
-		return cmd.ProcessState.ExitCode(), trace.AlreadyExists("group already exists")
+
+	switch code := cmd.ProcessState.ExitCode(); code {
+	case GroupExistExit:
+		return code, trace.AlreadyExists("group already exists")
+	case GroupInvalidArg:
+		errMsg := "bad parameter"
+		if strings.Contains(string(output), "not a valid group name") {
+			errMsg = "invalid group name"
+		}
+		return code, trace.BadParameter(errMsg)
+	default:
+		return code, trace.Wrap(err)
 	}
-	return cmd.ProcessState.ExitCode(), trace.Wrap(err)
 }
 
 // UserAdd creates a user on a host using `useradd`
@@ -64,6 +76,13 @@ func UserAdd(username string, groups []string, home, uid, gid string) (exitCode 
 
 	if home == "" {
 		return -1, trace.BadParameter("home is a required parameter")
+	}
+
+	// user's without an explicit gid should be added to the group that shares their
+	// login name if it's defined, otherwise user creation will fail because their primary
+	// group already exists
+	if slices.Contains(groups, username) && gid == "" {
+		gid = username
 	}
 
 	// useradd ---no-create-home (username) (groups)...
@@ -87,17 +106,15 @@ func UserAdd(username string, groups []string, home, uid, gid string) (exitCode 
 	return cmd.ProcessState.ExitCode(), trace.Wrap(err)
 }
 
-// AddUserToGroups adds a user to a list of specified groups on a host using `usermod`
-func AddUserToGroups(username string, groups []string) (exitCode int, err error) {
+// SetUserGroups adds a user to a list of specified groups on a host using `usermod`,
+// overriding any existing supplementary groups.
+func SetUserGroups(username string, groups []string) (exitCode int, err error) {
 	usermodBin, err := exec.LookPath("usermod")
 	if err != nil {
 		return -1, trace.Wrap(err, "cant find usermod binary")
 	}
-	args := []string{"-aG"}
-	args = append(args, groups...)
-	args = append(args, username)
-	// usermod -aG (append groups) (username)
-	cmd := exec.Command(usermodBin, args...)
+	// usermod -G (replace groups) (username)
+	cmd := exec.Command(usermodBin, "-G", strings.Join(groups, ","), username)
 	output, err := cmd.CombinedOutput()
 	log.Debugf("%s output: %s", cmd.Path, string(output))
 	return cmd.ProcessState.ExitCode(), trace.Wrap(err)
@@ -136,6 +153,82 @@ func GetAllUsers() ([]string, int, error) {
 		}
 	}
 	return users, -1, nil
+}
+
+// UserHasExpirations determines if the given username has an expired password, inactive password, or expired account
+// by parsing the output of 'chage -l <username>'.
+func UserHasExpirations(username string) (bool bool, exitCode int, err error) {
+	chageBin, err := exec.LookPath("chage")
+	if err != nil {
+		return false, -1, trace.NotFound("cannot find chage binary: %s", err)
+	}
+
+	stdout := new(bytes.Buffer)
+	stderr := new(bytes.Buffer)
+	cmd := exec.Command(chageBin, "-l", username)
+	cmd.Stdout = stdout
+	cmd.Stderr = stderr
+	if err := cmd.Run(); err != nil {
+		return false, cmd.ProcessState.ExitCode(), trace.WrapWithMessage(err, "running chage: %s", stderr.String())
+	}
+
+	scanner := bufio.NewScanner(stdout)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if line == "" {
+			// ignore empty lines
+			continue
+		}
+
+		key, value, validLine := strings.Cut(line, ":")
+		if !validLine {
+			return false, -1, trace.Errorf("chage output invalid")
+		}
+
+		if strings.TrimSpace(value) == "never" {
+			continue
+		}
+
+		switch strings.TrimSpace(key) {
+		case "Password expires", "Password inactive", "Account expires":
+			return true, 0, nil
+		}
+	}
+
+	return false, cmd.ProcessState.ExitCode(), nil
+}
+
+// RemoveUserExpirations uses chage to remove any future or past expirations associated with the given username. It also uses usermod to remove any account locks that may have been placed.
+func RemoveUserExpirations(username string) (exitCode int, err error) {
+	chageBin, err := exec.LookPath("chage")
+	if err != nil {
+		return -1, trace.NotFound("cannot find chage binary: %s", err)
+	}
+
+	usermodBin, err := exec.LookPath("usermod")
+	if err != nil {
+		return -1, trace.NotFound("cannot find usermod binary: %s", err)
+	}
+
+	// remove all expirations from user
+	// chage -E -1 -I -1 <username>
+	cmd := exec.Command(chageBin, "-E", "-1", "-I", "-1", "-M", "-1", username)
+	var errs []error
+	if err := cmd.Run(); err != nil {
+		errs = append(errs, trace.Wrap(err, "removing expirations with chage"))
+	}
+
+	// unlock user password if locked
+	cmd = exec.Command(usermodBin, "-U", username)
+	if err := cmd.Run(); err != nil {
+		errs = append(errs, trace.Wrap(err, "removing lock with usermod"))
+	}
+
+	if len(errs) > 0 {
+		return cmd.ProcessState.ExitCode(), trace.NewAggregate(errs...)
+	}
+
+	return cmd.ProcessState.ExitCode(), nil
 }
 
 var ErrInvalidSudoers = errors.New("visudo: invalid sudoers file")

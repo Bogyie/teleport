@@ -16,8 +16,6 @@ package hsm
 
 import (
 	"context"
-	"net"
-	"os"
 	"path/filepath"
 	"testing"
 	"time"
@@ -25,8 +23,9 @@ import (
 	"github.com/gravitational/trace"
 	"github.com/stretchr/testify/require"
 
+	"github.com/gravitational/teleport/api/breaker"
 	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/cloud"
+	"github.com/gravitational/teleport/lib/cloud/imds"
 	"github.com/gravitational/teleport/lib/defaults"
 	"github.com/gravitational/teleport/lib/service"
 	"github.com/gravitational/teleport/lib/service/servicecfg"
@@ -225,28 +224,26 @@ func (s teleportServices) waitForPhaseChange(ctx context.Context) error {
 }
 
 func newAuthConfig(t *testing.T, log utils.Logger) *servicecfg.Config {
-	hostName, err := os.Hostname()
-	require.NoError(t, err)
-
 	config := servicecfg.MakeDefaultConfig()
 	config.DataDir = t.TempDir()
 	config.Auth.StorageConfig.Params["path"] = filepath.Join(config.DataDir, defaults.BackendDir)
 	config.SSH.Enabled = false
 	config.Proxy.Enabled = false
 	config.Log = log
-	config.InstanceMetadataClient = cloud.NewDisabledIMDSClient()
+	config.InstanceMetadataClient = imds.NewDisabledIMDSClient()
 	config.MaxRetryPeriod = 25 * time.Millisecond
 	config.PollingPeriod = 2 * time.Second
 
 	config.Auth.Enabled = true
 	config.Auth.NoAudit = true
-	config.Auth.ListenAddr.Addr = net.JoinHostPort(hostName, "0")
+	config.Auth.ListenAddr.Addr = "localhost:0"
 	config.Auth.PublicAddrs = []utils.NetAddr{
 		{
 			AddrNetwork: "tcp",
-			Addr:        hostName,
+			Addr:        "localhost",
 		},
 	}
+	var err error
 	config.Auth.ClusterName, err = services.NewClusterNameWithRandomID(types.ClusterNameSpecV2{
 		ClusterName: "testcluster",
 	})
@@ -266,9 +263,6 @@ func newAuthConfig(t *testing.T, log utils.Logger) *servicecfg.Config {
 }
 
 func newProxyConfig(t *testing.T, authAddr utils.NetAddr, log utils.Logger) *servicecfg.Config {
-	hostName, err := os.Hostname()
-	require.NoError(t, err)
-
 	config := servicecfg.MakeDefaultConfig()
 	config.DataDir = t.TempDir()
 	config.CachePolicy.Enabled = true
@@ -277,7 +271,7 @@ func newProxyConfig(t *testing.T, authAddr utils.NetAddr, log utils.Logger) *ser
 	config.SetToken("foo")
 	config.SetAuthServerAddress(authAddr)
 	config.Log = log
-	config.InstanceMetadataClient = cloud.NewDisabledIMDSClient()
+	config.InstanceMetadataClient = imds.NewDisabledIMDSClient()
 	config.MaxRetryPeriod = 25 * time.Millisecond
 	config.PollingPeriod = 2 * time.Second
 
@@ -285,8 +279,9 @@ func newProxyConfig(t *testing.T, authAddr utils.NetAddr, log utils.Logger) *ser
 	config.Proxy.DisableWebInterface = true
 	config.Proxy.DisableWebService = true
 	config.Proxy.DisableReverseTunnel = true
-	config.Proxy.SSHAddr.Addr = net.JoinHostPort(hostName, "0")
-	config.Proxy.WebAddr.Addr = net.JoinHostPort(hostName, "0")
+	config.Proxy.SSHAddr.Addr = "localhost:0"
+	config.Proxy.WebAddr.Addr = "localhost:0"
+	config.CircuitBreakerConfig = breaker.NoopBreakerConfig()
 
 	return config
 }

@@ -40,13 +40,13 @@ import (
 	devicepb "github.com/gravitational/teleport/api/gen/proto/go/teleport/devicetrust/v1"
 	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/api/utils/prompt"
-	"github.com/gravitational/teleport/lib/auth"
+	"github.com/gravitational/teleport/lib/auth/authclient"
 	"github.com/gravitational/teleport/lib/auth/mocku2f"
 	wancli "github.com/gravitational/teleport/lib/auth/webauthncli"
 	wantypes "github.com/gravitational/teleport/lib/auth/webauthntypes"
 	"github.com/gravitational/teleport/lib/backend"
 	"github.com/gravitational/teleport/lib/client"
-	"github.com/gravitational/teleport/lib/cloud"
+	"github.com/gravitational/teleport/lib/cloud/imds"
 	"github.com/gravitational/teleport/lib/defaults"
 	"github.com/gravitational/teleport/lib/service"
 	"github.com/gravitational/teleport/lib/service/servicecfg"
@@ -504,9 +504,20 @@ func newStandaloneTeleport(t *testing.T, clock clockwork.Clock) *standaloneBundl
 	require.NoError(t, err)
 	user.AddRole(role.GetName())
 
+	// Use os.MkdirTemp() instead of t.TempDir() for the DataDir.
+	// The shorter temp paths avoid problems with long unix socket paths composed
+	// using the DataDir.
+	// See https://github.com/golang/go/issues/62614.
+	makeDataDir := func() string {
+		tempDir, err := os.MkdirTemp("", "teleport-test-")
+		require.NoError(t, err, "os.MkdirTemp failed")
+		t.Cleanup(func() { os.RemoveAll(tempDir) })
+		return tempDir
+	}
+
 	// AuthServer setup.
 	cfg := servicecfg.MakeDefaultConfig()
-	cfg.DataDir = t.TempDir()
+	cfg.DataDir = makeDataDir()
 	cfg.Hostname = "localhost"
 	cfg.Clock = clock
 	cfg.Console = console
@@ -536,7 +547,7 @@ func newStandaloneTeleport(t *testing.T, clock clockwork.Clock) *standaloneBundl
 	cfg.Proxy.Enabled = false
 	cfg.SSH.Enabled = false
 	cfg.CircuitBreakerConfig = breaker.NoopBreakerConfig()
-	cfg.InstanceMetadataClient = cloud.NewDisabledIMDSClient()
+	cfg.InstanceMetadataClient = imds.NewDisabledIMDSClient()
 	authProcess := startAndWait(t, cfg, service.AuthTLSReady)
 	t.Cleanup(func() { authProcess.Close() })
 	authAddr, err := authProcess.AuthAddr()
@@ -550,7 +561,7 @@ func newStandaloneTeleport(t *testing.T, clock clockwork.Clock) *standaloneBundl
 	// Initialize user's password and MFA.
 	ctx := context.Background()
 	const password = "supersecretpassword"
-	token, err := authServer.CreateResetPasswordToken(ctx, auth.CreateUserTokenRequest{
+	token, err := authServer.CreateResetPasswordToken(ctx, authclient.CreateUserTokenRequest{
 		Name: username,
 	})
 	require.NoError(t, err)
@@ -588,7 +599,7 @@ func newStandaloneTeleport(t *testing.T, clock clockwork.Clock) *standaloneBundl
 
 	// Proxy setup.
 	cfg = servicecfg.MakeDefaultConfig()
-	cfg.DataDir = t.TempDir()
+	cfg.DataDir = makeDataDir()
 	cfg.Hostname = "localhost"
 	cfg.SetToken(staticToken)
 	cfg.Clock = clock
@@ -603,7 +614,7 @@ func newStandaloneTeleport(t *testing.T, clock clockwork.Clock) *standaloneBundl
 	cfg.Proxy.DisableWebInterface = true
 	cfg.SSH.Enabled = false
 	cfg.CircuitBreakerConfig = breaker.NoopBreakerConfig()
-	cfg.InstanceMetadataClient = cloud.NewDisabledIMDSClient()
+	cfg.InstanceMetadataClient = imds.NewDisabledIMDSClient()
 	proxyProcess := startAndWait(t, cfg, service.ProxyWebServerReady)
 	t.Cleanup(func() { proxyProcess.Close() })
 	proxyWebAddr, err := proxyProcess.ProxyWebAddr()

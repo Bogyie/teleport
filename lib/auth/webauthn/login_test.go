@@ -430,11 +430,6 @@ func TestPasswordlessFlow_BeginAndFinish(t *testing.T) {
 			// User interaction would happen here.
 			assertionResp, err := test.key.SignAssertion(test.origin, assertion)
 			require.NoError(t, err)
-			// Fetch the stored user handle; in a real-world the scenario the
-			// authenticator knows it, as passwordless requires a resident credential.
-			wla, err := identity.GetWebauthnLocalAuth(ctx, test.user)
-			require.NoError(t, err)
-			assertionResp.AssertionResponse.UserHandle = wla.UserID
 
 			// 2nd and last step of the login ceremony.
 			mfaDevice, user, err := webLogin.Finish(ctx, assertionResp)
@@ -648,7 +643,11 @@ func newFakeIdentity(user string, devices ...*types.MFADevice) *fakeIdentity {
 }
 
 func (f *fakeIdentity) GetMFADevices(ctx context.Context, user string, withSecrets bool) ([]*types.MFADevice, error) {
-	return f.User.GetLocalAuth().MFA, nil
+	// Return a defensive copy, caller might modify the slice.
+	devices := f.User.GetLocalAuth().MFA
+	devicesCopy := make([]*types.MFADevice, len(devices))
+	copy(devicesCopy, devices)
+	return devicesCopy, nil
 }
 
 func (f *fakeIdentity) UpsertMFADevice(ctx context.Context, user string, d *types.MFADevice) error {

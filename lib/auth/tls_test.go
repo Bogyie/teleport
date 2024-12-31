@@ -45,11 +45,15 @@ import (
 	"github.com/gravitational/teleport/api/client/proto"
 	"github.com/gravitational/teleport/api/constants"
 	apidefaults "github.com/gravitational/teleport/api/defaults"
+	"github.com/gravitational/teleport/api/metadata"
 	"github.com/gravitational/teleport/api/types"
 	eventtypes "github.com/gravitational/teleport/api/types/events"
 	"github.com/gravitational/teleport/api/types/wrappers"
 	apiutils "github.com/gravitational/teleport/api/utils"
 	"github.com/gravitational/teleport/api/utils/sshutils"
+	"github.com/gravitational/teleport/lib/auth/authclient"
+	"github.com/gravitational/teleport/lib/auth/join"
+	"github.com/gravitational/teleport/lib/auth/state"
 	"github.com/gravitational/teleport/lib/auth/testauthority"
 	"github.com/gravitational/teleport/lib/authz"
 	"github.com/gravitational/teleport/lib/defaults"
@@ -63,6 +67,66 @@ import (
 	"github.com/gravitational/teleport/lib/tlsca"
 	"github.com/gravitational/teleport/lib/utils"
 )
+
+func TestRejectedClients(t *testing.T) {
+	t.Setenv("TELEPORT_UNSTABLE_REJECT_OLD_CLIENTS", "yes")
+
+	server, err := NewTestAuthServer(TestAuthServerConfig{
+		Dir:         t.TempDir(),
+		ClusterName: "cluster",
+		Clock:       clockwork.NewFakeClock(),
+	})
+	require.NoError(t, err)
+
+	user, _, err := CreateUserAndRole(server.AuthServer, "user", []string{"role"}, nil)
+	require.NoError(t, err)
+
+	tlsServer, err := server.NewTestTLSServer()
+	require.NoError(t, err)
+	defer tlsServer.Close()
+
+	tlsConfig, err := tlsServer.ClientTLSConfig(TestUser(user.GetName()))
+	require.NoError(t, err)
+
+	clt, err := authclient.NewClient(client.Config{
+		DialInBackground: true,
+		Addrs:            []string{tlsServer.Addr().String()},
+		Credentials: []client.Credentials{
+			client.LoadTLS(tlsConfig),
+		},
+		CircuitBreakerConfig: breaker.NoopBreakerConfig(),
+	})
+	require.NoError(t, err)
+	defer clt.Close()
+
+	t.Run("reject old version", func(t *testing.T) {
+		version := teleport.MinClientSemVersion
+		version.Major--
+		ctx := context.WithValue(context.Background(), metadata.DisableInterceptors{}, struct{}{})
+		ctx = metadata.AddMetadataToContext(ctx, map[string]string{
+			metadata.VersionKey: version.String(),
+		})
+		resp, err := clt.Ping(ctx)
+		require.True(t, trace.IsConnectionProblem(err))
+		require.Equal(t, proto.PingResponse{}, resp)
+	})
+
+	t.Run("allow valid versions", func(t *testing.T) {
+		version := teleport.MinClientSemVersion
+		version.Major--
+		for i := 0; i < 5; i++ {
+			version.Major++
+
+			ctx := context.WithValue(context.Background(), metadata.DisableInterceptors{}, struct{}{})
+			ctx = metadata.AddMetadataToContext(ctx, map[string]string{
+				metadata.VersionKey: version.String(),
+			})
+			resp, err := clt.Ping(ctx)
+			require.NoError(t, err)
+			require.NotNil(t, resp)
+		}
+	})
+}
 
 // TestRemoteBuiltinRole tests remote builtin role
 // that gets mapped to remote proxy readonly role
@@ -409,15 +473,16 @@ func TestAutoRotation(t *testing.T) {
 	require.Equal(t, ca.GetRotation().Phase, types.RotationPhaseStandby)
 	require.NoError(t, err)
 
-	// old clients should no longer work
-	// new client has to be created here to force re-create the new
-	// connection instead of re-using the one from pool
-	// this is not going to be a problem in real teleport
+	// old clients should no longer work as soon as backend modification event propagates.
+	// new client has to be created here to force re-create the new connection instead of
+	// re-using the one from pool this is not going to be a problem in real teleport
 	// as it reloads the full server after reload
-	_, err = testSrv.CloneClient(t, proxy).GetNodes(ctx, apidefaults.Namespace)
-	// TODO(rosstimothy, espadolini, jakule): figure out how to consistently
-	// match a certificate error and not other errors
-	require.Error(t, err)
+	require.Eventually(t, func() bool {
+		_, err = testSrv.CloneClient(t, proxy).GetNodes(ctx, apidefaults.Namespace)
+		// TODO(rosstimothy, espadolini, jakule): figure out how to consistently
+		// match a certificate error and not other errors
+		return err != nil
+	}, time.Second*15, time.Millisecond*200)
 
 	// new clients work
 	_, err = testSrv.CloneClient(t, newProxy).GetNodes(ctx, apidefaults.Namespace)
@@ -584,13 +649,14 @@ func TestManualRotation(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	// old clients should no longer work
-	// new client has to be created here to force re-create the new
-	// connection instead of re-using the one from pool
-	// this is not going to be a problem in real teleport
+	// old clients should no longer work as soon as backend modification event propagates.
+	// new client has to be created here to force re-create the new connection instead of
+	// re-using the one from pool this is not going to be a problem in real teleport
 	// as it reloads the full server after reload
-	_, err = testSrv.CloneClient(t, proxy).GetNodes(ctx, apidefaults.Namespace)
-	require.Error(t, err)
+	require.Eventually(t, func() bool {
+		_, err = testSrv.CloneClient(t, proxy).GetNodes(ctx, apidefaults.Namespace)
+		return err != nil
+	}, time.Second*15, time.Millisecond*200)
 
 	// new clients work
 	_, err = testSrv.CloneClient(t, newProxy).GetNodes(ctx, apidefaults.Namespace)
@@ -683,9 +749,11 @@ func TestRollback(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	// clients with new creds will no longer work
-	_, err = testSrv.CloneClient(t, newProxy).GetNodes(ctx, apidefaults.Namespace)
-	require.Error(t, err)
+	// clients with new creds will no longer work as soon as backend modification event propagates.
+	require.Eventually(t, func() bool {
+		_, err := testSrv.CloneClient(t, newProxy).GetNodes(ctx, apidefaults.Namespace)
+		return err != nil
+	}, time.Second*15, time.Millisecond*200)
 
 	grpcClientOld := testSrv.CloneClient(t, proxy)
 	t.Cleanup(func() {
@@ -719,7 +787,7 @@ func TestAppTokenRotation(t *testing.T) {
 				"trait2": {"value3", "value4"},
 				"trait3": nil,
 			},
-			URI:     "http://localhost:8080",
+			URI:     "https://localhost:8080",
 			Expires: clock.Now().Add(1 * time.Minute),
 		})
 	require.NoError(t, err)
@@ -780,7 +848,7 @@ func TestAppTokenRotation(t *testing.T) {
 				"trait2": {"value3", "value4"},
 				"trait3": nil,
 			},
-			URI:     "http://localhost:8080",
+			URI:     "https://localhost:8080",
 			Expires: clock.Now().Add(1 * time.Minute),
 		})
 	require.NoError(t, err)
@@ -861,21 +929,38 @@ func TestOIDCIdPTokenRotation(t *testing.T) {
 	clt, err := testSrv.NewClient(TestAdmin())
 	require.NoError(t, err)
 
-	user1, _, err := CreateUserAndRole(clt, "user1", nil, []types.Rule{
-		types.NewRule(types.KindIntegration, []string{types.VerbUse}),
+	publicAddress := "https://localhost:8080"
+
+	issuer := "https://my-bucket.s3.amazonaws.com/prefix"
+
+	proxyServer, err := types.NewServer("proxy-hostname", types.KindProxy, types.ServerSpecV2{
+		PublicAddrs: []string{publicAddress},
 	})
 	require.NoError(t, err)
 
-	client, err := testSrv.NewClient(TestUser(user1.GetName()))
+	err = clt.UpsertProxy(ctx, proxyServer)
+	require.NoError(t, err)
+
+	integrationName := "my-integration"
+
+	ig, err := types.NewIntegrationAWSOIDC(
+		types.Metadata{Name: integrationName},
+		&types.AWSOIDCIntegrationSpecV1{
+			RoleARN:     "arn:aws:iam::123456789012:role/OpsTeam",
+			IssuerS3URI: "s3://my-bucket/prefix",
+		},
+	)
+	require.NoError(t, err)
+
+	_, err = clt.CreateIntegration(ctx, ig)
+	require.NoError(t, err)
+
+	client, err := testSrv.NewClient(TestBuiltin(types.RoleDiscovery))
 	require.NoError(t, err)
 
 	// Create a JWT using the current CA, this will become the "old" CA during
 	// rotation.
-	oldJWT, err := client.GenerateAWSOIDCToken(ctx,
-		types.GenerateAWSOIDCTokenRequest{
-			Issuer: "http://localhost:8080",
-		},
-	)
+	oldJWT, err := client.GenerateAWSOIDCToken(ctx, integrationName)
 	require.NoError(t, err)
 
 	// Check that the "old" CA can be used to verify tokens.
@@ -887,7 +972,7 @@ func TestOIDCIdPTokenRotation(t *testing.T) {
 	require.Len(t, oldCA.GetTrustedJWTKeyPairs(), 1)
 
 	// Verify that the JWT token validates with the JWT authority.
-	_, err = verifyJWTAWSOIDC(clock, testSrv.ClusterName(), oldCA.GetTrustedJWTKeyPairs(), oldJWT)
+	_, err = verifyJWTAWSOIDC(clock, testSrv.ClusterName(), oldCA.GetTrustedJWTKeyPairs(), oldJWT, issuer)
 	require.NoError(t, err, clock.Now())
 
 	// Start rotation and move to initial phase. A new CA will be added (for
@@ -911,7 +996,7 @@ func TestOIDCIdPTokenRotation(t *testing.T) {
 	require.Len(t, oldCA.GetTrustedJWTKeyPairs(), 2)
 
 	// Verify that the JWT token validates with the JWT authority.
-	_, err = verifyJWTAWSOIDC(clock, testSrv.ClusterName(), oldCA.GetTrustedJWTKeyPairs(), oldJWT)
+	_, err = verifyJWTAWSOIDC(clock, testSrv.ClusterName(), oldCA.GetTrustedJWTKeyPairs(), oldJWT, issuer)
 	require.NoError(t, err)
 
 	// Move rotation into the update client phase. In this phase, requests will
@@ -925,11 +1010,7 @@ func TestOIDCIdPTokenRotation(t *testing.T) {
 	require.NoError(t, err)
 
 	// New tokens should now fail to validate with the old key.
-	newJWT, err := client.GenerateAWSOIDCToken(ctx,
-		types.GenerateAWSOIDCTokenRequest{
-			Issuer: "http://localhost:8080",
-		},
-	)
+	newJWT, err := client.GenerateAWSOIDCToken(ctx, integrationName)
 	require.NoError(t, err)
 
 	// New tokens will validate with the new key.
@@ -942,9 +1023,9 @@ func TestOIDCIdPTokenRotation(t *testing.T) {
 	require.Len(t, newCA.GetTrustedJWTKeyPairs(), 2)
 
 	// Both JWT should now validate.
-	_, err = verifyJWTAWSOIDC(clock, testSrv.ClusterName(), newCA.GetTrustedJWTKeyPairs(), oldJWT)
+	_, err = verifyJWTAWSOIDC(clock, testSrv.ClusterName(), newCA.GetTrustedJWTKeyPairs(), oldJWT, issuer)
 	require.NoError(t, err)
-	_, err = verifyJWTAWSOIDC(clock, testSrv.ClusterName(), newCA.GetTrustedJWTKeyPairs(), newJWT)
+	_, err = verifyJWTAWSOIDC(clock, testSrv.ClusterName(), newCA.GetTrustedJWTKeyPairs(), newJWT, issuer)
 	require.NoError(t, err)
 
 	// Move rotation into update servers phase.
@@ -966,9 +1047,9 @@ func TestOIDCIdPTokenRotation(t *testing.T) {
 	require.Len(t, newCA.GetTrustedJWTKeyPairs(), 2)
 
 	// Both JWT should continue to validate.
-	_, err = verifyJWTAWSOIDC(clock, testSrv.ClusterName(), newCA.GetTrustedJWTKeyPairs(), oldJWT)
+	_, err = verifyJWTAWSOIDC(clock, testSrv.ClusterName(), newCA.GetTrustedJWTKeyPairs(), oldJWT, issuer)
 	require.NoError(t, err)
-	_, err = verifyJWTAWSOIDC(clock, testSrv.ClusterName(), newCA.GetTrustedJWTKeyPairs(), newJWT)
+	_, err = verifyJWTAWSOIDC(clock, testSrv.ClusterName(), newCA.GetTrustedJWTKeyPairs(), newJWT, issuer)
 	require.NoError(t, err)
 
 	// Complete rotation. The old CA will be removed.
@@ -990,9 +1071,9 @@ func TestOIDCIdPTokenRotation(t *testing.T) {
 	require.Len(t, newCA.GetTrustedJWTKeyPairs(), 1)
 
 	// Old token should no longer validate.
-	_, err = verifyJWTAWSOIDC(clock, testSrv.ClusterName(), newCA.GetTrustedJWTKeyPairs(), oldJWT)
+	_, err = verifyJWTAWSOIDC(clock, testSrv.ClusterName(), newCA.GetTrustedJWTKeyPairs(), oldJWT, issuer)
 	require.Error(t, err)
-	_, err = verifyJWTAWSOIDC(clock, testSrv.ClusterName(), newCA.GetTrustedJWTKeyPairs(), newJWT)
+	_, err = verifyJWTAWSOIDC(clock, testSrv.ClusterName(), newCA.GetTrustedJWTKeyPairs(), newJWT, issuer)
 	require.NoError(t, err)
 }
 
@@ -1377,9 +1458,9 @@ func TestWebSessionWithoutAccessRequest(t *testing.T) {
 	proxy, err := testSrv.NewClient(TestBuiltin(types.RoleProxy))
 	require.NoError(t, err)
 
-	req := AuthenticateUserRequest{
+	req := authclient.AuthenticateUserRequest{
 		Username: user,
-		Pass: &PassCreds{
+		Pass: &authclient.PassCreds{
 			Password: pass,
 		},
 	}
@@ -1401,7 +1482,7 @@ func TestWebSessionWithoutAccessRequest(t *testing.T) {
 	_, err = web.GetWebSessionInfo(ctx, user, ws.GetName())
 	require.NoError(t, err)
 
-	ns, err := web.ExtendWebSession(ctx, WebSessionReq{
+	ns, err := web.ExtendWebSession(ctx, authclient.WebSessionReq{
 		User:          user,
 		PrevSessionID: ws.GetName(),
 	})
@@ -1418,7 +1499,7 @@ func TestWebSessionWithoutAccessRequest(t *testing.T) {
 	_, err = web.GetWebSessionInfo(ctx, user, ws.GetName())
 	require.Error(t, err)
 
-	_, err = web.ExtendWebSession(ctx, WebSessionReq{
+	_, err = web.ExtendWebSession(ctx, authclient.WebSessionReq{
 		User:          user,
 		PrevSessionID: ws.GetName(),
 	})
@@ -1504,9 +1585,9 @@ func TestWebSessionMultiAccessRequests(t *testing.T) {
 	// Create a web session and client for the user.
 	proxyClient, err := testSrv.NewClient(TestBuiltin(types.RoleProxy))
 	require.NoError(t, err)
-	baseWebSession, err := proxyClient.AuthenticateWebUser(ctx, AuthenticateUserRequest{
+	baseWebSession, err := proxyClient.AuthenticateWebUser(ctx, authclient.AuthenticateUserRequest{
 		Username: username,
-		Pass: &PassCreds{
+		Pass: &authclient.PassCreds{
 			Password: password,
 		},
 	})
@@ -1527,10 +1608,10 @@ func TestWebSessionMultiAccessRequests(t *testing.T) {
 		assert.ElementsMatch(t, expectResources, gotResources)
 	}
 
-	type extendSessionFunc func(*testing.T, *Client, types.WebSession) (*Client, types.WebSession)
+	type extendSessionFunc func(*testing.T, *authclient.Client, types.WebSession) (*authclient.Client, types.WebSession)
 	assumeRequest := func(request types.AccessRequest) extendSessionFunc {
-		return func(t *testing.T, clt *Client, sess types.WebSession) (*Client, types.WebSession) {
-			newSess, err := clt.ExtendWebSession(ctx, WebSessionReq{
+		return func(t *testing.T, clt *authclient.Client, sess types.WebSession) (*authclient.Client, types.WebSession) {
+			newSess, err := clt.ExtendWebSession(ctx, authclient.WebSessionReq{
 				User:            username,
 				PrevSessionID:   sess.GetName(),
 				AccessRequestID: request.GetMetadata().Name,
@@ -1543,8 +1624,8 @@ func TestWebSessionMultiAccessRequests(t *testing.T) {
 		}
 	}
 	failToAssumeRequest := func(request types.AccessRequest) extendSessionFunc {
-		return func(t *testing.T, clt *Client, sess types.WebSession) (*Client, types.WebSession) {
-			_, err := clt.ExtendWebSession(ctx, WebSessionReq{
+		return func(t *testing.T, clt *authclient.Client, sess types.WebSession) (*authclient.Client, types.WebSession) {
+			_, err := clt.ExtendWebSession(ctx, authclient.WebSessionReq{
 				User:            username,
 				PrevSessionID:   sess.GetName(),
 				AccessRequestID: request.GetMetadata().Name,
@@ -1553,8 +1634,8 @@ func TestWebSessionMultiAccessRequests(t *testing.T) {
 			return clt, sess
 		}
 	}
-	switchBack := func(t *testing.T, clt *Client, sess types.WebSession) (*Client, types.WebSession) {
-		newSess, err := clt.ExtendWebSession(ctx, WebSessionReq{
+	switchBack := func(t *testing.T, clt *authclient.Client, sess types.WebSession) (*authclient.Client, types.WebSession) {
+		newSess, err := clt.ExtendWebSession(ctx, authclient.WebSessionReq{
 			User:          username,
 			PrevSessionID: sess.GetName(),
 			Switchback:    true,
@@ -1665,9 +1746,9 @@ func TestWebSessionWithApprovedAccessRequestAndSwitchback(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create a user to create a web session for.
-	req := AuthenticateUserRequest{
+	req := authclient.AuthenticateUserRequest{
 		Username: user,
-		Pass: &PassCreds{
+		Pass: &authclient.PassCreds{
 			Password: pass,
 		},
 	}
@@ -1696,7 +1777,7 @@ func TestWebSessionWithApprovedAccessRequestAndSwitchback(t *testing.T) {
 	accessReq, err = clt.CreateAccessRequestV2(ctx, accessReq)
 	require.NoError(t, err)
 
-	sess1, err := web.ExtendWebSession(ctx, WebSessionReq{
+	sess1, err := web.ExtendWebSession(ctx, authclient.WebSessionReq{
 		User:            user,
 		PrevSessionID:   ws.GetName(),
 		AccessRequestID: accessReq.GetMetadata().Name,
@@ -1738,7 +1819,7 @@ func TestWebSessionWithApprovedAccessRequestAndSwitchback(t *testing.T) {
 	require.Empty(t, cmp.Diff(certRequests(sess1.GetTLSCert()), []string{accessReq.GetName()}))
 
 	// Test switch back to default role and expiry.
-	sess2, err := web.ExtendWebSession(ctx, WebSessionReq{
+	sess2, err := web.ExtendWebSession(ctx, authclient.WebSessionReq{
 		User:          user,
 		PrevSessionID: ws.GetName(),
 		Switchback:    true,
@@ -1777,9 +1858,9 @@ func TestExtendWebSessionWithReloadUser(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create user authn creds and web session.
-	req := AuthenticateUserRequest{
+	req := authclient.AuthenticateUserRequest{
 		Username: user,
-		Pass: &PassCreds{
+		Pass: &authclient.PassCreds{
 			Password: pass,
 		},
 	}
@@ -1800,7 +1881,7 @@ func TestExtendWebSessionWithReloadUser(t *testing.T) {
 	require.NoError(t, clt.UpdateUser(ctx, newUser))
 
 	// Renew session with the updated traits.
-	sess1, err := web.ExtendWebSession(ctx, WebSessionReq{
+	sess1, err := web.ExtendWebSession(ctx, authclient.WebSessionReq{
 		User:          user,
 		PrevSessionID: ws.GetName(),
 		ReloadUser:    true,
@@ -1844,9 +1925,9 @@ func TestExtendWebSessionWithMaxDuration(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create a user to create a web session for.
-	req := AuthenticateUserRequest{
+	req := authclient.AuthenticateUserRequest{
 		Username: user,
-		Pass: &PassCreds{
+		Pass: &authclient.PassCreds{
 			Password: pass,
 		},
 	}
@@ -1907,7 +1988,7 @@ func TestExtendWebSessionWithMaxDuration(t *testing.T) {
 			accessReq, err = adminClient.CreateAccessRequestV2(ctx, accessReq)
 			require.NoError(t, err)
 
-			sess1, err := userClient.ExtendWebSession(ctx, WebSessionReq{
+			sess1, err := userClient.ExtendWebSession(ctx, authclient.WebSessionReq{
 				User:            user,
 				PrevSessionID:   webSession.GetName(),
 				AccessRequestID: accessReq.GetMetadata().Name,
@@ -1976,6 +2057,11 @@ func TestGetCertAuthority(t *testing.T) {
 	_, err = proxyClt.GetCertAuthority(ctx, types.CertAuthID{
 		DomainName: testSrv.ClusterName(),
 		Type:       types.DatabaseCA,
+	}, true)
+	require.True(t, trace.IsAccessDenied(err))
+	_, err = proxyClt.GetCertAuthority(ctx, types.CertAuthID{
+		DomainName: testSrv.ClusterName(),
+		Type:       types.DatabaseClientCA,
 	}, true)
 	require.True(t, trace.IsAccessDenied(err))
 
@@ -2318,7 +2404,7 @@ func TestGenerateCerts(t *testing.T) {
 			Format:    constants.CertificateFormatStandard,
 		})
 		require.Error(t, err)
-		require.IsType(t, &trace.AccessDeniedError{}, trace.Unwrap(err))
+		require.True(t, trace.IsAccessDenied(err), "trace.IsAccessDenied failed: err=%v (%T)", err, trace.Unwrap(err))
 
 		_, privateKeyPEM, err := utils.MarshalPrivateKey(privateKey.(crypto.Signer))
 		require.NoError(t, err)
@@ -2336,7 +2422,7 @@ func TestGenerateCerts(t *testing.T) {
 			Format:    constants.CertificateFormatStandard,
 		})
 		require.Error(t, err)
-		require.IsType(t, &trace.AccessDeniedError{}, trace.Unwrap(err))
+		require.True(t, trace.IsAccessDenied(err), "trace.IsAccessDenied failed: err=%v (%T)", err, trace.Unwrap(err))
 		require.Contains(t, err.Error(), "impersonated user can not impersonate anyone else")
 
 		// but can renew their own cert, for example set route to cluster
@@ -2563,7 +2649,7 @@ func TestGenerateAppToken(t *testing.T) {
 					"trait2": {"value3", "value4"},
 					"trait3": nil,
 				},
-				URI:     "http://localhost:8080",
+				URI:     "https://localhost:8080",
 				Expires: clock.Now().Add(1 * time.Minute),
 			})
 		require.Equal(t, err != nil, ts.outError, ts.inComment)
@@ -2571,7 +2657,7 @@ func TestGenerateAppToken(t *testing.T) {
 			claims, err := key.Verify(jwt.VerifyParams{
 				Username: "foo@example.com",
 				RawToken: token,
-				URI:      "http://localhost:8080",
+				URI:      "https://localhost:8080",
 			})
 			require.NoError(t, err, ts.inComment)
 			require.Equal(t, claims.Username, "foo@example.com", ts.inComment)
@@ -2637,10 +2723,10 @@ func TestCertificateFormat(t *testing.T) {
 		require.NoError(t, err)
 
 		// authentication attempt fails with password auth only
-		re, err := proxyClient.AuthenticateSSHUser(ctx, AuthenticateSSHRequest{
-			AuthenticateUserRequest: AuthenticateUserRequest{
+		re, err := proxyClient.AuthenticateSSHUser(ctx, authclient.AuthenticateSSHRequest{
+			AuthenticateUserRequest: authclient.AuthenticateUserRequest{
 				Username: user.GetName(),
-				Pass: &PassCreds{
+				Pass: &authclient.PassCreds{
 					Password: pass,
 				},
 				PublicKey: pub,
@@ -2739,32 +2825,32 @@ func TestAuthenticateWebUserOTP(t *testing.T) {
 	require.NoError(t, err)
 
 	// authentication attempt fails with wrong password
-	_, err = proxy.AuthenticateWebUser(ctx, AuthenticateUserRequest{
+	_, err = proxy.AuthenticateWebUser(ctx, authclient.AuthenticateUserRequest{
 		Username: user,
-		OTP:      &OTPCreds{Password: []byte("wrong123"), Token: validToken},
+		OTP:      &authclient.OTPCreds{Password: []byte("wrong123"), Token: validToken},
 	})
 	require.True(t, trace.IsAccessDenied(err))
 
 	// authentication attempt fails with wrong otp
-	_, err = proxy.AuthenticateWebUser(ctx, AuthenticateUserRequest{
+	_, err = proxy.AuthenticateWebUser(ctx, authclient.AuthenticateUserRequest{
 		Username: user,
-		OTP:      &OTPCreds{Password: pass, Token: "wrong123"},
+		OTP:      &authclient.OTPCreds{Password: pass, Token: "wrong123"},
 	})
 	require.True(t, trace.IsAccessDenied(err))
 
 	// authentication attempt fails with password auth only
-	_, err = proxy.AuthenticateWebUser(ctx, AuthenticateUserRequest{
+	_, err = proxy.AuthenticateWebUser(ctx, authclient.AuthenticateUserRequest{
 		Username: user,
-		Pass: &PassCreds{
+		Pass: &authclient.PassCreds{
 			Password: pass,
 		},
 	})
 	require.True(t, trace.IsAccessDenied(err))
 
 	// authentication succeeds
-	ws, err := proxy.AuthenticateWebUser(ctx, AuthenticateUserRequest{
+	ws, err := proxy.AuthenticateWebUser(ctx, authclient.AuthenticateUserRequest{
 		Username: user,
-		OTP:      &OTPCreds{Password: pass, Token: validToken},
+		OTP:      &authclient.OTPCreds{Password: pass, Token: validToken},
 	})
 	require.NoError(t, err)
 
@@ -2804,9 +2890,9 @@ func TestLoginAttempts(t *testing.T) {
 	err = testSrv.Auth().UpsertPassword(user, pass)
 	require.NoError(t, err)
 
-	req := AuthenticateUserRequest{
+	req := authclient.AuthenticateUserRequest{
 		Username: user,
-		Pass: &PassCreds{
+		Pass: &authclient.PassCreds{
 			Password: []byte("bad pass"),
 		},
 	}
@@ -2865,7 +2951,7 @@ func TestChangeUserAuthenticationSettings(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("Reset works when user exists", func(t *testing.T) {
-		token, err := testSrv.Auth().CreateResetPasswordToken(ctx, CreateUserTokenRequest{
+		token, err := testSrv.Auth().CreateResetPasswordToken(ctx, authclient.CreateUserTokenRequest{
 			Name: username,
 			TTL:  time.Hour,
 		})
@@ -2889,7 +2975,7 @@ func TestChangeUserAuthenticationSettings(t *testing.T) {
 	})
 
 	t.Run("Reset link not allowed when user does not exist", func(t *testing.T) {
-		token, err := testSrv.Auth().CreateResetPasswordToken(ctx, CreateUserTokenRequest{
+		token, err := testSrv.Auth().CreateResetPasswordToken(ctx, authclient.CreateUserTokenRequest{
 			Name: username,
 			TTL:  time.Hour,
 		})
@@ -2952,9 +3038,9 @@ func TestLoginNoLocalAuth(t *testing.T) {
 	require.NoError(t, err)
 
 	// Make sure access is denied for web login.
-	_, err = testSrv.Auth().AuthenticateWebUser(ctx, AuthenticateUserRequest{
+	_, err = testSrv.Auth().AuthenticateWebUser(ctx, authclient.AuthenticateUserRequest{
 		Username: user,
-		Pass: &PassCreds{
+		Pass: &authclient.PassCreds{
 			Password: pass,
 		},
 	})
@@ -2963,10 +3049,10 @@ func TestLoginNoLocalAuth(t *testing.T) {
 	// Make sure access is denied for SSH login.
 	_, pub, err := testauthority.New().GenerateKeyPair()
 	require.NoError(t, err)
-	_, err = testSrv.Auth().AuthenticateSSHUser(ctx, AuthenticateSSHRequest{
-		AuthenticateUserRequest: AuthenticateUserRequest{
+	_, err = testSrv.Auth().AuthenticateSSHUser(ctx, authclient.AuthenticateSSHRequest{
+		AuthenticateUserRequest: authclient.AuthenticateUserRequest{
 			Username: user,
-			Pass: &PassCreds{
+			Pass: &authclient.PassCreds{
 				Password: pass,
 			},
 			PublicKey: pub,
@@ -2996,7 +3082,7 @@ func TestCipherSuites(t *testing.T) {
 		otherServer.Addr().String(),
 		testSrv.Addr().String(),
 	}
-	client, err := NewClient(client.Config{
+	client, err := authclient.NewClient(client.Config{
 		Addrs: addrs,
 		Credentials: []client.Credentials{
 			client.LoadTLS(tlsConfig),
@@ -3028,7 +3114,7 @@ func TestTLSFailover(t *testing.T) {
 		otherServer.Addr().String(),
 		testSrv.Addr().String(),
 	}
-	client, err := NewClient(client.Config{
+	client, err := authclient.NewClient(client.Config{
 		Addrs: addrs,
 		Credentials: []client.Credentials{
 			client.LoadTLS(tlsConfig),
@@ -3089,10 +3175,10 @@ func TestRegisterCAPin(t *testing.T) {
 	caPin := caPins[0]
 
 	// Attempt to register with valid CA pin, should work.
-	_, err = Register(RegisterParams{
+	_, err = join.Register(ctx, join.RegisterParams{
 		AuthServers: []utils.NetAddr{utils.FromAddr(testSrv.Addr())},
 		Token:       token,
-		ID: IdentityID{
+		ID: state.IdentityID{
 			HostUUID: "once",
 			NodeName: "node-name",
 			Role:     types.RoleProxy,
@@ -3107,10 +3193,10 @@ func TestRegisterCAPin(t *testing.T) {
 
 	// Attempt to register with multiple CA pins where the auth server only
 	// matches one, should work.
-	_, err = Register(RegisterParams{
+	_, err = join.Register(ctx, join.RegisterParams{
 		AuthServers: []utils.NetAddr{utils.FromAddr(testSrv.Addr())},
 		Token:       token,
-		ID: IdentityID{
+		ID: state.IdentityID{
 			HostUUID: "once",
 			NodeName: "node-name",
 			Role:     types.RoleProxy,
@@ -3124,10 +3210,10 @@ func TestRegisterCAPin(t *testing.T) {
 	require.NoError(t, err)
 
 	// Attempt to register with invalid CA pin, should fail.
-	_, err = Register(RegisterParams{
+	_, err = join.Register(ctx, join.RegisterParams{
 		AuthServers: []utils.NetAddr{utils.FromAddr(testSrv.Addr())},
 		Token:       token,
-		ID: IdentityID{
+		ID: state.IdentityID{
 			HostUUID: "once",
 			NodeName: "node-name",
 			Role:     types.RoleProxy,
@@ -3141,10 +3227,10 @@ func TestRegisterCAPin(t *testing.T) {
 	require.Error(t, err)
 
 	// Attempt to register with multiple invalid CA pins, should fail.
-	_, err = Register(RegisterParams{
+	_, err = join.Register(ctx, join.RegisterParams{
 		AuthServers: []utils.NetAddr{utils.FromAddr(testSrv.Addr())},
 		Token:       token,
-		ID: IdentityID{
+		ID: state.IdentityID{
 			HostUUID: "once",
 			NodeName: "node-name",
 			Role:     types.RoleProxy,
@@ -3177,10 +3263,10 @@ func TestRegisterCAPin(t *testing.T) {
 	require.Len(t, caPins, 2)
 
 	// Attempt to register with multiple CA pins, should work
-	_, err = Register(RegisterParams{
+	_, err = join.Register(ctx, join.RegisterParams{
 		AuthServers: []utils.NetAddr{utils.FromAddr(testSrv.Addr())},
 		Token:       token,
-		ID: IdentityID{
+		ID: state.IdentityID{
 			HostUUID: "once",
 			NodeName: "node-name",
 			Role:     types.RoleProxy,
@@ -3222,10 +3308,10 @@ func TestRegisterCAPath(t *testing.T) {
 	require.NoError(t, err)
 
 	// Attempt to register with nothing at the CA path, should work.
-	_, err = Register(RegisterParams{
+	_, err = join.Register(ctx, join.RegisterParams{
 		AuthServers: []utils.NetAddr{utils.FromAddr(testSrv.Addr())},
 		Token:       token,
-		ID: IdentityID{
+		ID: state.IdentityID{
 			HostUUID: "once",
 			NodeName: "node-name",
 			Role:     types.RoleProxy,
@@ -3251,10 +3337,10 @@ func TestRegisterCAPath(t *testing.T) {
 	require.NoError(t, err)
 
 	// Attempt to register with valid CA path, should work.
-	_, err = Register(RegisterParams{
+	_, err = join.Register(ctx, join.RegisterParams{
 		AuthServers: []utils.NetAddr{utils.FromAddr(testSrv.Addr())},
 		Token:       token,
-		ID: IdentityID{
+		ID: state.IdentityID{
 			HostUUID: "once",
 			NodeName: "node-name",
 			Role:     types.RoleProxy,
@@ -4588,7 +4674,7 @@ func verifyJWT(clock clockwork.Clock, clusterName string, pairs []*types.JWTKeyP
 		claims, err := key.Verify(jwt.VerifyParams{
 			RawToken: token,
 			Username: "foo",
-			URI:      "http://localhost:8080",
+			URI:      "https://localhost:8080",
 		})
 		if err != nil {
 			errs = append(errs, trace.Wrap(err))
@@ -4600,7 +4686,7 @@ func verifyJWT(clock clockwork.Clock, clusterName string, pairs []*types.JWTKeyP
 }
 
 // verifyJWTAWSOIDC verifies that the token was signed by one the passed in key pair.
-func verifyJWTAWSOIDC(clock clockwork.Clock, clusterName string, pairs []*types.JWTKeyPair, token string) (*jwt.Claims, error) {
+func verifyJWTAWSOIDC(clock clockwork.Clock, clusterName string, pairs []*types.JWTKeyPair, token, issuer string) (*jwt.Claims, error) {
 	errs := []error{}
 	for _, pair := range pairs {
 		publicKey, err := utils.ParsePublicKey(pair.PublicKey)
@@ -4621,7 +4707,7 @@ func verifyJWTAWSOIDC(clock clockwork.Clock, clusterName string, pairs []*types.
 		}
 		claims, err := key.VerifyAWSOIDC(jwt.AWSOIDCVerifyParams{
 			RawToken: token,
-			Issuer:   "http://localhost:8080",
+			Issuer:   issuer,
 		})
 		if err != nil {
 			errs = append(errs, trace.Wrap(err))
@@ -4634,6 +4720,7 @@ func verifyJWTAWSOIDC(clock clockwork.Clock, clusterName string, pairs []*types.
 
 type testTLSServerOptions struct {
 	cacheEnabled bool
+	accessGraph  *AccessGraphConfig
 }
 
 type testTLSServerOption func(*testTLSServerOptions)
@@ -4641,6 +4728,12 @@ type testTLSServerOption func(*testTLSServerOptions)
 func withCacheEnabled(enabled bool) testTLSServerOption {
 	return func(options *testTLSServerOptions) {
 		options.cacheEnabled = enabled
+	}
+}
+
+func withAccessGraphConfig(cfg AccessGraphConfig) testTLSServerOption {
+	return func(options *testTLSServerOptions) {
+		options.accessGraph = &cfg
 	}
 }
 
@@ -4660,8 +4753,11 @@ func newTestTLSServer(t testing.TB, opts ...testTLSServerOption) *TestTLSServer 
 		CacheEnabled: options.cacheEnabled,
 	})
 	require.NoError(t, err)
-
-	srv, err := as.NewTestTLSServer()
+	var tlsServerOpts []TestTLSServerOption
+	if options.accessGraph != nil {
+		tlsServerOpts = append(tlsServerOpts, WithAccessGraphConfig(*options.accessGraph))
+	}
+	srv, err := as.NewTestTLSServer(tlsServerOpts...)
 	require.NoError(t, err)
 
 	t.Cleanup(func() {

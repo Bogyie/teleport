@@ -16,6 +16,7 @@ package firestore
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"encoding/base64"
 	"errors"
@@ -57,6 +58,9 @@ type Config struct {
 	DisableExpiredDocumentPurge bool `json:"disable_expired_document_purge,omitempty"`
 	// EndPoint is used to point the Firestore clients at emulated Firestore storage.
 	EndPoint string `json:"endpoint,omitempty"`
+	// DatabaseID is the identifier of a specific Firestore database to use. If not specified, the
+	// default database for the ProjectID is used.
+	DatabaseID string `json:"database_id,omitempty"`
 }
 
 type backendConfig struct {
@@ -130,9 +134,20 @@ type legacyRecord struct {
 	Value     string `firestore:"value,omitempty"`
 }
 
+// brokenRecord is an incorrect version of record used to marshal backend.Items.
+// The Key type was inadvertently changed from a []byte to backend.Key which
+// causes problems reading existing data prior to the conversion.
+type brokenRecord struct {
+	Key       backend.Key `firestore:"key,omitempty"`
+	Timestamp int64       `firestore:"timestamp,omitempty"`
+	Expires   int64       `firestore:"expires,omitempty"`
+	ID        int64       `firestore:"id,omitempty"`
+	Value     []byte      `firestore:"value,omitempty"`
+}
+
 func newRecord(from backend.Item, clock clockwork.Clock) record {
 	r := record{
-		Key:       from.Key,
+		Key:       []byte(from.Key.String()),
 		Value:     from.Value,
 		Timestamp: clock.Now().UTC().Unix(),
 		ID:        id(clock.Now()),
@@ -144,21 +159,44 @@ func newRecord(from backend.Item, clock clockwork.Clock) record {
 }
 
 func newRecordFromDoc(doc *firestore.DocumentSnapshot) (*record, error) {
+	k, err := doc.DataAt(keyDocProperty)
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+
 	var r record
-	if err := doc.DataTo(&r); err != nil {
-		// If unmarshal failed, try using the old format of records, where
-		// Value was a string. This document could've been written by an older
-		// version of our code.
-		var rl legacyRecord
-		if doc.DataTo(&rl) != nil {
+	switch k.(type) {
+	case []any:
+		// If the key is a slice of any, then the key was mistakenly persisted
+		// as a backend.Key directly.
+		var br brokenRecord
+		if doc.DataTo(&br) != nil {
 			return nil, ConvertGRPCError(err)
 		}
+
 		r = record{
-			Key:       []byte(rl.Key),
-			Value:     []byte(rl.Value),
-			Timestamp: rl.Timestamp,
-			Expires:   rl.Expires,
-			ID:        rl.ID,
+			Key:       br.Key,
+			Value:     br.Value,
+			Timestamp: br.Timestamp,
+			Expires:   br.Expires,
+			ID:        br.ID,
+		}
+	default:
+		if err := doc.DataTo(&r); err != nil {
+			// If unmarshal failed, try using the old format of records, where
+			// Value was a string. This document could've been written by an older
+			// version of our code.
+			var rl legacyRecord
+			if doc.DataTo(&rl) != nil {
+				return nil, ConvertGRPCError(err)
+			}
+			r = record{
+				Key:       backend.Key(rl.Key),
+				Value:     []byte(rl.Value),
+				Timestamp: rl.Timestamp,
+				Expires:   rl.Expires,
+				ID:        rl.ID,
+			}
 		}
 	}
 	return &r, nil
@@ -175,7 +213,7 @@ func (r *record) isExpired(now time.Time) bool {
 
 func (r *record) backendItem() backend.Item {
 	bi := backend.Item{
-		Key:   r.Key,
+		Key:   backend.Key(r.Key),
 		Value: r.Value,
 		ID:    r.ID,
 	}
@@ -231,14 +269,14 @@ func (t ownerCredentials) GetRequestMetadata(context.Context, ...string) (map[st
 func (t ownerCredentials) RequireTransportSecurity() bool { return false }
 
 // CreateFirestoreClients creates a firestore admin and normal client given the supplied parameters
-func CreateFirestoreClients(ctx context.Context, projectID string, endPoint string, credentialsFile string) (*apiv1.FirestoreAdminClient, *firestore.Client, error) {
+func CreateFirestoreClients(ctx context.Context, projectID, database string, endpoint string, credentialsFile string) (*apiv1.FirestoreAdminClient, *firestore.Client, error) {
 	var args []option.ClientOption
 
-	if endPoint != "" {
+	if endpoint != "" {
 		args = append(args,
 			option.WithTelemetryDisabled(),
 			option.WithoutAuthentication(),
-			option.WithEndpoint(endPoint),
+			option.WithEndpoint(endpoint),
 			option.WithGRPCDialOption(grpc.WithTransportCredentials(insecure.NewCredentials())),
 			option.WithGRPCDialOption(grpc.WithPerRPCCredentials(ownerCredentials{})),
 		)
@@ -246,11 +284,21 @@ func CreateFirestoreClients(ctx context.Context, projectID string, endPoint stri
 		args = append(args, option.WithCredentialsFile(credentialsFile))
 	}
 
-	firestoreClient, err := firestore.NewClient(ctx, projectID, args...)
+	firestoreAdminClient, err := apiv1.NewFirestoreAdminClient(ctx, args...)
 	if err != nil {
 		return nil, nil, ConvertGRPCError(err)
 	}
-	firestoreAdminClient, err := apiv1.NewFirestoreAdminClient(ctx, args...)
+
+	if database == "" {
+		firestoreClient, err := firestore.NewClient(ctx, projectID, args...)
+		if err != nil {
+			return nil, nil, ConvertGRPCError(err)
+		}
+
+		return firestoreAdminClient, firestoreClient, nil
+	}
+
+	firestoreClient, err := firestore.NewClientWithDatabase(ctx, projectID, database, args...)
 	if err != nil {
 		return nil, nil, ConvertGRPCError(err)
 	}
@@ -294,7 +342,7 @@ func New(ctx context.Context, params backend.Params, options Options) (*Backend,
 	}
 
 	closeCtx, cancel := context.WithCancel(ctx)
-	firestoreAdminClient, firestoreClient, err := CreateFirestoreClients(closeCtx, cfg.ProjectID, cfg.EndPoint, cfg.CredentialsPath)
+	firestoreAdminClient, firestoreClient, err := CreateFirestoreClients(closeCtx, cfg.ProjectID, cfg.DatabaseID, cfg.EndPoint, cfg.CredentialsPath)
 	if err != nil {
 		cancel()
 		return nil, trace.Wrap(err)
@@ -382,7 +430,7 @@ func (b *Backend) Update(ctx context.Context, item backend.Item) (*backend.Lease
 	return b.newLease(item), nil
 }
 
-func (b *Backend) getRangeDocs(ctx context.Context, startKey []byte, endKey []byte, limit int) ([]*firestore.DocumentSnapshot, error) {
+func (b *Backend) getRangeDocs(ctx context.Context, startKey, endKey backend.Key, limit int) ([]*firestore.DocumentSnapshot, error) {
 	if len(startKey) == 0 {
 		return nil, trace.BadParameter("missing parameter startKey")
 	}
@@ -393,6 +441,22 @@ func (b *Backend) getRangeDocs(ctx context.Context, startKey []byte, endKey []by
 		limit = backend.DefaultRangeLimit
 	}
 	docs, err := b.svc.Collection(b.CollectionName).
+		Where(keyDocProperty, ">=", []byte(startKey.String())).
+		Where(keyDocProperty, "<=", []byte(endKey.String())).
+		Limit(limit).
+		Documents(ctx).GetAll()
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+	legacyDocs, err := b.svc.Collection(b.CollectionName).
+		Where(keyDocProperty, ">=", startKey.String()).
+		Where(keyDocProperty, "<=", endKey.String()).
+		Limit(limit).
+		Documents(ctx).GetAll()
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+	brokenDocs, err := b.svc.Collection(b.CollectionName).
 		Where(keyDocProperty, ">=", startKey).
 		Where(keyDocProperty, "<=", endKey).
 		Limit(limit).
@@ -400,16 +464,8 @@ func (b *Backend) getRangeDocs(ctx context.Context, startKey []byte, endKey []by
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
-	legacyDocs, err := b.svc.Collection(b.CollectionName).
-		Where(keyDocProperty, ">=", string(startKey)).
-		Where(keyDocProperty, "<=", string(endKey)).
-		Limit(limit).
-		Documents(ctx).GetAll()
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
 
-	allDocs := append(docs, legacyDocs...)
+	allDocs := append(append(docs, legacyDocs...), brokenDocs...)
 	if len(allDocs) >= backend.DefaultRangeLimit {
 		b.Warnf("Range query hit backend limit. (this is a bug!) startKey=%q,limit=%d", startKey, backend.DefaultRangeLimit)
 	}
@@ -417,7 +473,7 @@ func (b *Backend) getRangeDocs(ctx context.Context, startKey []byte, endKey []by
 }
 
 // GetRange returns range of elements
-func (b *Backend) GetRange(ctx context.Context, startKey []byte, endKey []byte, limit int) (*backend.GetResult, error) {
+func (b *Backend) GetRange(ctx context.Context, startKey, endKey backend.Key, limit int) (*backend.GetResult, error) {
 	docSnaps, err := b.getRangeDocs(ctx, startKey, endKey, limit)
 	if err != nil {
 		return nil, trace.Wrap(err)
@@ -456,7 +512,7 @@ func (b *Backend) GetRange(ctx context.Context, startKey []byte, endKey []byte, 
 }
 
 // DeleteRange deletes range of items with keys between startKey and endKey
-func (b *Backend) DeleteRange(ctx context.Context, startKey, endKey []byte) error {
+func (b *Backend) DeleteRange(ctx context.Context, startKey, endKey backend.Key) error {
 	docs, err := b.getRangeDocs(ctx, startKey, endKey, backend.DefaultRangeLimit)
 	if err != nil {
 		return trace.Wrap(err)
@@ -466,7 +522,7 @@ func (b *Backend) DeleteRange(ctx context.Context, startKey, endKey []byte) erro
 }
 
 // Get returns a single item or not found error
-func (b *Backend) Get(ctx context.Context, key []byte) (*backend.Item, error) {
+func (b *Backend) Get(ctx context.Context, key backend.Key) (*backend.Item, error) {
 	if len(key) == 0 {
 		return nil, trace.BadParameter("missing parameter key")
 	}
@@ -516,7 +572,7 @@ func (b *Backend) CompareAndSwap(ctx context.Context, expected backend.Item, rep
 	if len(replaceWith.Key) == 0 {
 		return nil, trace.BadParameter("missing parameter Key")
 	}
-	if !bytes.Equal(expected.Key, replaceWith.Key) {
+	if expected.Key.Compare(replaceWith.Key) != 0 {
 		return nil, trace.BadParameter("expected and replaceWith keys should match")
 	}
 
@@ -550,7 +606,7 @@ func (b *Backend) CompareAndSwap(ctx context.Context, expected backend.Item, rep
 }
 
 // Delete deletes item by key
-func (b *Backend) Delete(ctx context.Context, key []byte) error {
+func (b *Backend) Delete(ctx context.Context, key backend.Key) error {
 	if len(key) == 0 {
 		return trace.BadParameter("missing parameter key")
 	}
@@ -638,7 +694,7 @@ func (b *Backend) newLease(item backend.Item) *backend.Lease {
 // IDs. See
 // https://firebase.google.com/docs/firestore/quotas#collections_documents_and_fields
 // for Firestore limitations.
-func (b *Backend) keyToDocumentID(key []byte) string {
+func (b *Backend) keyToDocumentID(key backend.Key) string {
 	// URL-safe base64 will not have periods or forward slashes.
 	// This should satisfy the Firestore requirements.
 	return base64.URLEncoding.EncodeToString(key)
@@ -844,7 +900,8 @@ func ConvertGRPCError(err error, args ...interface{}) error {
 }
 
 func (b *Backend) getIndexParent() string {
-	return "projects/" + b.ProjectID + "/databases/(default)/collectionGroups/" + b.CollectionName
+	database := cmp.Or(b.backendConfig.Config.DatabaseID, "(default)")
+	return "projects/" + b.ProjectID + "/databases/" + database + "/collectionGroups/" + b.CollectionName
 }
 
 func (b *Backend) ensureIndexes(adminSvc *apiv1.FirestoreAdminClient) error {

@@ -33,6 +33,8 @@ import (
 	oteltrace "go.opentelemetry.io/otel/trace"
 
 	"github.com/gravitational/teleport"
+	auditlogpb "github.com/gravitational/teleport/api/gen/proto/go/teleport/auditlog/v1"
+	"github.com/gravitational/teleport/api/internalutils/stream"
 	apievents "github.com/gravitational/teleport/api/types/events"
 	"github.com/gravitational/teleport/lib/backend"
 	"github.com/gravitational/teleport/lib/events"
@@ -49,6 +51,11 @@ const (
 	defaultBatchItems = 20000
 	// defaultBatchInterval defines default batch interval.
 	defaultBatchInterval = 1 * time.Minute
+
+	// topicARNBypass is a magic value for TopicARN that signifies that the
+	// Athena audit log should send messages directly to SQS instead of going
+	// through a SNS topic.
+	topicARNBypass = "bypass"
 )
 
 // Config structure represents Athena configuration.
@@ -59,7 +66,9 @@ type Config struct {
 
 	// Publisher settings.
 
-	// TopicARN where to emit events in SNS (required).
+	// TopicARN where to emit events in SNS (required). If TopicARN is "bypass"
+	// (i.e. [topicArnBypass]) then the events should be emitted directly to the
+	// SQS queue reachable at QueryURL.
 	TopicARN string
 	// LargeEventsS3 is location on S3 where temporary large events (>256KB)
 	// are stored before converting it to Parquet and moving to long term
@@ -103,7 +112,9 @@ type Config struct {
 
 	// Batcher settings.
 
-	// QueueURL is URL of SQS, which is set as subscriber to SNS topic (required).
+	// QueueURL is URL of SQS, which is set as subscriber to SNS topic if we're
+	// emitting to SNS, or used directly to send messages if we're bypassing SNS
+	// (required).
 	QueueURL string
 	// BatchMaxItems defines how many items can be stored in single Parquet
 	// batch (optional).
@@ -111,6 +122,12 @@ type Config struct {
 	BatchMaxItems int
 	// BatchMaxInterval defined interval at which parquet files will be created (optional).
 	BatchMaxInterval time.Duration
+	// ConsumerLockName defines a name of a SQS consumer lock (optional).
+	// If provided, it will be prefixed with "athena/" to avoid accidental
+	// collision with existing locks.
+	ConsumerLockName string
+	// ConsumerDisabled defines if SQS consumer should be disabled (optional).
+	ConsumerDisabled bool
 
 	// Clock is a clock interface, used in tests.
 	Clock clockwork.Clock
@@ -162,7 +179,7 @@ func (cfg *Config) CheckAndSetDefaults(ctx context.Context) error {
 		return trace.BadParameter("Database name too long")
 	}
 	if !isAlphanumericOrUnderscore(cfg.Database) {
-		return trace.BadParameter("Database name can contains only alphanumeric or underscore characters")
+		return trace.BadParameter("Database name can only contain alphanumeric or underscore characters")
 	}
 
 	if cfg.TableName == "" {
@@ -174,7 +191,7 @@ func (cfg *Config) CheckAndSetDefaults(ctx context.Context) error {
 	// TableName is appended directly to athena query. That's why we put extra care
 	// that no weird chars are passed here.
 	if !isAlphanumericOrUnderscore(cfg.TableName) {
-		return trace.BadParameter("TableName can contains only alphanumeric or underscore characters")
+		return trace.BadParameter("TableName can only contain alphanumeric or underscore characters")
 	}
 
 	if cfg.TopicARN == "" {
@@ -403,6 +420,16 @@ func (cfg *Config) SetFromURL(url *url.URL) error {
 		}
 		cfg.BatchMaxInterval = dur
 	}
+	if consumerLockName := url.Query().Get("consumerLockName"); consumerLockName != "" {
+		cfg.ConsumerLockName = consumerLockName
+	}
+	if val := url.Query().Get("consumerDisabled"); val != "" {
+		boolVal, err := strconv.ParseBool(val)
+		if err != nil {
+			return trace.BadParameter("invalid consumerDisabled value: %v", err)
+		}
+		cfg.ConsumerDisabled = boolVal
+	}
 
 	return nil
 }
@@ -457,6 +484,8 @@ func New(ctx context.Context, cfg Config) (*Log, error) {
 		database:                     cfg.Database,
 		workgroup:                    cfg.Workgroup,
 		queryResultsS3:               cfg.QueryResultsS3,
+		locationS3Prefix:             cfg.locationS3Prefix,
+		locationS3Bucket:             cfg.locationS3Bucket,
 		getQueryResultsInterval:      cfg.GetQueryResultsInterval,
 		disableQueryCostOptimization: cfg.DisableSearchCostOptimization,
 		awsCfg:                       cfg.StorerQuerierAWSConfig,
@@ -468,20 +497,23 @@ func New(ctx context.Context, cfg Config) (*Log, error) {
 		return nil, trace.Wrap(err)
 	}
 
-	consumerCtx, consumerCancel := context.WithCancel(ctx)
-
-	consumer, err := newConsumer(cfg, consumerCancel)
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-
 	l := &Log{
-		publisher:      newPublisherFromAthenaConfig(cfg),
-		querier:        querier,
-		consumerCloser: consumer,
+		publisher: newPublisherFromAthenaConfig(cfg),
+		querier:   querier,
 	}
 
-	go consumer.run(consumerCtx)
+	if !cfg.ConsumerDisabled {
+		consumerCtx, consumerCancel := context.WithCancel(ctx)
+
+		consumer, err := newConsumer(cfg, consumerCancel)
+		if err != nil {
+			return nil, trace.Wrap(err)
+		}
+
+		l.consumerCloser = consumer
+
+		go consumer.run(consumerCtx)
+	}
 
 	return l, nil
 }
@@ -495,12 +527,24 @@ func (l *Log) SearchEvents(ctx context.Context, req events.SearchEventsRequest) 
 	return l.querier.SearchEvents(ctx, req)
 }
 
+func (l *Log) ExportUnstructuredEvents(ctx context.Context, req *auditlogpb.ExportUnstructuredEventsRequest) stream.Stream[*auditlogpb.ExportEventUnstructured] {
+	return l.querier.ExportUnstructuredEvents(ctx, req)
+}
+
+func (l *Log) GetEventExportChunks(ctx context.Context, req *auditlogpb.GetEventExportChunksRequest) stream.Stream[*auditlogpb.EventExportChunk] {
+	return l.querier.GetEventExportChunks(ctx, req)
+}
+
 func (l *Log) SearchSessionEvents(ctx context.Context, req events.SearchSessionEventsRequest) ([]apievents.AuditEvent, string, error) {
 	return l.querier.SearchSessionEvents(ctx, req)
 }
 
 func (l *Log) Close() error {
 	return trace.Wrap(l.consumerCloser.Close())
+}
+
+func (l *Log) IsConsumerDisabled() bool {
+	return l.consumerCloser == nil
 }
 
 var isAlphanumericOrUnderscoreRe = regexp.MustCompile("^[a-zA-Z0-9_]+$")
@@ -631,8 +675,4 @@ func newAthenaMetrics(cfg athenaMetricsConfig) (*athenaMetrics, error) {
 		m.consumerAgeOfOldestProcessedMessage,
 		m.consumerNumberOfErrorsFromSQSCollect,
 	))
-}
-
-type trimmableEvent interface {
-	TrimToMaxSize(int) apievents.AuditEvent
 }

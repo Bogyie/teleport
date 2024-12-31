@@ -261,6 +261,14 @@ export const formatters: Formatters = {
         rest['server_hostname'] || rest['addr.local']
       }] failed [${exitError}]`,
   },
+  [eventCodes.SCP_DISALLOWED]: {
+    type: 'scp',
+    desc: 'SCP Disallowed',
+    format: ({ user, ...rest }) =>
+      `User [${user}] SCP file transfer on node [${
+        rest['server_hostname'] || rest['addr.local']
+      }] blocked`,
+  },
   [eventCodes.SFTP_OPEN]: {
     type: 'sftp',
     desc: 'SFTP Open',
@@ -548,6 +556,30 @@ export const formatters: Formatters = {
       `User [${user}] failed to create symbolic link [${path}] on node [${
         rest['server_hostname'] || rest['addr.local']
       }]: [${error}]`,
+  },
+  [eventCodes.SFTP_LINK]: {
+    type: 'sftp',
+    desc: 'SFTP Link',
+    format: ({ user, path, ...rest }) =>
+      `User [${user}] created hard link [${path}] on node [${
+        rest['server_hostname'] || rest['addr.local']
+      }]`,
+  },
+  [eventCodes.SFTP_LINK_FAILURE]: {
+    type: 'sftp',
+    desc: 'SFTP Link Failed',
+    format: ({ user, path, error, ...rest }) =>
+      `User [${user}] failed to create hard link [${path}] on node [${
+        rest['server_hostname'] || rest['addr.local']
+      }]: [${error}]`,
+  },
+  [eventCodes.SFTP_DISALLOWED]: {
+    type: 'sftp',
+    desc: 'SFTP Disallowed',
+    format: ({ user, ...rest }) =>
+      `User [${user}] was blocked from creating an SFTP session on node [${
+        rest['server_hostname'] || rest['addr.local']
+      }]`,
   },
   [eventCodes.SESSION_JOIN]: {
     type: 'session.join',
@@ -1113,10 +1145,10 @@ export const formatters: Formatters = {
   [eventCodes.DESKTOP_SESSION_STARTED]: {
     type: 'windows.desktop.session.start',
     desc: 'Windows Desktop Session Started',
-    format: ({ user, windows_domain, desktop_name, windows_user }) => {
-      let message = `User [${user}] has connected to Windows desktop [${windows_user}@${desktop_name}]`;
+    format: ({ user, windows_domain, desktop_name, sid, windows_user }) => {
+      let message = `User [${user}] started session ${sid} on Windows desktop [${windows_user}@${desktop_name}]`;
       if (windows_domain) {
-        message += ` on [${windows_domain}]`;
+        message += ` with domain [${windows_domain}]`;
       }
       return message;
     },
@@ -1127,7 +1159,7 @@ export const formatters: Formatters = {
     format: ({ user, windows_domain, desktop_name, windows_user }) => {
       let message = `User [${user}] was denied access to Windows desktop [${windows_user}@${desktop_name}]`;
       if (windows_domain) {
-        message += ` on [${windows_domain}]`;
+        message += ` with domain [${windows_domain}]`;
       }
       return message;
     },
@@ -1135,12 +1167,12 @@ export const formatters: Formatters = {
   [eventCodes.DESKTOP_SESSION_ENDED]: {
     type: 'windows.desktop.session.end',
     desc: 'Windows Desktop Session Ended',
-    format: ({ user, windows_domain, desktop_name, windows_user }) => {
+    format: ({ user, windows_domain, desktop_name, sid, windows_user }) => {
       let desktopMessage = `[${windows_user}@${desktop_name}]`;
       if (windows_domain) {
-        desktopMessage += ` on [${windows_domain}]`;
+        desktopMessage += ` with domain [${windows_domain}]`;
       }
-      let message = `Session for Windows desktop ${desktopMessage} has ended for user [${user}]`;
+      let message = `Session ${sid} for Windows desktop ${desktopMessage} has ended for user [${user}]`;
       return message;
     },
   },
@@ -1194,7 +1226,7 @@ export const formatters: Formatters = {
   },
   [eventCodes.DEVICE_CREATE]: {
     type: 'device.create',
-    desc: 'Device Register',
+    desc: 'Device Registered',
     format: ({ user, status, success }) =>
       success || (status && status.success)
         ? `User [${user}] has registered a device`
@@ -1202,7 +1234,7 @@ export const formatters: Formatters = {
   },
   [eventCodes.DEVICE_DELETE]: {
     type: 'device.delete',
-    desc: 'Device Delete',
+    desc: 'Device Deleted',
     format: ({ user, status, success }) =>
       success || (status && status.success)
         ? `User [${user}] has deleted a device`
@@ -1210,7 +1242,7 @@ export const formatters: Formatters = {
   },
   [eventCodes.DEVICE_AUTHENTICATE]: {
     type: 'device.authenticate',
-    desc: 'Device Authenticate',
+    desc: 'Device Authenticated',
     format: ({ user, status, success }) =>
       success || (status && status.success)
         ? `User [${user}] has successfully authenticated their device`
@@ -1218,7 +1250,7 @@ export const formatters: Formatters = {
   },
   [eventCodes.DEVICE_ENROLL]: {
     type: 'device.enroll',
-    desc: 'Device Enrollment',
+    desc: 'Device Enrolled',
     format: ({ user, status, success }) =>
       success || (status && status.success)
         ? `User [${user}] has successfully enrolled their device`
@@ -1226,7 +1258,7 @@ export const formatters: Formatters = {
   },
   [eventCodes.DEVICE_ENROLL_TOKEN_CREATE]: {
     type: 'device.token.create',
-    desc: 'Device Enroll Token Create',
+    desc: 'Device Enroll Token Created',
     format: ({ user, status, success }) =>
       success || (status && status.success)
         ? `User [${user}] created a device enroll token`
@@ -1242,7 +1274,7 @@ export const formatters: Formatters = {
   },
   [eventCodes.DEVICE_UPDATE]: {
     type: 'device.update',
-    desc: 'Device Update',
+    desc: 'Device Updated',
     format: ({ user, status, success }) =>
       success || (status && status.success)
         ? `User [${user}] has updated a device`
@@ -1310,11 +1342,25 @@ export const formatters: Formatters = {
       return `Bot [${bot_name}] joined the cluster using the [${method}] join method`;
     },
   },
+  [eventCodes.BOT_JOIN_FAILURE]: {
+    type: 'bot.join',
+    desc: 'Bot Join Failed',
+    format: ({ bot_name }) => {
+      return `Bot [${bot_name || 'unknown'}] failed to join the cluster`;
+    },
+  },
   [eventCodes.INSTANCE_JOIN]: {
     type: 'instance.join',
     desc: 'Instance Joined',
     format: ({ node_name, role, method }) => {
       return `Instance [${node_name}] joined the cluster with the [${role}] role using the [${method}] join method`;
+    },
+  },
+  [eventCodes.INSTANCE_JOIN_FAILURE]: {
+    type: 'instance.join',
+    desc: 'Instance Join Failed',
+    format: ({ node_name }) => {
+      return `Instance [${node_name || 'unknown'}] failed to join the cluster`;
     },
   },
   [eventCodes.LOGIN_RULE_CREATE]: {
@@ -1569,6 +1615,55 @@ export const formatters: Formatters = {
     desc: 'External Audit Storage Disabled',
     format: ({ updated_by }) =>
       `User [${updated_by}] disabled External Audit Storage`,
+  },
+  [eventCodes.DISCOVERY_CONFIG_CREATE]: {
+    type: 'discovery_config.create',
+    desc: 'Discovery Config Created',
+    format: ({ user, name }) => {
+      return `User [${user}] created a discovery config [${name}]`;
+    },
+  },
+  [eventCodes.DISCOVERY_CONFIG_UPDATE]: {
+    type: 'discovery_config.update',
+    desc: 'Discovery Config Updated',
+    format: ({ user, name }) => {
+      return `User [${user}] updated a discovery config [${name}]`;
+    },
+  },
+  [eventCodes.DISCOVERY_CONFIG_DELETE]: {
+    type: 'discovery_config.delete',
+    desc: 'Discovery Config Deleted',
+    format: ({ user, name }) => {
+      return `User [${user}] deleted a discovery config [${name}]`;
+    },
+  },
+  [eventCodes.DISCOVERY_CONFIG_DELETE_ALL]: {
+    type: 'discovery_config.delete_all',
+    desc: 'All Discovery Configs Deleted',
+    format: ({ user }) => {
+      return `User [${user}] deleted all discovery configs`;
+    },
+  },
+  [eventCodes.INTEGRATION_CREATE]: {
+    type: 'integration.create',
+    desc: 'Integration Created',
+    format: ({ user, name }) => {
+      return `User [${user}] created an integration [${name}]`;
+    },
+  },
+  [eventCodes.INTEGRATION_UPDATE]: {
+    type: 'integration.update',
+    desc: 'Integration Updated',
+    format: ({ user, name }) => {
+      return `User [${user}] updated an integration [${name}]`;
+    },
+  },
+  [eventCodes.INTEGRATION_DELETE]: {
+    type: 'integration.delete',
+    desc: 'Integration Deleted',
+    format: ({ user, name }) => {
+      return `User [${user}] deleted an integration [${name}]`;
+    },
   },
   [eventCodes.UNKNOWN]: {
     type: 'unknown',

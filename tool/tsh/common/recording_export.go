@@ -78,7 +78,10 @@ func makeAVIFileName(prefix string, currentFile int) string {
 // writeMovie writes the events for the specified session into one or more movie files
 // beginning with the specified prefix. It returns the number of frames that were written and an error.
 func writeMovie(ctx context.Context, ss events.SessionStreamer, sid session.ID, prefix string,
-	write func(format string, args ...any) (int, error)) (frames int, err error) {
+	write func(format string, args ...any) (int, error),
+) (frames int, err error) {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
 
 	var screen *image.NRGBA
 	var movie mjpeg.AviWriter
@@ -223,7 +226,7 @@ loop:
 	// if we received a session start event but the context is canceled
 	// before we received the screen dimensions, then there's no movie to close
 	if movie == nil {
-		return 0, trace.BadParameter("operation canceled")
+		return 0, ctx.Err()
 	}
 
 	err = movie.Close()

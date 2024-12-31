@@ -32,6 +32,7 @@ import (
 	"reflect"
 	"regexp"
 	"runtime"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -40,7 +41,6 @@ import (
 	"github.com/go-ldap/ldap/v3"
 	"github.com/gravitational/trace"
 	log "github.com/sirupsen/logrus"
-	"golang.org/x/exp/slices"
 	kyaml "k8s.io/apimachinery/pkg/util/yaml"
 
 	"github.com/gravitational/teleport"
@@ -48,12 +48,13 @@ import (
 	"github.com/gravitational/teleport/api/constants"
 	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib"
+	"github.com/gravitational/teleport/lib/automaticupgrades"
 	"github.com/gravitational/teleport/lib/backend"
 	"github.com/gravitational/teleport/lib/backend/lite"
 	"github.com/gravitational/teleport/lib/backend/memory"
 	"github.com/gravitational/teleport/lib/client"
 	"github.com/gravitational/teleport/lib/defaults"
-	dtconfig "github.com/gravitational/teleport/lib/devicetrust/config"
+	"github.com/gravitational/teleport/lib/integrations/externalauditstorage/easconfig"
 	"github.com/gravitational/teleport/lib/limiter"
 	"github.com/gravitational/teleport/lib/multiplexer"
 	"github.com/gravitational/teleport/lib/pam"
@@ -217,7 +218,18 @@ type CommandLineFlags struct {
 
 	// IntegrationConfExternalAuditStorageArguments contains the arguments of the
 	// `teleport integration configure externalauditstorage` command
-	IntegrationConfExternalAuditStorageArguments IntegrationConfExternalAuditStorage
+	IntegrationConfExternalAuditStorageArguments easconfig.ExternalAuditStorageConfiguration
+
+	// IntegrationConfAccessGraphAWSSyncArguments contains the arguments of
+	// `teleport integration configure access-graph aws-iam` command
+	IntegrationConfAccessGraphAWSSyncArguments IntegrationConfAccessGraphAWSSync
+}
+
+// IntegrationConfAccessGraphAWSSync contains the arguments of
+// `teleport integration configure access-graph aws-iam` command.
+type IntegrationConfAccessGraphAWSSync struct {
+	// Role is the AWS Role associated with the Integration
+	Role string
 }
 
 // IntegrationConfDeployServiceIAM contains the arguments of
@@ -256,6 +268,22 @@ type IntegrationConfAWSOIDCIdP struct {
 	// ProxyPublicURL is the IdP Issuer URL (Teleport Proxy Public Address).
 	// Eg, https://<tenant>.teleport.sh
 	ProxyPublicURL string
+
+	// S3BucketURI is the S3 URI which contains the bucket name and prefix for the issuer.
+	// Format: s3://<bucket-name>/<prefix>
+	// Eg, s3://my-bucket/idp-teleport
+	// This is used in two places:
+	// - create openid configuration and jwks objects
+	// - set up the issuer
+	// The bucket must be public and will be created if it doesn't exist.
+	//
+	// If empty, the ProxyPublicAddress is used as issuer and no s3 objects are created.
+	S3BucketURI string
+
+	// S3JWKSContentsB64 must contain the public keys for the Issuer.
+	// The contents must be Base64 encoded.
+	// Eg. base64(`{"keys":[{"kty":"RSA","alg":"RS256","n":"<value of n>","e":"<value of e>","use":"sig","kid":""}]}`)
+	S3JWKSContentsB64 string
 }
 
 // IntegrationConfListDatabasesIAM contains the arguments of
@@ -265,33 +293,6 @@ type IntegrationConfListDatabasesIAM struct {
 	Region string
 	// Role is the AWS Role associated with the Integration
 	Role string
-}
-
-// IntegrationConfExternalAuditStorage contains the arguments of the
-// `teleport integration configure externalauditstorage` command
-type IntegrationConfExternalAuditStorage struct {
-	// Bootstrap is whether to bootstrap infrastructure (default: false).
-	Bootstrap bool
-	// Region is the AWS Region used.
-	Region string
-	// Role is the AWS IAM Role associated with the OIDC integration.
-	Role string
-	// Policy is the name to use for the IAM policy.
-	Policy string
-	// SessionRecordingsURI is the S3 URI where session recordings are stored.
-	SessionRecordingsURI string
-	// AuditEventsURI is the S3 URI where audit events are stored.
-	AuditEventsURI string
-	// AthenaResultsURI is the S3 URI where temporary Athena results are stored.
-	AthenaResultsURI string
-	// AthenaWorkgroup is the name of the Athena workgroup used.
-	AthenaWorkgroup string
-	// GlueDatabase is the name of the Glue database used.
-	GlueDatabase string
-	// GlueTable is the name of the Glue table used.
-	GlueTable string
-	// Partition is the AWS partition to use (default: aws).
-	Partition string
 }
 
 // ReadConfigFile reads /etc/teleport.yaml (or whatever is passed via --config flag)
@@ -343,6 +344,8 @@ func ReadResources(filePath string) ([]types.Resource, error) {
 
 // ApplyFileConfig applies configuration from a YAML file to Teleport
 // runtime config
+//
+// ApplyFileConfig is used by both teleport and tctl binaries.
 func ApplyFileConfig(fc *FileConfig, cfg *servicecfg.Config) error {
 	var err error
 
@@ -382,7 +385,7 @@ func ApplyFileConfig(fc *FileConfig, cfg *servicecfg.Config) error {
 	if fc.AccessGraph.Enabled {
 		cfg.AccessGraph.Enabled = true
 		if fc.AccessGraph.Endpoint == "" {
-			return trace.Errorf("Please, provide access_graph_service.addr configuration variable")
+			return trace.BadParameter("access_graph.endpoint is required when access graph integration is enabled")
 		}
 		cfg.AccessGraph.Addr = fc.AccessGraph.Endpoint
 		cfg.AccessGraph.CA = fc.AccessGraph.CA
@@ -584,10 +587,10 @@ func ApplyFileConfig(fc *FileConfig, cfg *servicecfg.Config) error {
 		}
 	}
 
-	// Apply regardless of Jamf being enabled.
-	// If a config is present, we want it to be valid.
-	if err := applyJamfConfig(fc, cfg); err != nil {
-		return trace.Wrap(err)
+	if fc.Jamf.Enabled() {
+		if err := applyJamfConfig(fc, cfg); err != nil {
+			return trace.Wrap(err)
+		}
 	}
 
 	return nil
@@ -801,9 +804,6 @@ func applyAuthConfig(fc *FileConfig, cfg *servicecfg.Config) error {
 		if err != nil {
 			return trace.Wrap(err)
 		}
-		if err := dtconfig.ValidateConfigAgainstModules(cfg.Auth.Preference.GetDeviceTrust()); err != nil {
-			return trace.Wrap(err)
-		}
 	}
 
 	if fc.Auth.MessageOfTheDay != "" {
@@ -882,13 +882,13 @@ func applyAuthConfig(fc *FileConfig, cfg *servicecfg.Config) error {
 	}
 
 	// read in and set the license file path (not used in open-source version)
-	licenseFile := fc.Auth.LicenseFile
-	if licenseFile != "" {
-		if filepath.IsAbs(licenseFile) {
-			cfg.Auth.LicenseFile = licenseFile
-		} else {
-			cfg.Auth.LicenseFile = filepath.Join(cfg.DataDir, licenseFile)
-		}
+	switch licenseFile := fc.Auth.LicenseFile; {
+	case licenseFile == "":
+		cfg.Auth.LicenseFile = filepath.Join(cfg.DataDir, defaults.LicenseFile)
+	case filepath.IsAbs(licenseFile):
+		cfg.Auth.LicenseFile = licenseFile
+	default:
+		cfg.Auth.LicenseFile = filepath.Join(cfg.DataDir, licenseFile)
 	}
 
 	cfg.Auth.LoadAllCAs = fc.Auth.LoadAllCAs
@@ -902,7 +902,7 @@ func applyAuthConfig(fc *FileConfig, cfg *servicecfg.Config) error {
 	}
 
 	if fc.Auth.AccessMonitoring != nil {
-		if fc.Auth.AccessMonitoring.CheckAndSetDefaults(); err != nil {
+		if err := fc.Auth.AccessMonitoring.CheckAndSetDefaults(); err != nil {
 			return trace.Wrap(err, "failed to validate access monitoring config")
 		}
 		cfg.Auth.AccessMonitoring = fc.Auth.AccessMonitoring
@@ -998,6 +998,14 @@ func validatePROXYProtocolValue(p multiplexer.PROXYProtocolMode) error {
 	return nil
 }
 
+const proxyUntrustedTLSCertErrMsg = `The Proxy Service was unable to validate the certificate chain of the
+  configured TLS certificate. The authority that issued this certificate is not
+  trusted on this host. Using an untrusted certificate is likely to cause
+  connection problems when clients and other Teleport services connect to this
+  Proxy Service. To trust a custom certificate authority you may set the
+  SSL_CERT_FILE or SSL_CERT_DIR environment variables to a path with your
+  authority's certificate chain.`
+
 // applyProxyConfig applies file configuration for the "proxy_service" section.
 func applyProxyConfig(fc *FileConfig, cfg *servicecfg.Config) error {
 	var err error
@@ -1083,6 +1091,11 @@ func applyProxyConfig(fc *FileConfig, cfg *servicecfg.Config) error {
 
 	if fc.Proxy.AutomaticUpgradesChannels != nil {
 		cfg.Proxy.AutomaticUpgradesChannels = fc.Proxy.AutomaticUpgradesChannels
+	} else {
+		cfg.Proxy.AutomaticUpgradesChannels = make(automaticupgrades.Channels)
+	}
+	if err = cfg.Proxy.AutomaticUpgradesChannels.CheckAndSetDefaults(); err != nil {
+		return trace.Wrap(err, "validating the automatic upgrades configuration")
 	}
 
 	// This is the legacy format. Continue to support it forever, but ideally
@@ -1116,11 +1129,11 @@ func applyProxyConfig(fc *FileConfig, cfg *servicecfg.Config) error {
 			warningMessage := "Starting Teleport with a self-signed TLS certificate, this is " +
 				"not safe for production clusters. Using a self-signed certificate opens " +
 				"Teleport users to Man-in-the-Middle attacks."
-			log.Warnf(warningMessage)
+			log.Warn(warningMessage)
 		} else {
 			if err := utils.VerifyCertificateChain(certificateChain); err != nil {
-				return trace.BadParameter("unable to verify HTTPS certificate chain in %v: %s",
-					fc.Proxy.CertFile, utils.UserMessageFromError(err))
+				return trace.BadParameter("unable to verify HTTPS certificate chain in %v:\n\n  %s\n\n  %s",
+					p.Certificate, proxyUntrustedTLSCertErrMsg, err)
 			}
 		}
 
@@ -1460,16 +1473,18 @@ func applyDiscoveryConfig(fc *FileConfig, cfg *servicecfg.Config) error {
 
 	for _, matcher := range fc.Discovery.AzureMatchers {
 		var installerParams *types.InstallerParams
-		if matcher.InstallParams != nil {
+		if slices.Contains(matcher.Types, types.AzureMatcherVM) {
 			installerParams = &types.InstallerParams{
-				JoinMethod:      matcher.InstallParams.JoinParams.Method,
-				JoinToken:       matcher.InstallParams.JoinParams.TokenName,
-				ScriptName:      matcher.InstallParams.ScriptName,
 				PublicProxyAddr: getInstallerProxyAddr(matcher.InstallParams, fc),
 			}
-			if matcher.InstallParams.Azure != nil {
-				installerParams.Azure = &types.AzureInstallerParams{
-					ClientID: matcher.InstallParams.Azure.ClientID,
+			if matcher.InstallParams != nil {
+				installerParams.JoinMethod = matcher.InstallParams.JoinParams.Method
+				installerParams.JoinToken = matcher.InstallParams.JoinParams.TokenName
+				installerParams.ScriptName = matcher.InstallParams.ScriptName
+				if matcher.InstallParams.Azure != nil {
+					installerParams.Azure = &types.AzureInstallerParams{
+						ClientID: matcher.InstallParams.Azure.ClientID,
+					}
 				}
 			}
 		}
@@ -1491,14 +1506,17 @@ func applyDiscoveryConfig(fc *FileConfig, cfg *servicecfg.Config) error {
 
 	for _, matcher := range fc.Discovery.GCPMatchers {
 		var installerParams *types.InstallerParams
-		if matcher.InstallParams != nil {
+		if slices.Contains(matcher.Types, types.GCPMatcherCompute) {
 			installerParams = &types.InstallerParams{
-				JoinMethod:      matcher.InstallParams.JoinParams.Method,
-				JoinToken:       matcher.InstallParams.JoinParams.TokenName,
-				ScriptName:      matcher.InstallParams.ScriptName,
 				PublicProxyAddr: getInstallerProxyAddr(matcher.InstallParams, fc),
 			}
+			if matcher.InstallParams != nil {
+				installerParams.JoinMethod = matcher.InstallParams.JoinParams.Method
+				installerParams.JoinToken = matcher.InstallParams.JoinParams.TokenName
+				installerParams.ScriptName = matcher.InstallParams.ScriptName
+			}
 		}
+
 		serviceMatcher := types.GCPMatcher{
 			Types:           matcher.Types,
 			Locations:       matcher.Locations,
@@ -1533,6 +1551,28 @@ kubernetes matchers are present`)
 		}
 
 		cfg.Discovery.KubernetesMatchers = append(cfg.Discovery.KubernetesMatchers, serviceMatcher)
+	}
+
+	if fc.Discovery.AccessGraph != nil {
+		var tMatcher types.AccessGraphSync
+		for _, awsMatcher := range fc.Discovery.AccessGraph.AWS {
+			regions := awsMatcher.Regions
+			if len(regions) == 0 {
+				return trace.BadParameter("missing regions in access_graph")
+			}
+			var assumeRole *types.AssumeRole
+			if awsMatcher.AssumeRoleARN != "" || awsMatcher.ExternalID != "" {
+				assumeRole = &types.AssumeRole{
+					RoleARN:    awsMatcher.AssumeRoleARN,
+					ExternalID: awsMatcher.ExternalID,
+				}
+			}
+			tMatcher.AWS = append(tMatcher.AWS, &types.AccessGraphAWSSync{
+				Regions:    regions,
+				AssumeRole: assumeRole,
+			})
+		}
+		cfg.Discovery.AccessGraph = &tMatcher
 	}
 
 	return nil
@@ -2169,7 +2209,7 @@ func Configure(clf *CommandLineFlags, cfg *servicecfg.Config, legacyAppFlags boo
 			log.SetLevel(log.DebugLevel)
 			cfg.Log.SetLevel(log.DebugLevel)
 		} else {
-			if fileConf.Logger.Severity != "trace" {
+			if strings.ToLower(fileConf.Logger.Severity) != "trace" {
 				fileConf.Logger.Severity = teleport.DebugLevel
 			}
 		}

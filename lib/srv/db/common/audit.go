@@ -22,6 +22,7 @@ import (
 	"github.com/gravitational/trace"
 	"github.com/sirupsen/logrus"
 
+	"github.com/gravitational/teleport"
 	apidefaults "github.com/gravitational/teleport/api/defaults"
 	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/api/types/events"
@@ -113,6 +114,7 @@ func (a *audit) OnSessionStart(ctx context.Context, session *Session, sessionErr
 		Status: events.Status{
 			Success: true,
 		},
+		PostgresPID: session.PostgresPID,
 	}
 
 	// If the database session wasn't started successfully, emit
@@ -198,6 +200,7 @@ func MakeEventMetadata(session *Session, eventType, eventCode string) events.Met
 // MakeServerMetadata returns common server metadata for database session.
 func MakeServerMetadata(session *Session) events.ServerMetadata {
 	return events.ServerMetadata{
+		ServerVersion:   teleport.Version,
 		ServerID:        session.HostID,
 		ServerNamespace: apidefaults.Namespace,
 	}

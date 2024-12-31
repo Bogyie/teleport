@@ -21,16 +21,20 @@ package srv
 import (
 	"context"
 	"fmt"
+	"os"
 	"os/exec"
 	"os/user"
+	"path/filepath"
 	"strconv"
 	"syscall"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/gravitational/teleport"
 	"github.com/gravitational/teleport/api/types"
+	"github.com/gravitational/teleport/lib/utils/host"
 )
 
 type stubUser struct {
@@ -85,8 +89,8 @@ func TestStartNewParker(t *testing.T) {
 			newOsPack: func(t *testing.T) (*osWrapper, func()) {
 				return &osWrapper{
 					LookupGroup: func(name string) (*user.Group, error) {
-						require.Equal(t, types.TeleportServiceGroup, name)
-						return nil, user.UnknownGroupError(types.TeleportServiceGroup)
+						require.Equal(t, types.TeleportDropGroup, name)
+						return nil, user.UnknownGroupError(types.TeleportDropGroup)
 					},
 				}, func() {}
 			},
@@ -97,7 +101,7 @@ func TestStartNewParker(t *testing.T) {
 			newOsPack: func(t *testing.T) (*osWrapper, func()) {
 				return &osWrapper{
 					LookupGroup: func(name string) (*user.Group, error) {
-						require.Equal(t, types.TeleportServiceGroup, name)
+						require.Equal(t, types.TeleportDropGroup, name)
 						return &user.Group{Gid: "1234"}, nil
 					},
 					CommandContext: func(ctx context.Context, name string, arg ...string) *exec.Cmd {
@@ -123,7 +127,7 @@ func TestStartNewParker(t *testing.T) {
 
 				return &osWrapper{
 						LookupGroup: func(name string) (*user.Group, error) {
-							require.Equal(t, types.TeleportServiceGroup, name)
+							require.Equal(t, types.TeleportDropGroup, name)
 							return &user.Group{Gid: currentUser.Gid}, nil
 						},
 						CommandContext: func(ctx context.Context, name string, arg ...string) *exec.Cmd {
@@ -172,4 +176,75 @@ func TestStartNewParker(t *testing.T) {
 			assertExpected()
 		})
 	}
+}
+
+func TestRootCheckHomeDir(t *testing.T) {
+	if os.Geteuid() != 0 {
+		t.Skip("This test will be skipped because tests are not being run as root")
+	}
+
+	tmp := t.TempDir()
+	require.NoError(t, os.Chmod(filepath.Dir(tmp), 0777))
+	require.NoError(t, os.Chmod(tmp, 0777))
+
+	home := filepath.Join(tmp, "home")
+	noAccess := filepath.Join(tmp, "no_access")
+	file := filepath.Join(tmp, "file")
+	notFound := filepath.Join(tmp, "not_found")
+
+	require.NoError(t, os.Mkdir(home, 0700))
+	require.NoError(t, os.Mkdir(noAccess, 0700))
+	_, err := os.Create(file)
+	require.NoError(t, err)
+
+	login := "test-user-check-home-dir"
+	_, err = host.UserAdd(login, nil, home, "", "")
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		// change back to accessible home so deletion works
+		changeHomeDir(t, login, home)
+		_, err := host.UserDel(login)
+		require.NoError(t, err)
+	})
+
+	testUser, err := user.Lookup(login)
+	require.NoError(t, err)
+
+	uid, err := strconv.Atoi(testUser.Uid)
+	require.NoError(t, err)
+
+	gid, err := strconv.Atoi(testUser.Gid)
+	require.NoError(t, err)
+
+	require.NoError(t, os.Chown(home, uid, gid))
+	require.NoError(t, os.Chown(file, uid, gid))
+
+	hasAccess, err := CheckHomeDir(testUser)
+	require.NoError(t, err)
+	require.True(t, hasAccess)
+
+	changeHomeDir(t, login, file)
+	hasAccess, err = CheckHomeDir(testUser)
+	require.NoError(t, err)
+	require.False(t, hasAccess)
+
+	changeHomeDir(t, login, notFound)
+	hasAccess, err = CheckHomeDir(testUser)
+	require.NoError(t, err)
+	require.False(t, hasAccess)
+
+	changeHomeDir(t, login, noAccess)
+	hasAccess, err = CheckHomeDir(testUser)
+	require.NoError(t, err)
+	require.False(t, hasAccess)
+}
+
+func changeHomeDir(t *testing.T, username, home string) {
+	usermodBin, err := exec.LookPath("usermod")
+	assert.NoError(t, err, "usermod binary must be present")
+
+	cmd := exec.Command(usermodBin, "--home", home, username)
+	_, err = cmd.CombinedOutput()
+	assert.NoError(t, err, "changing home should not error")
+	assert.Equal(t, 0, cmd.ProcessState.ExitCode(), "changing home should exit 0")
 }

@@ -18,6 +18,7 @@ package dynamoevents
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"math/rand"
 	"net/url"
@@ -30,6 +31,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/gravitational/trace"
 	"github.com/jonboulle/clockwork"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/gravitational/teleport"
@@ -37,6 +39,7 @@ import (
 	apievents "github.com/gravitational/teleport/api/types/events"
 	"github.com/gravitational/teleport/lib/events"
 	"github.com/gravitational/teleport/lib/events/test"
+	"github.com/gravitational/teleport/lib/session"
 	"github.com/gravitational/teleport/lib/utils"
 )
 
@@ -60,10 +63,12 @@ func setupDynamoContext(t *testing.T) *dynamoContext {
 	fakeClock := clockwork.NewFakeClockAt(time.Now().UTC())
 
 	log, err := New(context.Background(), Config{
-		Region:       "eu-north-1",
-		Tablename:    fmt.Sprintf("teleport-test-%v", uuid.New().String()),
-		Clock:        fakeClock,
-		UIDGenerator: utils.NewFakeUID(),
+		Region:             "us-east-1",
+		Tablename:          fmt.Sprintf("teleport-test-%v", uuid.New().String()),
+		Clock:              fakeClock,
+		UIDGenerator:       utils.NewFakeUID(),
+		ReadCapacityUnits:  100,
+		WriteCapacityUnits: 100,
 	})
 	require.NoError(t, err)
 
@@ -110,6 +115,32 @@ func TestSearchSessionEvensBySessionID(t *testing.T) {
 	tt := setupDynamoContext(t)
 
 	tt.suite.SearchSessionEventsBySessionID(t)
+}
+
+// TestCheckpointOutsideOfWindow tests if [Log] doesn't panic
+// if checkpoint date is outside of the window [fromUTC,toUTC].
+func TestCheckpointOutsideOfWindow(t *testing.T) {
+	tt := &Log{}
+
+	key := checkpointKey{
+		Date: "2022-10-02",
+	}
+	keyB, err := json.Marshal(key)
+	require.NoError(t, err)
+
+	results, nextKey, err := tt.SearchEvents(
+		context.Background(),
+		events.SearchEventsRequest{
+			From:     time.Date(2021, 10, 10, 0, 0, 0, 0, time.UTC),
+			To:       time.Date(2021, 11, 10, 0, 0, 0, 0, time.UTC),
+			Limit:    100,
+			StartKey: string(keyB),
+			Order:    types.EventOrderAscending,
+		},
+	)
+	require.NoError(t, err)
+	require.Empty(t, results)
+	require.Empty(t, nextKey)
 }
 
 func TestSizeBreak(t *testing.T) {
@@ -270,24 +301,39 @@ func TestEmitAuditEventForLargeEvents(t *testing.T) {
 	err := tt.suite.Log.EmitAuditEvent(ctx, dbQueryEvent)
 	require.NoError(t, err)
 
-	result, _, err := tt.suite.Log.SearchEvents(ctx, events.SearchEventsRequest{
-		From:       now.Add(-1 * time.Hour),
-		To:         now.Add(time.Hour),
-		EventTypes: []string{events.DatabaseSessionQueryEvent},
-		Order:      types.EventOrderAscending,
-	})
-	require.NoError(t, err)
-	require.Len(t, result, 1)
+	require.EventuallyWithT(t, func(t *assert.CollectT) {
+		result, _, err := tt.suite.Log.SearchEvents(ctx, events.SearchEventsRequest{
+			From:       now.Add(-1 * time.Hour),
+			To:         now.Add(time.Hour),
+			EventTypes: []string{events.DatabaseSessionQueryEvent},
+			Order:      types.EventOrderAscending,
+		})
+		assert.NoError(t, err)
+		assert.Len(t, result, 1)
+	}, 10*time.Second, 500*time.Millisecond)
 
-	appReqEvent := &apievents.AppSessionRequest{
-		Metadata: apievents.Metadata{
-			Time: tt.suite.Clock.Now().UTC(),
-			Type: events.AppSessionRequestEvent,
+	appReqEvent := &testAuditEvent{
+		AppSessionRequest: apievents.AppSessionRequest{
+			Metadata: apievents.Metadata{
+				Time: tt.suite.Clock.Now().UTC(),
+				Type: events.AppSessionRequestEvent,
+			},
+			Path: strings.Repeat("A", maxItemSize),
 		},
-		Path: strings.Repeat("A", maxItemSize),
 	}
 	err = tt.suite.Log.EmitAuditEvent(ctx, appReqEvent)
 	require.ErrorContains(t, err, "ValidationException: Item size has exceeded the maximum allowed size")
+}
+
+// testAuditEvent wraps an existing AuditEvent, but overrides
+// the TrimToMaxSize to be a noop so that functionality can
+// be tested if an event exceeds the size limits.
+type testAuditEvent struct {
+	apievents.AppSessionRequest
+}
+
+func (t *testAuditEvent) TrimToMaxSize(maxSizeBytes int) apievents.AuditEvent {
+	return t
 }
 
 func TestConfig_SetFromURL(t *testing.T) {
@@ -429,6 +475,119 @@ func TestConfig_CheckAndSetDefaults(t *testing.T) {
 			err := test.config.CheckAndSetDefaults()
 			test.assertionFn(t, test.config, err)
 		})
+	}
+}
+
+// TestEmitSessionEventsSameIndex given events that share the same session ID
+// and index, the emit should succeed.
+func TestEmitSessionEventsSameIndex(t *testing.T) {
+	ctx := context.Background()
+	tt := setupDynamoContext(t)
+	sessionID := session.NewID()
+
+	require.NoError(t, tt.log.EmitAuditEvent(ctx, generateEvent(sessionID, 0, "")))
+	require.NoError(t, tt.log.EmitAuditEvent(ctx, generateEvent(sessionID, 1, "")))
+	require.NoError(t, tt.log.EmitAuditEvent(ctx, generateEvent(sessionID, 1, "")))
+}
+
+// TestSearchEventsLimitEndOfDay tests if the search events function can handle
+// moving the cursor to the next day when the limit is reached exactly at the
+// end of the day.
+// This only works if tests run against a real DynamoDB instance.
+func TestSearchEventsLimitEndOfDay(t *testing.T) {
+
+	ctx := context.Background()
+	tt := setupDynamoContext(t)
+	blob := "data"
+	const eventCount int = 10
+
+	// create events for two days
+	for dayDiff := 0; dayDiff < 2; dayDiff++ {
+		for i := 0; i < eventCount; i++ {
+			err := tt.suite.Log.EmitAuditEvent(ctx, &apievents.UserLogin{
+				Method:       events.LoginMethodSAML,
+				Status:       apievents.Status{Success: true},
+				UserMetadata: apievents.UserMetadata{User: "bob"},
+				Metadata: apievents.Metadata{
+					Type: events.UserLoginEvent,
+					Time: tt.suite.Clock.Now().UTC().Add(time.Hour*24*time.Duration(dayDiff) + time.Second*time.Duration(i)),
+				},
+				IdentityAttributes: apievents.MustEncodeMap(map[string]interface{}{"test.data": blob}),
+			})
+			require.NoError(t, err)
+		}
+	}
+
+	windowStart := time.Date(
+		tt.suite.Clock.Now().UTC().Year(),
+		tt.suite.Clock.Now().UTC().Month(),
+		tt.suite.Clock.Now().UTC().Day(),
+		0, /* hour */
+		0, /* minute */
+		0, /* second */
+		0, /* nanosecond */
+		time.UTC)
+	windowEnd := windowStart.Add(time.Hour * 24)
+
+	data, err := json.Marshal(checkpointKey{
+		Date: windowStart.Format("2006-01-02"),
+	})
+	require.NoError(t, err)
+	checkpoint := string(data)
+
+	var gotEvents []apievents.AuditEvent
+	for {
+		fetched, lCheckpoint, err := tt.log.SearchEvents(ctx, events.SearchEventsRequest{
+			From:     windowStart,
+			To:       windowEnd,
+			Limit:    eventCount,
+			Order:    types.EventOrderAscending,
+			StartKey: checkpoint,
+		})
+		require.NoError(t, err)
+		checkpoint = lCheckpoint
+		gotEvents = append(gotEvents, fetched...)
+
+		if checkpoint == "" {
+			break
+		}
+	}
+
+	require.Len(t, gotEvents, eventCount)
+	lastTime := tt.suite.Clock.Now().UTC().Add(-time.Hour)
+
+	for _, event := range gotEvents {
+		require.True(t, event.GetTime().After(lastTime))
+		lastTime = event.GetTime()
+	}
+}
+
+// TestValidationErrorsHandling given events that return validation
+// errors (large event size and already exists), the emit should handle them
+// and succeed on emitting the event when it does support trimming.
+func TestValidationErrorsHandling(t *testing.T) {
+	ctx := context.Background()
+	tt := setupDynamoContext(t)
+	sessionID := session.NewID()
+	largeQuery := strings.Repeat("A", maxItemSize)
+
+	// First write should only trigger the large event size
+	require.NoError(t, tt.log.EmitAuditEvent(ctx, generateEvent(sessionID, 0, largeQuery)))
+	// Second should trigger both errors.
+	require.NoError(t, tt.log.EmitAuditEvent(ctx, generateEvent(sessionID, 0, largeQuery)))
+}
+
+func generateEvent(sessionID session.ID, index int64, query string) apievents.AuditEvent {
+	return &apievents.DatabaseSessionQuery{
+		Metadata: apievents.Metadata{
+			Type:        events.DatabaseSessionQueryEvent,
+			ClusterName: "root",
+			Index:       index,
+		},
+		SessionMetadata: apievents.SessionMetadata{
+			SessionID: sessionID.String(),
+		},
+		DatabaseQuery: query,
 	}
 }
 

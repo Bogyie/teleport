@@ -14,32 +14,28 @@
  * limitations under the License.
  */
 
-import React from 'react';
+import { useEffect, useRef } from 'react';
 import { ButtonIcon, Flex, Text } from 'design';
 import { Trash, Unlink } from 'design/Icon';
 
 import { ExtendedTrackedConnection } from 'teleterm/ui/services/connectionTracker';
 import { ListItem } from 'teleterm/ui/components/ListItem';
-import { assertUnreachable } from 'teleterm/ui/utils';
+import { isDatabaseUri } from 'teleterm/ui/uri';
 
 import { useKeyboardArrowsNavigation } from 'teleterm/ui/components/KeyboardArrowsNavigation';
 
 import { ConnectionStatusIndicator } from './ConnectionStatusIndicator';
 
-interface ConnectionItemProps {
+export function ConnectionItem(props: {
   index: number;
   item: ExtendedTrackedConnection;
-
+  showClusterName: boolean;
   onActivate(): void;
-
   onRemove(): void;
-
   onDisconnect(): void;
-}
-
-export function ConnectionItem(props: ConnectionItemProps) {
+}) {
   const offline = !props.item.connected;
-  const { isActive } = useKeyboardArrowsNavigation({
+  const { isActive, scrollIntoViewIfActive } = useKeyboardArrowsNavigation({
     index: props.index,
     onRun: props.onActivate,
   });
@@ -58,13 +54,24 @@ export function ConnectionItem(props: ConnectionItemProps) {
   };
 
   const actionIcon = offline ? actionIcons.remove : actionIcons.disconnect;
+  const ref = useRef<HTMLElement>();
+
+  useEffect(() => {
+    scrollIntoViewIfActive(ref.current);
+  }, [scrollIntoViewIfActive]);
 
   return (
     <ListItem
       onClick={props.onActivate}
       isActive={isActive}
+      ref={ref}
+      $showClusterName={props.showClusterName}
       css={`
-        padding: 6px 8px;
+        padding: ${props => props.theme.space[1]}px
+          ${props => props.theme.space[2]}px;
+        // Space out items more if there are two lines of text to show inside a single item.
+        margin-block-start: ${props =>
+          props.$showClusterName ? props.theme.space[1] : 0}px;
         height: unset;
       `}
     >
@@ -92,6 +99,7 @@ export function ConnectionItem(props: ConnectionItemProps) {
             color="text.main"
             title={props.item.title}
             css={`
+              // Needed to condense a single item when the cluster name is displayed.
               line-height: 16px;
             `}
           >
@@ -105,7 +113,7 @@ export function ConnectionItem(props: ConnectionItemProps) {
                 border-radius: 4px;
               `}
             >
-              {getKindName(props.item.kind)}
+              {getKindName(props.item)}
             </span>
             <span
               css={`
@@ -115,13 +123,16 @@ export function ConnectionItem(props: ConnectionItemProps) {
               {props.item.title}
             </span>
           </Text>
-          <Text
-            color="text.slightlyMuted"
-            typography="body2"
-            title={props.item.clusterName}
-          >
-            {props.item.clusterName}
-          </Text>
+
+          {props.showClusterName && (
+            <Text
+              color="text.slightlyMuted"
+              typography="body2"
+              title={props.item.clusterName}
+            >
+              {props.item.clusterName}
+            </Text>
+          )}
         </div>
         <ButtonIcon
           mr="-3px"
@@ -138,15 +149,24 @@ export function ConnectionItem(props: ConnectionItemProps) {
   );
 }
 
-function getKindName(kind: ExtendedTrackedConnection['kind']): string {
-  switch (kind) {
+function getKindName(connection: ExtendedTrackedConnection): string {
+  switch (connection.kind) {
     case 'connection.gateway':
-      return 'DB';
+      if (isDatabaseUri(connection.targetUri)) {
+        return 'DB';
+      }
+      return 'UNKNOWN';
     case 'connection.server':
       return 'SSH';
     case 'connection.kube':
       return 'KUBE';
     default:
-      assertUnreachable(kind);
+      // The default branch is triggered when the state read from the disk
+      // contains a connection not supported by the given Connect version.
+      //
+      // For example, the user can open an app connection in Connect v15
+      // and then downgrade to a version that doesn't support apps.
+      // That connection should be shown as 'UNKNOWN' in the connection list.
+      return 'UNKNOWN';
   }
 }

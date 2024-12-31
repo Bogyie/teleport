@@ -106,7 +106,10 @@ const (
 	// KindSession is a recorded SSH session.
 	KindSession = "session"
 
-	// KindSSHSession is an active SSH session.
+	// KindSSHSession represents an active SSH session in early versions of Teleport
+	// prior to the introduction of moderated sessions. Note that ssh_session is not
+	// a "real" resource, and it is never used as the "session kind" value in the
+	// session_tracker resource.
 	KindSSHSession = "ssh_session"
 
 	// KindWebSession is a web session resource
@@ -246,6 +249,11 @@ const (
 	// KindKubeIngress is a Kubernetes Ingress resource type.
 	KindKubeIngress = "ingress"
 
+	// KindKubeWaitingContainer is a Kubernetes ephemeral
+	// container that are waiting to be created until moderated
+	// session conditions are met.
+	KindKubeWaitingContainer = "kube_ephemeral_container"
+
 	// KindToken is a provisioning token resource
 	KindToken = "token"
 
@@ -295,6 +303,18 @@ const (
 	// still used when checking access to the new configuration resources, as an
 	// alternative to their individual resource kinds.
 	KindClusterConfig = "cluster_config"
+
+	// KindAutoUpdateConfig is the resource with autoupdate configuration.
+	KindAutoUpdateConfig = "autoupdate_config"
+
+	// KindAutoUpdateVersion is the resource with autoupdate versions.
+	KindAutoUpdateVersion = "autoupdate_version"
+
+	// MetaNameAutoUpdateConfig is the name of a configuration resource for autoupdate config.
+	MetaNameAutoUpdateConfig = "autoupdate-config"
+
+	// MetaNameAutoUpdateVersion is the name of a resource for autoupdate version.
+	MetaNameAutoUpdateVersion = "autoupdate-version"
 
 	// KindClusterAuditConfig is the resource that holds cluster audit configuration.
 	KindClusterAuditConfig = "cluster_audit_config"
@@ -391,7 +411,8 @@ const (
 	// KindConnectionDiagnostic is a resource that tracks the result of testing a connection
 	KindConnectionDiagnostic = "connection_diagnostic"
 
-	// KindDatabaseCertificate is a resource to control Database Certificates generation
+	// KindDatabaseCertificate is a resource to control db CA cert
+	// generation.
 	KindDatabaseCertificate = "database_certificate"
 
 	// KindInstaller is a resource that holds a node installer script
@@ -820,9 +841,11 @@ const (
 	DiscoveryLabelLDAPPrefix = "ldap/"
 )
 
-// CloudLabelPrefixes are prefixes used by cloud labels, generally added when
-// using automatic discovery
-var CloudLabelPrefixes = []string{CloudAWS, CloudAzure, CloudGCP, DiscoveryLabelLDAPPrefix}
+// BackSortedLabelPrefixes are label names that we want to always be at the end of
+// the sorted labels list to reduce visual clutter. This will generally be automatically
+// discovered cloud provider labels such as azure/aks-managed-createOperationID=123123123123
+// or internal labels
+var BackSortedLabelPrefixes = []string{CloudAWS, CloudAzure, CloudGCP, DiscoveryLabelLDAPPrefix, TeleportNamespace}
 
 const (
 	// TeleportInternalLabelPrefix is the prefix used by all Teleport internal labels. Those labels
@@ -1153,10 +1176,14 @@ var KubernetesClusterWideResourceKinds = []string{
 }
 
 const (
-	// TeleportServiceGroup is a default group that users of the
-	// teleport automated user provisioning system get added to so
-	// already existing users are not deleted
-	TeleportServiceGroup = "teleport-system"
+	// TeleportDropGroup is a default group that users of the teleport automated user
+	// provisioning system get added to when provisioned in INSECURE_DROP mode. This
+	// prevents already existing users from being tampered with or deleted.
+	TeleportDropGroup = "teleport-system"
+	// TeleportKeepGroup is a default group that users of the teleport automated user
+	// provisioning system get added to when provisioned in KEEP mode. This prevents
+	// already existing users from being tampered with or deleted.
+	TeleportKeepGroup = "teleport-keep"
 )
 
 const (

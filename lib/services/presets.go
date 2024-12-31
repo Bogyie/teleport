@@ -17,10 +17,11 @@ limitations under the License.
 package services
 
 import (
+	"slices"
+
 	"github.com/google/uuid"
 	"github.com/gravitational/trace"
 	log "github.com/sirupsen/logrus"
-	"golang.org/x/exp/slices"
 
 	"github.com/gravitational/teleport"
 	"github.com/gravitational/teleport/api/constants"
@@ -167,6 +168,7 @@ func NewPresetEditorRole() types.Role {
 					types.NewRule(types.KindSecurityReport, append(RW(), types.VerbUse)),
 					types.NewRule(types.KindAuditQuery, append(RW(), types.VerbUse)),
 					types.NewRule(types.KindAccessGraph, RW()),
+					types.NewRule(types.KindServerInfo, RW()),
 				},
 			},
 		},
@@ -225,6 +227,7 @@ func NewPresetAccessRole() types.Role {
 					},
 					types.NewRule(types.KindInstance, RO()),
 					types.NewRule(types.KindAssistant, append(RW(), types.VerbUse)),
+					types.NewRule(types.KindClusterMaintenanceConfig, RO()),
 				},
 			},
 		},

@@ -18,9 +18,11 @@ package services
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"encoding/json"
 	"fmt"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -28,7 +30,7 @@ import (
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/arm"
-	"github.com/google/go-cmp/cmp"
+	gocmp "github.com/google/go-cmp/cmp"
 	"github.com/google/uuid"
 	"github.com/gravitational/trace"
 	"github.com/stretchr/testify/require"
@@ -754,7 +756,7 @@ func TestRoleParse(t *testing.T) {
 
 				role2, err := UnmarshalRole(out)
 				require.NoError(t, err)
-				require.Equal(t, role2, &tc.role)
+				require.Equal(t, &tc.role, role2)
 			}
 		})
 	}
@@ -992,7 +994,7 @@ func TestValidateRole(t *testing.T) {
 				"parsing allow.db_names expression",
 				"parsing allow.db_users expression",
 				"parsing allow.host_groups expression",
-				"parsing allow.host_sudeoers expression",
+				"parsing allow.host_sudoers expression",
 				"parsing allow.desktop_groups expression",
 				"parsing allow.impersonate.users expression",
 				"parsing allow.impersonate.roles expression",
@@ -1006,7 +1008,7 @@ func TestValidateRole(t *testing.T) {
 				"parsing deny.db_names expression",
 				"parsing deny.db_users expression",
 				"parsing deny.host_groups expression",
-				"parsing deny.host_sudeoers expression",
+				"parsing deny.host_sudoers expression",
 				"parsing deny.desktop_groups expression",
 				"parsing deny.impersonate.users expression",
 				"parsing deny.impersonate.roles expression",
@@ -1496,7 +1498,8 @@ func TestCheckAccessToServer(t *testing.T) {
 				{server: serverWorker, login: "root", hasAccess: true},
 				{server: serverDB, login: "root", hasAccess: true},
 			},
-		}, {
+		},
+		{
 			name: "cluster requires hardware key pin, MFA not verified",
 			roles: []*types.RoleV6{
 				newRole(func(r *types.RoleV6) {
@@ -1530,7 +1533,8 @@ func TestCheckAccessToServer(t *testing.T) {
 				{server: serverWorker, login: "root", hasAccess: true},
 				{server: serverDB, login: "root", hasAccess: true},
 			},
-		}, {
+		},
+		{
 			name: "cluster requires hardware key touch and pin, MFA not verified",
 			roles: []*types.RoleV6{
 				newRole(func(r *types.RoleV6) {
@@ -2386,7 +2390,7 @@ func TestCheckRuleAccess(t *testing.T) {
 		}
 		for j, check := range tc.checks {
 			comment := fmt.Sprintf("test case %v '%v', check %v", i, tc.name, j)
-			result := set.CheckAccessToRule(&check.context, check.namespace, check.rule, check.verb, false)
+			result := set.CheckAccessToRule(&check.context, check.namespace, check.rule, check.verb)
 			if check.hasAccess {
 				require.NoError(t, result, comment)
 			} else {
@@ -2581,14 +2585,13 @@ func TestGuessIfAccessIsPossible(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			params := test.params
-			const silent = true
 			for _, verb := range params.verbs {
-				err := test.roles.CheckAccessToRule(&params.ctx, params.namespace, params.resource, verb, silent)
+				err := test.roles.CheckAccessToRule(&params.ctx, params.namespace, params.resource, verb)
 				if gotAccess, wantAccess := err == nil, test.wantRuleAccess; gotAccess != wantAccess {
 					t.Errorf("CheckAccessToRule(verb=%q) returned err = %v=q, wantAccess = %v", verb, err, wantAccess)
 				}
 
-				err = test.roles.GuessIfAccessIsPossible(&params.ctx, params.namespace, params.resource, verb, silent)
+				err = test.roles.GuessIfAccessIsPossible(&params.ctx, params.namespace, params.resource, verb)
 				if gotAccess, wantAccess := err == nil, test.wantGuessAccess; gotAccess != wantAccess {
 					t.Errorf("GuessIfAccessIsPossible(verb=%q) returned err = %q, wantAccess = %v", verb, err, wantAccess)
 				}
@@ -3296,6 +3299,51 @@ func TestApplyTraits(t *testing.T) {
 				},
 			},
 		},
+		{
+			// See comment in ApplyValueTraits for why we allow this.
+			comment: "explicitly allow internal traits referenced via external namespace",
+			inTraits: map[string][]string{
+				constants.TraitLogins:             {"logins"},
+				constants.TraitWindowsLogins:      {"windowsLogins"},
+				constants.TraitKubeGroups:         {"kubeGroups"},
+				constants.TraitKubeUsers:          {"kubeUsers"},
+				constants.TraitDBNames:            {"dBNames"},
+				constants.TraitDBUsers:            {"dBUsers"},
+				constants.TraitDBRoles:            {"dBRoles"},
+				constants.TraitAWSRoleARNs:        {"aWSRoleARNs"},
+				constants.TraitAzureIdentities:    {"azureIdentities"},
+				constants.TraitGCPServiceAccounts: {"gCPServiceAccounts"},
+				constants.TraitJWT:                {"jwt"},
+			},
+			allow: rule{
+				inLogins: []string{
+					"{{external.logins}}",
+					"{{external.windows_logins}}",
+					"{{external.kubernetes_groups}}",
+					"{{external.kubernetes_users}}",
+					"{{external.db_names}}",
+					"{{external.db_users}}",
+					"{{external.db_roles}}",
+					"{{external.aws_role_arns}}",
+					"{{external.azure_identities}}",
+					"{{external.gcp_service_accounts}}",
+					"{{external.jwt}}",
+				},
+				outLogins: []string{
+					"logins",
+					"windowsLogins",
+					"kubeGroups",
+					"kubeUsers",
+					"dBNames",
+					"dBUsers",
+					"dBRoles",
+					"aWSRoleARNs",
+					"azureIdentities",
+					"gCPServiceAccounts",
+					"jwt",
+				},
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -3822,6 +3870,23 @@ func TestCheckAccessToDatabaseUser(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, dbSupportAWSRoles.SupportAWSIAMRoleARNAsUsers())
 
+	dbCockroachStage, err := types.NewDatabaseV3(types.Metadata{
+		Name:   "cockroachdb",
+		Labels: map[string]string{"env": "stage"},
+	}, types.DatabaseSpecV3{
+		Protocol: "cockroachdb",
+		URI:      "cockroachdb:26257",
+	})
+	require.NoError(t, err)
+	dbCockroachProd, err := types.NewDatabaseV3(types.Metadata{
+		Name:   "cockroachdb",
+		Labels: map[string]string{"env": "prod"},
+	}, types.DatabaseSpecV3{
+		Protocol: "cockroachdb",
+		URI:      "cockroachdb:26257",
+	})
+	require.NoError(t, err)
+
 	type access struct {
 		server types.Database
 		dbUser string
@@ -3839,6 +3904,7 @@ func TestCheckAccessToDatabaseUser(t *testing.T) {
 				{server: dbStage, dbUser: "superuser", access: false},
 				{server: dbStage, dbUser: "dev", access: true},
 				{server: dbStage, dbUser: "test", access: true},
+				{server: dbStage, dbUser: "SUPERUSER", access: true},
 			},
 		},
 		{
@@ -3878,6 +3944,27 @@ func TestCheckAccessToDatabaseUser(t *testing.T) {
 				{server: dbSupportAWSRoles, dbUser: "role/regular-user", access: false},
 				{server: dbSupportAWSRoles, dbUser: "arn:aws:iam::123456789012:role/regular-user", access: false},
 				{server: dbSupportAWSRoles, dbUser: "unknown-user", access: false},
+			},
+		},
+		{
+			name:  "(case-insensitive db) developer allowed any username in stage except superuser",
+			roles: RoleSet{roleDevStage, roleDevProd},
+			access: []access{
+				{server: dbCockroachStage, dbUser: "dev", access: true},
+				{server: dbCockroachStage, dbUser: "DEV", access: true},
+				{server: dbCockroachStage, dbUser: "test", access: true},
+				{server: dbCockroachStage, dbUser: "superuser", access: false},
+				{server: dbCockroachStage, dbUser: "SUPERUSER", access: false},
+			},
+		},
+		{
+			name:  "(case-insensitive db) developer allowed only specific username/database in prod database",
+			roles: RoleSet{roleDevStage, roleDevProd},
+			access: []access{
+				{server: dbCockroachProd, dbUser: "dev", access: true},
+				{server: dbCockroachProd, dbUser: "DEV", access: true},
+				{server: dbCockroachProd, dbUser: "superuser", access: false},
+				{server: dbCockroachProd, dbUser: "Superuser", access: false},
 			},
 		},
 	}
@@ -6412,7 +6499,7 @@ func TestExtractConditionForIdentifier(t *testing.T) {
 	require.True(t, trace.IsAccessDenied(err))
 	cond, err := set.ExtractConditionForIdentifier(&Context{User: user2}, apidefaults.Namespace, types.KindSession, types.VerbList, SessionIdentifier)
 	require.NoError(t, err)
-	require.Empty(t, cmp.Diff(cond, guestParticipantCond))
+	require.Empty(t, gocmp.Diff(cond, guestParticipantCond))
 
 	// Add a role allowing access to the user's own session recordings.
 	role = allowWhere(`contains(session.participants, user.metadata.name)`)
@@ -6423,13 +6510,13 @@ func TestExtractConditionForIdentifier(t *testing.T) {
 
 	cond, err = set.ExtractConditionForIdentifier(&Context{}, apidefaults.Namespace, types.KindSession, types.VerbList, SessionIdentifier)
 	require.NoError(t, err)
-	require.Empty(t, cmp.Diff(cond, userParticipantCond(emptyUser)))
+	require.Empty(t, gocmp.Diff(cond, userParticipantCond(emptyUser)))
 	cond, err = set.ExtractConditionForIdentifier(&Context{User: user}, apidefaults.Namespace, types.KindSession, types.VerbList, SessionIdentifier)
 	require.NoError(t, err)
-	require.Empty(t, cmp.Diff(cond, userParticipantCond(user)))
+	require.Empty(t, gocmp.Diff(cond, userParticipantCond(user)))
 	cond, err = set.ExtractConditionForIdentifier(&Context{User: user2}, apidefaults.Namespace, types.KindSession, types.VerbList, SessionIdentifier)
 	require.NoError(t, err)
-	require.Empty(t, cmp.Diff(cond, &types.WhereExpr{Or: types.WhereExpr2{L: guestParticipantCond, R: userParticipantCond(user2)}}))
+	require.Empty(t, gocmp.Diff(cond, &types.WhereExpr{Or: types.WhereExpr2{L: guestParticipantCond, R: userParticipantCond(user2)}}))
 
 	// Add a role denying access to sessions with root login.
 	role = denyWhere(`equals(session.login, "root")`)
@@ -6438,13 +6525,13 @@ func TestExtractConditionForIdentifier(t *testing.T) {
 
 	cond, err = set.ExtractConditionForIdentifier(&Context{}, apidefaults.Namespace, types.KindSession, types.VerbList, SessionIdentifier)
 	require.NoError(t, err)
-	require.Empty(t, cmp.Diff(cond, &types.WhereExpr{And: types.WhereExpr2{L: noRootLoginCond, R: userParticipantCond(emptyUser)}}))
+	require.Empty(t, gocmp.Diff(cond, &types.WhereExpr{And: types.WhereExpr2{L: noRootLoginCond, R: userParticipantCond(emptyUser)}}))
 	cond, err = set.ExtractConditionForIdentifier(&Context{User: user}, apidefaults.Namespace, types.KindSession, types.VerbList, SessionIdentifier)
 	require.NoError(t, err)
-	require.Empty(t, cmp.Diff(cond, &types.WhereExpr{And: types.WhereExpr2{L: noRootLoginCond, R: userParticipantCond(user)}}))
+	require.Empty(t, gocmp.Diff(cond, &types.WhereExpr{And: types.WhereExpr2{L: noRootLoginCond, R: userParticipantCond(user)}}))
 	cond, err = set.ExtractConditionForIdentifier(&Context{User: user2}, apidefaults.Namespace, types.KindSession, types.VerbList, SessionIdentifier)
 	require.NoError(t, err)
-	require.Empty(t, cmp.Diff(cond, &types.WhereExpr{And: types.WhereExpr2{L: noRootLoginCond, R: &types.WhereExpr{Or: types.WhereExpr2{L: guestParticipantCond, R: userParticipantCond(user2)}}}}))
+	require.Empty(t, gocmp.Diff(cond, &types.WhereExpr{And: types.WhereExpr2{L: noRootLoginCond, R: &types.WhereExpr{Or: types.WhereExpr2{L: guestParticipantCond, R: userParticipantCond(user2)}}}}))
 
 	// Add a role denying access for user2.
 	role = denyWhere(fmt.Sprintf(`equals(user.metadata.name, "%s")`, user2.GetName()))
@@ -6452,10 +6539,10 @@ func TestExtractConditionForIdentifier(t *testing.T) {
 
 	cond, err = set.ExtractConditionForIdentifier(&Context{}, apidefaults.Namespace, types.KindSession, types.VerbList, SessionIdentifier)
 	require.NoError(t, err)
-	require.Empty(t, cmp.Diff(cond, &types.WhereExpr{And: types.WhereExpr2{L: noRootLoginCond, R: userParticipantCond(emptyUser)}}))
+	require.Empty(t, gocmp.Diff(cond, &types.WhereExpr{And: types.WhereExpr2{L: noRootLoginCond, R: userParticipantCond(emptyUser)}}))
 	cond, err = set.ExtractConditionForIdentifier(&Context{User: user}, apidefaults.Namespace, types.KindSession, types.VerbList, SessionIdentifier)
 	require.NoError(t, err)
-	require.Empty(t, cmp.Diff(cond, &types.WhereExpr{And: types.WhereExpr2{L: noRootLoginCond, R: userParticipantCond(user)}}))
+	require.Empty(t, gocmp.Diff(cond, &types.WhereExpr{And: types.WhereExpr2{L: noRootLoginCond, R: userParticipantCond(user)}}))
 	_, err = set.ExtractConditionForIdentifier(&Context{User: user2}, apidefaults.Namespace, types.KindSession, types.VerbList, SessionIdentifier)
 	require.True(t, trace.IsAccessDenied(err))
 
@@ -6466,10 +6553,10 @@ func TestExtractConditionForIdentifier(t *testing.T) {
 
 	cond, err = set.ExtractConditionForIdentifier(&Context{}, apidefaults.Namespace, types.KindSession, types.VerbList, SessionIdentifier)
 	require.NoError(t, err)
-	require.Empty(t, cmp.Diff(cond, noRootLoginCond))
+	require.Empty(t, gocmp.Diff(cond, noRootLoginCond))
 	cond, err = set.ExtractConditionForIdentifier(&Context{User: user}, apidefaults.Namespace, types.KindSession, types.VerbList, SessionIdentifier)
 	require.NoError(t, err)
-	require.Empty(t, cmp.Diff(cond, noRootLoginCond))
+	require.Empty(t, gocmp.Diff(cond, noRootLoginCond))
 	_, err = set.ExtractConditionForIdentifier(&Context{User: user2}, apidefaults.Namespace, types.KindSession, types.VerbList, SessionIdentifier)
 	require.True(t, trace.IsAccessDenied(err))
 
@@ -7694,6 +7781,23 @@ func (u mockCurrentUser) GetName() string {
 	return "mockCurrentUser"
 }
 
+func (u mockCurrentUser) toRemoteUserFromCluster(localClusterName string) types.User {
+	return mockRemoteUser{
+		mockCurrentUser:  u,
+		localClusterName: localClusterName,
+	}
+}
+
+type mockRemoteUser struct {
+	mockCurrentUser
+	localClusterName string
+}
+
+// GetName returns the username from the remote cluster's view.
+func (u mockRemoteUser) GetName() string {
+	return UsernameForRemoteCluster(u.mockCurrentUser.GetName(), u.localClusterName)
+}
+
 func TestNewAccessCheckerForRemoteCluster(t *testing.T) {
 	user := mockCurrentUser{
 		roles: []string{"dev", "admin"},
@@ -7715,21 +7819,33 @@ func TestNewAccessCheckerForRemoteCluster(t *testing.T) {
 			"dev":   devRole,
 			"admin": adminRole,
 		},
-		currentUser: user,
+		currentUser: user.toRemoteUserFromCluster("localCluster"),
 	}
 
-	accessInfo := AccessInfoFromUserState(user)
-	require.Equal(t, "mockCurrentUser", accessInfo.Username)
-	accessChecker, err := NewAccessCheckerForRemoteCluster(context.Background(), accessInfo, "clustername", currentUserRoleGetter)
+	localAccessInfo := AccessInfoFromUserState(user)
+	require.Equal(t, "mockCurrentUser", localAccessInfo.Username)
+	accessChecker, err := NewAccessCheckerForRemoteCluster(context.Background(), localAccessInfo, "remoteCluster", currentUserRoleGetter)
 	require.NoError(t, err)
 
 	// After sort: "admin","default-implicit-role","dev"
 	roles := accessChecker.Roles()
-	sort.Sort(SortedRoles(roles))
+	slices.SortFunc(roles, func(a, b types.Role) int {
+		return cmp.Compare(a.GetName(), b.GetName())
+	})
 	require.Len(t, roles, 3)
 	require.Contains(t, roles, devRole, "devRole not found in roleSet")
 	require.Contains(t, roles, adminRole, "adminRole not found in roleSet")
 	require.Equal(t, []string{"currentUserTraitLogin"}, roles[2].GetLogins(types.Allow))
+
+	mustHaveUsername(t, accessChecker, "remote-mockCurrentUser-localCluster")
+}
+
+func mustHaveUsername(t *testing.T, access AccessChecker, wantUsername string) {
+	t.Helper()
+
+	accessImpl, ok := access.(*accessChecker)
+	require.True(t, ok)
+	require.Equal(t, wantUsername, accessImpl.info.Username)
 }
 
 func TestRoleSet_GetAccessState(t *testing.T) {

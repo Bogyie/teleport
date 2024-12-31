@@ -20,12 +20,12 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"slices"
 	"strings"
 	"time"
 
 	"github.com/gravitational/trace"
 	"github.com/jonboulle/clockwork"
-	"golang.org/x/exp/slices"
 
 	tp "github.com/gravitational/teleport"
 	"github.com/gravitational/teleport/api/accessrequest"
@@ -37,6 +37,7 @@ import (
 	"github.com/gravitational/teleport/integrations/lib/backoff"
 	"github.com/gravitational/teleport/integrations/lib/logger"
 	"github.com/gravitational/teleport/integrations/lib/watcherjob"
+	"github.com/gravitational/teleport/lib/utils"
 )
 
 const (
@@ -138,10 +139,9 @@ func (a *App) init(ctx context.Context) error {
 	log := logger.Get(ctx)
 
 	var err error
-	if a.teleport == nil {
-		if a.teleport, err = common.GetTeleportClient(ctx, a.conf.Teleport); err != nil {
-			return trace.Wrap(err)
-		}
+	a.teleport, err = a.conf.GetTeleportClient(ctx)
+	if err != nil {
+		return trace.Wrap(err, "getting teleport client")
 	}
 
 	pong, err := a.checkTeleportVersion(ctx)
@@ -181,7 +181,7 @@ func (a *App) checkTeleportVersion(ctx context.Context) (proto.PingResponse, err
 		log.Error("Unable to get Teleport server version")
 		return pong, trace.Wrap(err)
 	}
-	err = lib.AssertServerVersion(pong, minServerVersion)
+	err = utils.CheckVersion(pong.ServerVersion, minServerVersion)
 	return pong, trace.Wrap(err)
 }
 

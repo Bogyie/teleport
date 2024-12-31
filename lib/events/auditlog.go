@@ -25,6 +25,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"sort"
@@ -39,6 +40,8 @@ import (
 
 	"github.com/gravitational/teleport"
 	apidefaults "github.com/gravitational/teleport/api/defaults"
+	auditlogpb "github.com/gravitational/teleport/api/gen/proto/go/teleport/auditlog/v1"
+	"github.com/gravitational/teleport/api/internalutils/stream"
 	apievents "github.com/gravitational/teleport/api/types/events"
 	"github.com/gravitational/teleport/lib/defaults"
 	"github.com/gravitational/teleport/lib/internal/context121"
@@ -109,6 +112,10 @@ const (
 	// AbandonedUploadPollingRate defines how often to check for
 	// abandoned uploads which need to be completed.
 	AbandonedUploadPollingRate = apidefaults.SessionTrackerTTL / 6
+
+	// UploadCompleterGracePeriod is the default period after which an upload's
+	// session tracker will be checked to see if it's an abandoned upload.
+	UploadCompleterGracePeriod = 24 * time.Hour
 )
 
 var (
@@ -949,61 +956,79 @@ func (l *AuditLog) SearchSessionEvents(ctx context.Context, req SearchSessionEve
 	return l.localLog.SearchSessionEvents(ctx, req)
 }
 
-// StreamSessionEvents streams all events from a given session recording. An error is returned on the first
-// channel if one is encountered. Otherwise the event channel is closed when the stream ends.
-// The event channel is not closed on error to prevent race conditions in downstream select statements.
+func (l *AuditLog) ExportUnstructuredEvents(ctx context.Context, req *auditlogpb.ExportUnstructuredEventsRequest) stream.Stream[*auditlogpb.ExportEventUnstructured] {
+	l.log.Debugf("ExportUnstructuredEvents(%v, %v, %v)", req.Date, req.Chunk, req.Cursor)
+	if l.ExternalLog != nil {
+		return l.ExternalLog.ExportUnstructuredEvents(ctx, req)
+	}
+	return l.localLog.ExportUnstructuredEvents(ctx, req)
+}
+
+func (l *AuditLog) GetEventExportChunks(ctx context.Context, req *auditlogpb.GetEventExportChunksRequest) stream.Stream[*auditlogpb.EventExportChunk] {
+	l.log.Debugf("GetEventExportChunks(%v)", req.Date)
+	if l.ExternalLog != nil {
+		return l.ExternalLog.GetEventExportChunks(ctx, req)
+	}
+	return l.localLog.GetEventExportChunks(ctx, req)
+}
+
+// StreamSessionEvents implements [SessionStreamer].
 func (l *AuditLog) StreamSessionEvents(ctx context.Context, sessionID session.ID, startIndex int64) (chan apievents.AuditEvent, chan error) {
-	l.log.Debugf("StreamSessionEvents(%v)", sessionID)
+	l.log.WithField("session_id", string(sessionID)).Debug("StreamSessionEvents()")
 	e := make(chan error, 1)
 	c := make(chan apievents.AuditEvent)
 
-	tarballPath := filepath.Join(l.playbackDir, string(sessionID)+".stream.tar")
-	downloadCtx, cancel := l.createOrGetDownload(tarballPath)
-
-	// Wait until another in progress download finishes and use its tarball.
-	if cancel == nil {
-		l.log.Debugf("Another download is in progress for %v, waiting until it gets completed.", sessionID)
-		select {
-		case <-downloadCtx.Done():
-		case <-l.ctx.Done():
-			e <- trace.BadParameter("audit log is closing, aborting the download")
-			return c, e
-		}
-	} else {
-		defer cancel()
-	}
-
-	rawSession, err := os.OpenFile(tarballPath, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0o640)
+	rawSession, err := os.CreateTemp(l.playbackDir, string(sessionID)+".stream.tar.*")
 	if err != nil {
-		e <- trace.Wrap(err)
+		e <- trace.Wrap(trace.ConvertSystemError(err), "creating temporary stream file")
+		return c, e
+	}
+	// The file is still perfectly usable after unlinking it, and the space it's
+	// using on disk will get reclaimed as soon as the file is closed (or the
+	// process terminates) - and if the session is small enough and we go
+	// through it quickly enough, we're likely not even going to end up with any
+	// bytes on the physical disk, anyway. We're using the same playback
+	// directory as the GetSessionChunk flow, which means that if we crash
+	// between creating the empty file and unlinking it, we'll end up with an
+	// empty file that will eventually be cleaned up by periodicCleanupPlaybacks
+	//
+	// TODO(espadolini): investigate the use of O_TMPFILE on Linux, so we don't
+	// even have to bother with the unlink and we avoid writing on the directory
+	if err := os.Remove(rawSession.Name()); err != nil {
+		_ = rawSession.Close()
+		e <- trace.Wrap(trace.ConvertSystemError(err), "removing temporary stream file")
 		return c, e
 	}
 
 	start := time.Now()
 	if err := l.UploadHandler.Download(l.ctx, sessionID, rawSession); err != nil {
-		// remove partially downloaded tarball
-		if rmErr := os.Remove(tarballPath); rmErr != nil {
-			l.log.WithError(rmErr).Warningf("Failed to remove file %v.", tarballPath)
+		_ = rawSession.Close()
+		if errors.Is(err, fs.ErrNotExist) {
+			err = trace.NotFound("a recording for session %v was not found", sessionID)
 		}
-
 		e <- trace.Wrap(err)
 		return c, e
 	}
-
-	l.log.WithField("duration", time.Since(start)).Debugf("Downloaded %v to %v.", sessionID, tarballPath)
-	_, err = rawSession.Seek(0, 0)
-	if err != nil {
-		e <- trace.Wrap(err)
-		return c, e
-	}
-
-	protoReader := NewProtoReader(rawSession)
+	l.log.WithFields(log.Fields{
+		"duration":   time.Since(start),
+		"session_id": string(sessionID),
+	}).Debug("Downloaded session to a temporary file for streaming.")
 
 	go func() {
+		defer rawSession.Close()
+		// this shouldn't be necessary as the position should be already 0 (Download
+		// takes an io.WriterAt), but it's better to be safe than sorry
+		if _, err := rawSession.Seek(0, io.SeekStart); err != nil {
+			e <- trace.Wrap(err)
+			return
+		}
+
+		protoReader := NewProtoReader(rawSession)
+
 		for {
 			if ctx.Err() != nil {
 				e <- trace.Wrap(ctx.Err())
-				break
+				return
 			}
 
 			event, err := protoReader.Read(ctx)
@@ -1013,12 +1038,16 @@ func (l *AuditLog) StreamSessionEvents(ctx context.Context, sessionID session.ID
 				} else {
 					close(c)
 				}
-
-				break
+				return
 			}
 
 			if event.GetIndex() >= startIndex {
-				c <- event
+				select {
+				case c <- event:
+				case <-ctx.Done():
+					e <- trace.Wrap(ctx.Err())
+					return
+				}
 			}
 		}
 	}()

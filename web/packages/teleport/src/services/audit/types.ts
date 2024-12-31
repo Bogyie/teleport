@@ -146,6 +146,7 @@ export const eventCodes = {
   SCP_DOWNLOAD: 'T3004I',
   SCP_UPLOAD_FAILURE: 'T3005E',
   SCP_UPLOAD: 'T3005I',
+  SCP_DISALLOWED: 'T3010E',
   SFTP_OPEN_FAILURE: 'TS001E',
   SFTP_OPEN: 'TS001I',
   SFTP_CLOSE_FAILURE: 'TS002E',
@@ -182,6 +183,9 @@ export const eventCodes = {
   SFTP_READLINK: 'TS017I',
   SFTP_SYMLINK_FAILURE: 'TS018E',
   SFTP_SYMLINK: 'TS018I',
+  SFTP_LINK: 'TS019I',
+  SFTP_LINK_FAILURE: 'TS019E',
+  SFTP_DISALLOWED: 'TS020E',
   SESSION_COMMAND: 'T4000I',
   SESSION_DATA: 'T2006I',
   SESSION_DISK: 'T4001I',
@@ -220,7 +224,9 @@ export const eventCodes = {
   CERTIFICATE_CREATED: 'TC000I',
   UPGRADE_WINDOW_UPDATED: 'TUW01I',
   BOT_JOIN: 'TJ001I',
+  BOT_JOIN_FAILURE: 'TJ001E',
   INSTANCE_JOIN: 'TJ002I',
+  INSTANCE_JOIN_FAILURE: 'TJ002E',
   LOGIN_RULE_CREATE: 'TLR00I',
   LOGIN_RULE_DELETE: 'TLR01I',
   SAML_IDP_AUTH_ATTEMPT: 'TSI000I',
@@ -259,6 +265,13 @@ export const eventCodes = {
   SECURITY_REPORT_RUN: 'SRE002I',
   EXTERNAL_AUDIT_STORAGE_ENABLE: 'TEA001I',
   EXTERNAL_AUDIT_STORAGE_DISABLE: 'TEA002I',
+  DISCOVERY_CONFIG_CREATE: 'DC001I',
+  DISCOVERY_CONFIG_UPDATE: 'DC002I',
+  DISCOVERY_CONFIG_DELETE: 'DC003I',
+  DISCOVERY_CONFIG_DELETE_ALL: 'DC004I',
+  INTEGRATION_CREATE: 'IG001I',
+  INTEGRATION_UPDATE: 'IG002I',
+  INTEGRATION_DELETE: 'IG003I',
 } as const;
 
 /**
@@ -380,6 +393,12 @@ export type RawEvents = {
       exitError: string;
     }
   >;
+  [eventCodes.SCP_DISALLOWED]: RawEvent<
+    typeof eventCodes.SCP_DISALLOWED,
+    {
+      user: string;
+    }
+  >;
   [eventCodes.SFTP_OPEN]: RawEventSFTP<typeof eventCodes.SFTP_OPEN>;
   [eventCodes.SFTP_OPEN_FAILURE]: RawEventSFTP<
     typeof eventCodes.SFTP_OPEN_FAILURE
@@ -452,6 +471,11 @@ export type RawEvents = {
   [eventCodes.SFTP_SYMLINK_FAILURE]: RawEventSFTP<
     typeof eventCodes.SFTP_SYMLINK_FAILURE
   >;
+  [eventCodes.SFTP_LINK]: RawEventSFTP<typeof eventCodes.SFTP_LINK>;
+  [eventCodes.SFTP_LINK_FAILURE]: RawEventSFTP<
+    typeof eventCodes.SFTP_LINK_FAILURE
+  >;
+  [eventCodes.SFTP_DISALLOWED]: RawEventSFTP<typeof eventCodes.SFTP_DISALLOWED>;
   [eventCodes.SESSION_COMMAND]: RawEventCommand<
     typeof eventCodes.SESSION_COMMAND
   >;
@@ -1025,6 +1049,7 @@ export type RawEvents = {
     {
       desktop_addr: string;
       desktop_name: string;
+      sid: string;
       windows_user: string;
       windows_domain: string;
     }
@@ -1043,6 +1068,7 @@ export type RawEvents = {
     {
       desktop_addr: string;
       desktop_name: string;
+      sid: string;
       windows_user: string;
       windows_domain: string;
     }
@@ -1197,7 +1223,22 @@ export type RawEvents = {
       method: string;
     }
   >;
+  [eventCodes.BOT_JOIN_FAILURE]: RawEvent<
+    typeof eventCodes.BOT_JOIN,
+    {
+      bot_name: string;
+      method: string;
+    }
+  >;
   [eventCodes.INSTANCE_JOIN]: RawEvent<
+    typeof eventCodes.INSTANCE_JOIN,
+    {
+      node_name: string;
+      method: string;
+      role: string;
+    }
+  >;
+  [eventCodes.INSTANCE_JOIN_FAILURE]: RawEvent<
     typeof eventCodes.INSTANCE_JOIN,
     {
       node_name: string;
@@ -1444,12 +1485,39 @@ export type RawEvents = {
       updated_by: string;
     }
   >;
+  [eventCodes.DISCOVERY_CONFIG_CREATE]: RawEvent<
+    typeof eventCodes.DISCOVERY_CONFIG_CREATE,
+    HasName
+  >;
+  [eventCodes.DISCOVERY_CONFIG_UPDATE]: RawEvent<
+    typeof eventCodes.DISCOVERY_CONFIG_UPDATE,
+    HasName
+  >;
+  [eventCodes.DISCOVERY_CONFIG_DELETE]: RawEvent<
+    typeof eventCodes.DISCOVERY_CONFIG_DELETE,
+    HasName
+  >;
+  [eventCodes.DISCOVERY_CONFIG_DELETE_ALL]: RawEvent<
+    typeof eventCodes.DISCOVERY_CONFIG_DELETE_ALL
+  >;
+  [eventCodes.INTEGRATION_CREATE]: RawEvent<
+    typeof eventCodes.INTEGRATION_CREATE,
+    HasName
+  >;
+  [eventCodes.INTEGRATION_UPDATE]: RawEvent<
+    typeof eventCodes.INTEGRATION_UPDATE,
+    HasName
+  >;
+  [eventCodes.INTEGRATION_DELETE]: RawEvent<
+    typeof eventCodes.INTEGRATION_DELETE,
+    HasName
+  >;
 };
 
 /**
  * Event Code
  */
-export type EventCode = typeof eventCodes[keyof typeof eventCodes];
+export type EventCode = (typeof eventCodes)[keyof typeof eventCodes];
 
 type HasName = {
   name: string;

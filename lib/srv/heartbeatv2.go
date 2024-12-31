@@ -18,16 +18,21 @@ package srv
 
 import (
 	"context"
+	"errors"
 	"time"
 
+	"github.com/coreos/go-semver/semver"
 	"github.com/gravitational/trace"
 	log "github.com/sirupsen/logrus"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/gravitational/teleport/api/client/proto"
 	apidefaults "github.com/gravitational/teleport/api/defaults"
 	"github.com/gravitational/teleport/api/types"
+	apiutils "github.com/gravitational/teleport/api/utils"
 	"github.com/gravitational/teleport/api/utils/retryutils"
-	"github.com/gravitational/teleport/lib/auth"
+	"github.com/gravitational/teleport/lib/auth/authclient"
 	"github.com/gravitational/teleport/lib/defaults"
 	"github.com/gravitational/teleport/lib/inventory"
 	"github.com/gravitational/teleport/lib/inventory/metadata"
@@ -36,12 +41,12 @@ import (
 	"github.com/gravitational/teleport/lib/utils/interval"
 )
 
-// SSHServerHeartbeatConfig configures the HeartbeatV2 for an ssh server.
-type SSHServerHeartbeatConfig struct {
+// HeartbeatV2Config configures the HeartbeatV2.
+type HeartbeatV2Config[T any] struct {
 	// InventoryHandle is used to send heartbeats.
 	InventoryHandle inventory.DownstreamHandle
-	// GetServer gets the latest server spec.
-	GetServer func() *types.ServerV2
+	// GetResource gets the latest item to heartbeat.
+	GetResource func(context.Context) (T, error)
 
 	// -- below values are all optional
 
@@ -49,26 +54,31 @@ type SSHServerHeartbeatConfig struct {
 	// if the control stream is unavailable.
 	//
 	// DELETE IN: 11.0 (only exists for back-compat with v9 auth servers)
-	Announcer auth.Announcer
+	Announcer authclient.Announcer
 	// OnHeartbeat is a per-attempt callback (optional).
 	OnHeartbeat func(error)
 	// AnnounceInterval is the interval at which heartbeats are attempted (optional).
 	AnnounceInterval time.Duration
+	// DisruptionAnnounceInterval is the interval at which heartbeats are attempted when
+	// if there was a disuption in the control stream since the last heartbeat (optional).
+	DisruptionAnnounceInterval time.Duration
 	// PollInterval is the interval at which checks for change are performed (optional).
 	PollInterval time.Duration
 }
 
-func (c *SSHServerHeartbeatConfig) Check() error {
+func (c *HeartbeatV2Config[T]) Check() error {
 	if c.InventoryHandle == nil {
-		return trace.BadParameter("missing required parameter InventoryHandle for ssh heartbeat")
+		return trace.BadParameter("missing required parameter InventoryHandle for heartbeat")
 	}
-	if c.GetServer == nil {
-		return trace.BadParameter("missing required parameter GetServer for ssh heartbeat")
+	if c.GetResource == nil {
+		return trace.BadParameter("missing required parameter GetResource for heartbeat")
 	}
 	return nil
 }
 
-func NewSSHServerHeartbeat(cfg SSHServerHeartbeatConfig) (*HeartbeatV2, error) {
+// NewSSHServerHeartbeat creates a [HeartbeatV2] that can be used to update
+// the presence of [types.ServerV2].
+func NewSSHServerHeartbeat(cfg HeartbeatV2Config[*types.ServerV2]) (*HeartbeatV2, error) {
 	if err := cfg.Check(); err != nil {
 		return nil, trace.Wrap(err)
 	}
@@ -77,8 +87,11 @@ func NewSSHServerHeartbeat(cfg SSHServerHeartbeatConfig) (*HeartbeatV2, error) {
 		getMetadata: metadata.Get,
 		announcer:   cfg.Announcer,
 	}
-	inner.getServer = func(ctx context.Context) *types.ServerV2 {
-		server := cfg.GetServer()
+	inner.getServer = func(ctx context.Context) (*types.ServerV2, error) {
+		server, err := cfg.GetResource(ctx)
+		if err != nil {
+			return nil, trace.Wrap(err)
+		}
 
 		doneCtx, cancel := context.WithCancel(ctx)
 		cancel() // not a typo
@@ -88,13 +101,34 @@ func NewSSHServerHeartbeat(cfg SSHServerHeartbeatConfig) (*HeartbeatV2, error) {
 			server.SetCloudMetadata(meta.CloudMetadata)
 		}
 
-		return server
+		return server, nil
 	}
 
 	return newHeartbeatV2(cfg.InventoryHandle, inner, heartbeatV2Config{
-		onHeartbeatInner: cfg.OnHeartbeat,
-		announceInterval: cfg.AnnounceInterval,
-		pollInterval:     cfg.PollInterval,
+		onHeartbeatInner:           cfg.OnHeartbeat,
+		announceInterval:           cfg.AnnounceInterval,
+		disruptionAnnounceInterval: cfg.DisruptionAnnounceInterval,
+		pollInterval:               cfg.PollInterval,
+	}), nil
+}
+
+// NewAppServerHeartbeat creates a [HeartbeatV2] that can be used to update
+// the presence of [types.AppServerV3].
+func NewAppServerHeartbeat(cfg HeartbeatV2Config[*types.AppServerV3]) (*HeartbeatV2, error) {
+	if err := cfg.Check(); err != nil {
+		return nil, trace.Wrap(err)
+	}
+
+	inner := &appServerHeartbeatV2{
+		getServer: cfg.GetResource,
+		announcer: cfg.Announcer,
+	}
+
+	return newHeartbeatV2(cfg.InventoryHandle, inner, heartbeatV2Config{
+		onHeartbeatInner:           cfg.OnHeartbeat,
+		announceInterval:           cfg.AnnounceInterval,
+		disruptionAnnounceInterval: cfg.DisruptionAnnounceInterval,
+		pollInterval:               cfg.PollInterval,
 	}), nil
 }
 
@@ -182,9 +216,10 @@ type HeartbeatV2 struct {
 }
 
 type heartbeatV2Config struct {
-	announceInterval time.Duration
-	pollInterval     time.Duration
-	onHeartbeatInner func(error)
+	announceInterval           time.Duration
+	disruptionAnnounceInterval time.Duration
+	pollInterval               time.Duration
+	onHeartbeatInner           func(error)
 
 	// -- below values only used in tests
 
@@ -199,6 +234,11 @@ func (c *heartbeatV2Config) SetDefaults() {
 		// for our periodics, that translates to an average interval of ~6m, a slight increase
 		// from the average of ~5m30s that was used for V1 ssh server heartbeats.
 		c.announceInterval = 2 * (apidefaults.ServerAnnounceTTL / 3)
+	}
+	if c.disruptionAnnounceInterval == 0 {
+		// if there was a disruption in the control stream, we want to heartbeat a bit
+		// sooner in case the disruption affected the most recent announce's success.
+		c.disruptionAnnounceInterval = 2 * (c.announceInterval / 3)
 	}
 	if c.pollInterval == 0 {
 		c.pollInterval = defaults.HeartbeatCheckPeriod
@@ -330,6 +370,21 @@ func (h *HeartbeatV2) runWithSender(sender inventory.DownstreamSender) {
 		h.shouldAnnounce = true
 	}
 
+	// in the event of disruption, we want to heartbeat a bit sooner than the normal.
+	// this helps prevent node heartbeats from getting too stale when auth servers fail
+	// in a manner that isn't immediately detected by the agent (e.g. deadlock,
+	// i/o timeout, etc). Since we're heartbeating over a channel, such failure modes
+	// can sometimes mean that the last announce failed "silently" from our perspective.
+	if t, ok := h.announce.LastTick(); ok {
+		elapsed := time.Since(t)
+		dai := utils.SeventhJitter(h.disruptionAnnounceInterval)
+		if elapsed >= dai {
+			h.shouldAnnounce = true
+		} else {
+			h.announce.ResetTo(dai - elapsed)
+		}
+	}
+
 	for {
 		if h.shouldAnnounce {
 			if ok := h.inner.Announce(h.closeContext, sender); ok {
@@ -454,9 +509,9 @@ type metadataGetter func(ctx context.Context) (*metadata.Metadata, error)
 
 // sshServerHeartbeatV2 is the heartbeatV2 implementation for ssh servers.
 type sshServerHeartbeatV2 struct {
-	getServer   func(ctx context.Context) *types.ServerV2
+	getServer   func(ctx context.Context) (*types.ServerV2, error)
 	getMetadata metadataGetter
-	announcer   auth.Announcer
+	announcer   authclient.Announcer
 	prev        *types.ServerV2
 }
 
@@ -464,7 +519,13 @@ func (h *sshServerHeartbeatV2) Poll(ctx context.Context) (changed bool) {
 	if h.prev == nil {
 		return true
 	}
-	return services.CompareServers(h.getServer(ctx), h.prev) == services.Different
+
+	server, err := h.getServer(ctx)
+	if err != nil {
+		return false
+	}
+
+	return services.CompareServers(server, h.prev) == services.Different
 }
 
 func (h *sshServerHeartbeatV2) SupportsFallback() bool {
@@ -475,25 +536,115 @@ func (h *sshServerHeartbeatV2) FallbackAnnounce(ctx context.Context) (ok bool) {
 	if h.announcer == nil {
 		return false
 	}
-	server := h.getServer(ctx)
-	_, err := h.announcer.UpsertNode(ctx, server)
+	server, err := h.getServer(ctx)
 	if err != nil {
 		log.Warnf("Failed to perform fallback heartbeat for ssh server: %v", err)
+		return false
+	}
+
+	if _, err := h.announcer.UpsertNode(ctx, server); err != nil {
+		log.Warnf("Failed to perform fallback heartbeat for ssh server: %v", err)
+		return false
+	}
+
+	h.prev = server
+	return true
+}
+
+func (h *sshServerHeartbeatV2) Announce(ctx context.Context, sender inventory.DownstreamSender) (ok bool) {
+	server, err := h.getServer(ctx)
+	if err != nil {
+		log.Warnf("Failed to perform inventory heartbeat for ssh server: %v", err)
+		return false
+	}
+
+	if err := sender.Send(ctx, proto.InventoryHeartbeat{SSHServer: apiutils.CloneProtoMsg(server)}); err != nil {
+		log.Warnf("Failed to perform inventory heartbeat for ssh server: %v", err)
 		return false
 	}
 	h.prev = server
 	return true
 }
 
-func (h *sshServerHeartbeatV2) Announce(ctx context.Context, sender inventory.DownstreamSender) (ok bool) {
-	server := h.getServer(ctx)
-	err := sender.Send(ctx, proto.InventoryHeartbeat{
-		SSHServer: h.getServer(ctx),
-	})
+// appServerHeartbeatV2 is the heartbeatV2 implementation for app servers.
+type appServerHeartbeatV2 struct {
+	getServer func(ctx context.Context) (*types.AppServerV3, error)
+	announcer authclient.Announcer
+	prev      *types.AppServerV3
+}
+
+func (h *appServerHeartbeatV2) Poll(ctx context.Context) (changed bool) {
+	if h.prev == nil {
+		return true
+	}
+
+	server, err := h.getServer(ctx)
 	if err != nil {
-		log.Warnf("Failed to perform inventory heartbeat for ssh server: %v", err)
 		return false
 	}
+
+	return services.CompareServers(server, h.prev) == services.Different
+}
+
+func (h *appServerHeartbeatV2) SupportsFallback() bool {
+	return h.announcer != nil
+}
+
+func (h *appServerHeartbeatV2) FallbackAnnounce(ctx context.Context) (ok bool) {
+	if h.announcer == nil {
+		return false
+	}
+	server, err := h.getServer(ctx)
+	if err != nil {
+		log.Warnf("Failed to perform fallback heartbeat for app server: %v", err)
+		return false
+	}
+
+	if _, err := h.announcer.UpsertApplicationServer(ctx, server); err != nil {
+		if !errors.Is(err, context.Canceled) && status.Code(err) != codes.Canceled {
+			log.Warnf("Failed to perform fallback heartbeat for app server: %v", err)
+		}
+		return false
+	}
+	h.prev = server
+	return true
+}
+
+var (
+	minAppVersion15 = semver.New("15.3.5")
+	minAppVersion14 = semver.New("14.3.19")
+	minAppVersion13 = semver.New("13.4.25")
+)
+
+func (h *appServerHeartbeatV2) Announce(ctx context.Context, sender inventory.DownstreamSender) (ok bool) {
+	authVersion, err := semver.NewVersion(sender.Hello().Version)
+	if err != nil {
+		return false
+	}
+
+	// AppServer heartbeats via inventory control stream were not introduced in a major version,
+	// so there is a chance that the Auth server is unable to process the request via the inventory
+	// control stream. If the Auth server is detected to be running an incompatible version, then use
+	// the fallback mechanism.
+	if (authVersion.Major == 15 && authVersion.LessThan(*minAppVersion15)) ||
+		(authVersion.Major == 14 && authVersion.LessThan(*minAppVersion14)) ||
+		(authVersion.Major == 13 && authVersion.LessThan(*minAppVersion13)) {
+		return h.FallbackAnnounce(ctx)
+	}
+
+	server, err := h.getServer(ctx)
+	if err != nil {
+		log.Warnf("Failed to perform inventory heartbeat for app server: %v", err)
+		return false
+	}
+
+	if err := sender.Send(ctx, proto.InventoryHeartbeat{AppServer: apiutils.CloneProtoMsg(server)}); err != nil {
+		if !errors.Is(err, context.Canceled) && status.Code(err) != codes.Canceled {
+			log.Warnf("Failed to perform inventory heartbeat for app server: %v", err)
+		}
+		return false
+	}
+
 	h.prev = server
 	return true
 }

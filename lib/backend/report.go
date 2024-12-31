@@ -18,6 +18,7 @@ package backend
 
 import (
 	"context"
+	"slices"
 	"strings"
 	"time"
 
@@ -28,7 +29,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel/attribute"
 	oteltrace "go.opentelemetry.io/otel/trace"
-	"golang.org/x/exp/slices"
+	"golang.org/x/time/rate"
 
 	"github.com/gravitational/teleport"
 	"github.com/gravitational/teleport/api/types"
@@ -82,6 +83,8 @@ type Reporter struct {
 	// This will keep an upper limit on our memory usage while still always
 	// reporting the most active keys.
 	topRequestsCache *lru.Cache[topRequestsCacheKey, struct{}]
+
+	slowRangeLogLimiter *rate.Limiter
 }
 
 // NewReporter returns a new Reporter.
@@ -103,8 +106,9 @@ func NewReporter(cfg ReporterConfig) (*Reporter, error) {
 		return nil, trace.Wrap(err)
 	}
 	r := &Reporter{
-		ReporterConfig:   cfg,
-		topRequestsCache: cache,
+		ReporterConfig:      cfg,
+		topRequestsCache:    cache,
+		slowRangeLogLimiter: rate.NewLimiter(rate.Every(time.Minute), 12),
 	}
 	return r, nil
 }
@@ -114,7 +118,7 @@ func (s *Reporter) GetName() string {
 }
 
 // GetRange returns query range
-func (s *Reporter) GetRange(ctx context.Context, startKey []byte, endKey []byte, limit int) (*GetResult, error) {
+func (s *Reporter) GetRange(ctx context.Context, startKey, endKey Key, limit int) (*GetResult, error) {
 	ctx, span := s.Tracer.Start(
 		ctx,
 		"backend/GetRange",
@@ -134,6 +138,17 @@ func (s *Reporter) GetRange(ctx context.Context, startKey []byte, endKey []byte,
 		batchReadRequestsFailed.WithLabelValues(s.Component).Inc()
 	}
 	s.trackRequest(types.OpGet, startKey, endKey)
+	end := s.Clock().Now()
+	if d := end.Sub(start); d > time.Second*3 {
+		if s.slowRangeLogLimiter.AllowN(end, 1) {
+			log.WithFields(log.Fields{
+				"start_key": string(startKey),
+				"end_key":   string(endKey),
+				"limit":     limit,
+				"duration":  d.String(),
+			}).Warn("slow GetRange request")
+		}
+	}
 	return res, err
 }
 
@@ -205,7 +220,7 @@ func (s *Reporter) Update(ctx context.Context, i Item) (*Lease, error) {
 }
 
 // Get returns a single item or not found error
-func (s *Reporter) Get(ctx context.Context, key []byte) (*Item, error) {
+func (s *Reporter) Get(ctx context.Context, key Key) (*Item, error) {
 	ctx, span := s.Tracer.Start(
 		ctx,
 		"backend/Get",
@@ -250,7 +265,7 @@ func (s *Reporter) CompareAndSwap(ctx context.Context, expected Item, replaceWit
 }
 
 // Delete deletes item by key
-func (s *Reporter) Delete(ctx context.Context, key []byte) error {
+func (s *Reporter) Delete(ctx context.Context, key Key) error {
 	ctx, span := s.Tracer.Start(
 		ctx,
 		"backend/Delete",
@@ -272,7 +287,7 @@ func (s *Reporter) Delete(ctx context.Context, key []byte) error {
 }
 
 // DeleteRange deletes range of items
-func (s *Reporter) DeleteRange(ctx context.Context, startKey []byte, endKey []byte) error {
+func (s *Reporter) DeleteRange(ctx context.Context, startKey, endKey Key) error {
 	ctx, span := s.Tracer.Start(
 		ctx,
 		"backend/DeleteRange",
@@ -361,7 +376,7 @@ type topRequestsCacheKey struct {
 }
 
 // trackRequests tracks top requests, endKey is supplied for ranges
-func (s *Reporter) trackRequest(opType types.OpType, key []byte, endKey []byte) {
+func (s *Reporter) trackRequest(opType types.OpType, key Key, endKey Key) {
 	if len(key) == 0 {
 		return
 	}
@@ -431,7 +446,7 @@ func buildKeyLabel(key string, sensitivePrefixes, singletonPrefixes []string, is
 	// if the first non-empty segment is a secret range and there are at least two non-empty
 	// segments, then the second non-empty segment should be masked.
 	if finalLen-realStart > 1 && slices.Contains(sensitivePrefixes, parts[realStart]) {
-		parts[realStart+1] = string(MaskKeyName(parts[realStart+1]))
+		parts[realStart+1] = MaskKeyName(parts[realStart+1])
 	}
 
 	return strings.Join(parts[:finalLen], string(Separator))

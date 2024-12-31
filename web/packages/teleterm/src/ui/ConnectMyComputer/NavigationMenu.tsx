@@ -94,12 +94,10 @@ export function NavigationMenu() {
         anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
         transformOrigin={{ vertical: 'top', horizontal: 'left' }}
         onClose={() => setIsMenuOpened(false)}
-        menuListCss={() =>
-          css`
-            display: flex;
-            flex-direction: column;
-          `
-        }
+        menuListCss={() => css`
+          display: flex;
+          flex-direction: column;
+        `}
       >
         {isAgentConfiguredAttempt.status === 'processing' && (
           <Indicator
@@ -248,7 +246,7 @@ const StyledStatus = styled(Box)`
     }
 
     if (status === 'processing' || status === 'success') {
-      return { backgroundColor: theme.colors.success };
+      return { backgroundColor: theme.colors.success.main };
     }
 
     // 'error' status can be ignored as it's handled outside of StyledStatus.

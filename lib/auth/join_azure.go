@@ -22,6 +22,8 @@ import (
 	"encoding/base64"
 	"encoding/pem"
 	"net/url"
+	"slices"
+	"strings"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
@@ -31,7 +33,6 @@ import (
 	"github.com/go-jose/go-jose/v3/jwt"
 	"github.com/gravitational/trace"
 	"github.com/jonboulle/clockwork"
-	"golang.org/x/exp/slices"
 
 	"github.com/gravitational/teleport/api/client"
 	"github.com/gravitational/teleport/api/client/proto"
@@ -279,19 +280,35 @@ func verifyVMIdentity(ctx context.Context, cfg *azureRegisterConfig, accessToken
 	return vm, nil
 }
 
-func checkAzureAllowRules(vm *azure.VirtualMachine, allowRules []*types.ProvisionTokenSpecV2Azure_Rule) error {
+func checkAzureAllowRules(vm *azure.VirtualMachine, token string, allowRules []*types.ProvisionTokenSpecV2Azure_Rule) error {
 	for _, rule := range allowRules {
 		if rule.Subscription != vm.Subscription {
 			continue
 		}
-		if len(rule.ResourceGroups) > 0 {
-			if !slices.Contains(rule.ResourceGroups, vm.ResourceGroup) {
-				continue
-			}
+		if !azureResourceGroupIsAllowed(rule.ResourceGroups, vm.ResourceGroup) {
+			continue
 		}
 		return nil
 	}
-	return trace.AccessDenied("instance did not match any allow rules")
+	return trace.AccessDenied("instance %v did not match any allow rules in token %v", vm.Name, token)
+}
+func azureResourceGroupIsAllowed(allowedResourceGroups []string, vmResourceGroup string) bool {
+	if len(allowedResourceGroups) == 0 {
+		return true
+	}
+
+	// ResourceGroups are case insensitive.
+	// https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/frequently-asked-questions#are-resource-group-names-case-sensitive
+	// The API returns them using capital case, but docs don't mention a specific case.
+	// Converting everything to the same case will ensure a proper comparison.
+	resourceGroup := strings.ToUpper(vmResourceGroup)
+	for _, allowedResourceGroup := range allowedResourceGroups {
+		if strings.EqualFold(resourceGroup, allowedResourceGroup) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (a *Server) checkAzureRequest(ctx context.Context, challenge string, req *proto.RegisterUsingAzureMethodRequest, cfg *azureRegisterConfig) error {
@@ -320,7 +337,7 @@ func (a *Server) checkAzureRequest(ctx context.Context, challenge string, req *p
 		return trace.BadParameter("azure join method only supports ProvisionTokenV2, '%T' was provided", provisionToken)
 	}
 
-	if err := checkAzureAllowRules(vm, token.Spec.Azure.Allow); err != nil {
+	if err := checkAzureAllowRules(vm, token.GetName(), token.Spec.Azure.Allow); err != nil {
 		return trace.Wrap(err)
 	}
 
@@ -338,7 +355,22 @@ func generateAzureChallenge() (string, error) {
 // The caller must provide a ChallengeResponseFunc which returns a
 // *proto.RegisterUsingAzureMethodRequest with a signed attested data document
 // including the challenge as a nonce.
-func (a *Server) RegisterUsingAzureMethod(ctx context.Context, challengeResponse client.RegisterAzureChallengeResponseFunc, opts ...azureRegisterOption) (*proto.Certs, error) {
+func (a *Server) RegisterUsingAzureMethod(
+	ctx context.Context,
+	challengeResponse client.RegisterAzureChallengeResponseFunc,
+	opts ...azureRegisterOption,
+) (certs *proto.Certs, err error) {
+	var provisionToken types.ProvisionToken
+	var joinRequest *types.RegisterUsingTokenRequest
+	defer func() {
+		// Emit a log message and audit event on join failure.
+		if err != nil {
+			a.handleJoinFailure(
+				err, provisionToken, nil, joinRequest,
+			)
+		}
+	}()
+
 	cfg := &azureRegisterConfig{}
 	for _, opt := range opts {
 		opt(cfg)
@@ -355,12 +387,13 @@ func (a *Server) RegisterUsingAzureMethod(ctx context.Context, challengeResponse
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
+	joinRequest = req.RegisterUsingTokenRequest
 
 	if err := req.CheckAndSetDefaults(); err != nil {
 		return nil, trace.Wrap(err)
 	}
 
-	provisionToken, err := a.checkTokenJoinRequestCommon(ctx, req.RegisterUsingTokenRequest)
+	provisionToken, err = a.checkTokenJoinRequestCommon(ctx, req.RegisterUsingTokenRequest)
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
@@ -378,7 +411,7 @@ func (a *Server) RegisterUsingAzureMethod(ctx context.Context, challengeResponse
 		)
 		return certs, trace.Wrap(err)
 	}
-	certs, err := a.generateCerts(
+	certs, err = a.generateCerts(
 		ctx,
 		provisionToken,
 		req.RegisterUsingTokenRequest,

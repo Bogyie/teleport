@@ -33,6 +33,7 @@ import (
 	apidefaults "github.com/gravitational/teleport/api/defaults"
 	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/auth"
+	"github.com/gravitational/teleport/lib/auth/authclient"
 	"github.com/gravitational/teleport/lib/authz"
 	"github.com/gravitational/teleport/lib/cloud"
 	"github.com/gravitational/teleport/lib/defaults"
@@ -56,7 +57,7 @@ type TLSServerConfig struct {
 	// LimiterConfig is limiter config
 	LimiterConfig limiter.Config
 	// AccessPoint is caching access point
-	AccessPoint auth.ReadKubernetesAccessPoint
+	AccessPoint authclient.ReadKubernetesAccessPoint
 	// OnHeartbeat is a callback for kubernetes_service heartbeats.
 	OnHeartbeat func(error)
 	// GetRotation returns the certificate rotation state.
@@ -315,6 +316,14 @@ func (t *TLSServer) Serve(listener net.Listener, options ...ServeOption) error {
 	defer mux.Close()
 
 	t.mu.Lock()
+	select {
+	// If the server is closed before the listener is started, return early
+	// to avoid deadlock.
+	case <-t.closeContext.Done():
+		t.mu.Unlock()
+		return nil
+	default:
+	}
 	t.listener = mux.TLS()
 	err = http2.ConfigureServer(t.Server, &http2.Server{})
 	t.mu.Unlock()
@@ -402,8 +411,11 @@ func (t *TLSServer) close(ctx context.Context) error {
 		t.KubernetesServersWatcher.Close()
 	}
 
+	var listClose error
 	t.mu.Lock()
-	listClose := t.listener.Close()
+	if t.listener != nil {
+		listClose = t.listener.Close()
+	}
 	t.mu.Unlock()
 	return trace.NewAggregate(append(errs, listClose)...)
 }
@@ -412,7 +424,7 @@ func (t *TLSServer) close(ctx context.Context) error {
 // and server's GetConfigForClient reloads the list of trusted
 // local and remote certificate authorities
 func (t *TLSServer) GetConfigForClient(info *tls.ClientHelloInfo) (*tls.Config, error) {
-	return auth.WithClusterCAs(t.TLS, t.AccessPoint, t.ClusterName, t.log)(info)
+	return authclient.WithClusterCAs(t.TLS, t.AccessPoint, t.ClusterName, t.log)(info)
 }
 
 // getServerInfoFunc returns function that the heartbeater uses to report the

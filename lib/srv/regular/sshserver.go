@@ -49,7 +49,7 @@ import (
 	tracessh "github.com/gravitational/teleport/api/observability/tracing/ssh"
 	"github.com/gravitational/teleport/api/types"
 	apievents "github.com/gravitational/teleport/api/types/events"
-	"github.com/gravitational/teleport/lib/auth"
+	"github.com/gravitational/teleport/lib/auth/authclient"
 	"github.com/gravitational/teleport/lib/bpf"
 	"github.com/gravitational/teleport/lib/defaults"
 	"github.com/gravitational/teleport/lib/events"
@@ -88,7 +88,6 @@ type Server struct {
 	hostname  string
 
 	srv         *sshutils.Server
-	shell       string
 	getRotation services.RotationGetter
 	authService srv.AccessPoint
 	reg         *srv.SessionRegistry
@@ -107,7 +106,7 @@ type Server struct {
 
 	proxyMode        bool
 	proxyTun         reversetunnelclient.Tunnel
-	proxyAccessPoint auth.ReadProxyAccessPoint
+	proxyAccessPoint authclient.ReadProxyAccessPoint
 	peerAddr         string
 
 	advertiseAddr   *utils.NetAddr
@@ -207,9 +206,6 @@ type Server struct {
 	// connectedProxyGetter gets the proxies teleport is connected to.
 	connectedProxyGetter *reversetunnel.ConnectedProxyGetter
 
-	// nodeWatcher is the server's node watcher.
-	nodeWatcher *services.NodeWatcher
-
 	// createHostUser configures whether a host should allow host user
 	// creation
 	createHostUser bool
@@ -241,13 +237,12 @@ type Server struct {
 
 	// proxySigner is used to generate signed PROXYv2 header so we can securely propagate client IP
 	proxySigner PROXYHeaderSigner
-	// caGetter is used to get host CA of the cluster to verify signed PROXY headers
-	caGetter CertAuthorityGetter
 }
 
 // TargetMetadata returns metadata about the server.
 func (s *Server) TargetMetadata() apievents.ServerMetadata {
 	return apievents.ServerMetadata{
+		ServerVersion:   teleport.Version,
 		ServerNamespace: s.GetNamespace(),
 		ServerID:        s.ID(),
 		ServerAddr:      s.Addr(),
@@ -308,7 +303,8 @@ func (s *Server) GetLockWatcher() *services.LockWatcher {
 // GetCreateHostUser determines whether users should be created on the
 // host automatically
 func (s *Server) GetCreateHostUser() bool {
-	return s.createHostUser
+	// we shouldn't allow creating host users on a proxy server
+	return !s.proxyMode && s.createHostUser
 }
 
 // GetHostUsers returns the HostUsers instance being used to manage
@@ -320,6 +316,11 @@ func (s *Server) GetHostUsers() srv.HostUsers {
 // GetHostSudoers returns the HostSudoers instance being used to manage
 // sudoers file provisioning
 func (s *Server) GetHostSudoers() srv.HostSudoers {
+	// we shouldn't allow modifying sudoers on a proxy server
+	if s.proxyMode {
+		return nil
+	}
+
 	if s.sudoers == nil {
 		return &srv.HostSudoersNotImplemented{}
 	}
@@ -449,17 +450,8 @@ func SetRotationGetter(getter services.RotationGetter) ServerOption {
 	}
 }
 
-// SetShell sets default shell that will be executed for interactive
-// sessions
-func SetShell(shell string) ServerOption {
-	return func(s *Server) error {
-		s.shell = shell
-		return nil
-	}
-}
-
 // SetProxyMode starts this server in SSH proxying mode
-func SetProxyMode(peerAddr string, tsrv reversetunnelclient.Tunnel, ap auth.ReadProxyAccessPoint, router *proxy.Router) ServerOption {
+func SetProxyMode(peerAddr string, tsrv reversetunnelclient.Tunnel, ap authclient.ReadProxyAccessPoint, router *proxy.Router) ServerOption {
 	return func(s *Server) error {
 		// always set proxy mode to true,
 		// because in some tests reverse tunnel is disabled,
@@ -652,14 +644,6 @@ func SetLockWatcher(lockWatcher *services.LockWatcher) ServerOption {
 	}
 }
 
-// SetNodeWatcher sets the server's node watcher.
-func SetNodeWatcher(nodeWatcher *services.NodeWatcher) ServerOption {
-	return func(s *Server) error {
-		s.nodeWatcher = nodeWatcher
-		return nil
-	}
-}
-
 // SetX11ForwardingConfig sets the server's X11 forwarding configuration
 func SetX11ForwardingConfig(xc *x11.ServerConfig) ServerOption {
 	return func(s *Server) error {
@@ -718,14 +702,6 @@ func SetPROXYSigner(proxySigner PROXYHeaderSigner) ServerOption {
 	}
 }
 
-// SetCAGetter sets the cert authority getter
-func SetCAGetter(caGetter CertAuthorityGetter) ServerOption {
-	return func(s *Server) error {
-		s.caGetter = caGetter
-		return nil
-	}
-}
-
 // SetPublicAddrs sets the server's public addresses
 func SetPublicAddrs(addrs []utils.NetAddr) ServerOption {
 	return func(s *Server) error {
@@ -744,7 +720,7 @@ func New(
 	dataDir string,
 	advertiseAddr string,
 	proxyPublicAddr utils.NetAddr,
-	auth auth.ClientI,
+	auth authclient.ClientI,
 	options ...ServerOption,
 ) (*Server, error) {
 	// read the host UUID:
@@ -887,14 +863,14 @@ func New(
 
 	var heartbeat srv.HeartbeatI
 	if heartbeatMode == srv.HeartbeatModeNode && s.inventoryHandle != nil {
-		s.Logger.Info("debug -> starting control-stream based heartbeat.")
-		heartbeat, err = srv.NewSSHServerHeartbeat(srv.SSHServerHeartbeatConfig{
+		s.Logger.Debug("starting control-stream based heartbeat.")
+		heartbeat, err = srv.NewSSHServerHeartbeat(srv.HeartbeatV2Config[*types.ServerV2]{
 			InventoryHandle: s.inventoryHandle,
-			GetServer:       s.getServerInfo,
+			GetResource:     s.getServerInfo,
 			OnHeartbeat:     s.onHeartbeat,
 		})
 	} else {
-		s.Logger.Info("debug -> starting legacy heartbeat.")
+		s.Logger.Debug("starting legacy heartbeat.")
 		heartbeat, err = srv.NewHeartbeat(srv.HeartbeatConfig{
 			Mode:            heartbeatMode,
 			Context:         ctx,
@@ -1090,7 +1066,7 @@ func (s *Server) getBasicInfo() *types.ServerV2 {
 	return srv
 }
 
-func (s *Server) getServerInfo() *types.ServerV2 {
+func (s *Server) getServerInfo(context.Context) (*types.ServerV2, error) {
 	server := s.getBasicInfo()
 	if s.getRotation != nil {
 		rotation, err := s.getRotation(s.getRole())
@@ -1105,11 +1081,11 @@ func (s *Server) getServerInfo() *types.ServerV2 {
 
 	server.SetExpiry(s.clock.Now().UTC().Add(apidefaults.ServerAnnounceTTL))
 	server.SetPeerAddr(s.peerAddr)
-	return server
+	return server, nil
 }
 
 func (s *Server) getServerResource() (types.Resource, error) {
-	return s.getServerInfo(), nil
+	return s.getServerInfo(s.ctx)
 }
 
 // getDirectTCPIPForwarder sets up a connection-level subprocess that handles forwarding connections. Subsequent
@@ -1196,7 +1172,7 @@ func (s *Server) getDirectTCPIPForwardDialer(ctx *srv.ServerContext) (sshutils.T
 		}
 		defer remoteFD.Close()
 
-		_, _, err = dialerConn.WriteWithFDs([]byte(addr), []*os.File{remoteFD})
+		_, _, err = uds.WriteWithFDs(dialerConn, []byte(addr), []*os.File{remoteFD})
 		if err != nil {
 			local.Close()
 			return nil, trace.Wrap(err)
@@ -1290,16 +1266,41 @@ func (s *Server) HandleRequest(ctx context.Context, r *ssh.Request) {
 }
 
 // HandleNewConn is called by sshutils.Server once for each new incoming connection,
-// prior to handling any channels or requests.  Currently this callback's only
-// function is to apply session control restrictions.
+// prior to handling any channels or requests.
 func (s *Server) HandleNewConn(ctx context.Context, ccx *sshutils.ConnectionContext) (context.Context, error) {
 	identityContext, err := s.authHandlers.CreateIdentityContext(ccx.ServerConn)
 	if err != nil {
 		return ctx, trace.Wrap(err)
 	}
 
+	// Apply session control restrictions.
 	ctx, err = s.sessionController.AcquireSessionContext(ctx, identityContext, ccx.ServerConn.LocalAddr().String(), ccx.ServerConn.RemoteAddr().String(), ccx)
-	return ctx, trace.Wrap(err)
+	if err != nil {
+		return ctx, trace.Wrap(err)
+	}
+
+	// Create host user.
+	created, userCloser, err := s.termHandlers.SessionRegistry.UpsertHostUser(identityContext)
+	if err != nil {
+		log.Warnf("error while creating host users: %s", err)
+	}
+
+	// Indicate that the user was created by Teleport.
+	ccx.UserCreatedByTeleport = created
+	if userCloser != nil {
+		ccx.AddCloser(userCloser)
+	}
+
+	sudoersCloser, err := s.termHandlers.SessionRegistry.WriteSudoersFile(identityContext)
+	if err != nil {
+		log.Warnf("error while writing sudoers: %s", err)
+	}
+
+	if sudoersCloser != nil {
+		ccx.AddCloser(sudoersCloser)
+	}
+
+	return ctx, nil
 }
 
 // HandleNewChan is called when new channel is opened
@@ -1402,6 +1403,7 @@ func (s *Server) HandleNewChan(ctx context.Context, ccx *sshutils.ConnectionCont
 						RemoteAddr: ccx.ServerConn.RemoteAddr().String(),
 					},
 					ServerMetadata: apievents.ServerMetadata{
+						ServerVersion:   teleport.Version,
 						ServerID:        s.uuid,
 						ServerNamespace: s.GetNamespace(),
 					},
@@ -1777,22 +1779,10 @@ func (s *Server) dispatch(ctx context.Context, ch ssh.Channel, req *ssh.Request,
 	case tracessh.TracingRequest:
 		return nil
 	case sshutils.ExecRequest:
-		if err := s.termHandlers.SessionRegistry.TryCreateHostUser(serverContext); err != nil {
-			return trace.Wrap(err)
-		}
-		if err := s.termHandlers.SessionRegistry.TryWriteSudoersFile(serverContext); err != nil {
-			return trace.Wrap(err)
-		}
 		return s.termHandlers.HandleExec(ctx, ch, req, serverContext)
 	case sshutils.PTYRequest:
 		return s.termHandlers.HandlePTYReq(ctx, ch, req, serverContext)
 	case sshutils.ShellRequest:
-		if err := s.termHandlers.SessionRegistry.TryCreateHostUser(serverContext); err != nil {
-			return trace.Wrap(err)
-		}
-		if err := s.termHandlers.SessionRegistry.TryWriteSudoersFile(serverContext); err != nil {
-			return trace.Wrap(err)
-		}
 		return s.termHandlers.HandleShell(ctx, ch, req, serverContext)
 	case constants.InitiateFileTransfer:
 		return s.termHandlers.HandleFileTransferRequest(ctx, ch, req, serverContext)
@@ -1819,14 +1809,6 @@ func (s *Server) dispatch(ctx context.Context, ch ssh.Channel, req *ssh.Request,
 		// https://tools.ietf.org/html/draft-ietf-secsh-agent-02
 		// the open ssh proto spec that we implement is here:
 		// http://cvsweb.openbsd.org/cgi-bin/cvsweb/src/usr.bin/ssh/PROTOCOL.agent
-		if err := s.termHandlers.SessionRegistry.TryCreateHostUser(serverContext); err != nil {
-			s.Logger.Warn(err)
-			return nil
-		}
-		if err := s.termHandlers.SessionRegistry.TryWriteSudoersFile(serverContext); err != nil {
-			s.Logger.Warn(err)
-			return nil
-		}
 
 		// to maintain interoperability with OpenSSH, agent forwarding requests
 		// should never fail, all errors should be logged and we should continue
@@ -2210,11 +2192,22 @@ func (s *Server) parseSubsystemRequest(req *ssh.Request, ctx *srv.ServerContext)
 	case r.Name == teleport.GetHomeDirSubsystem:
 		return newHomeDirSubsys(), nil
 	case r.Name == teleport.SFTPSubsystem:
-		if err := ctx.CheckSFTPAllowed(s.reg); err != nil {
+		err := ctx.CheckSFTPAllowed(s.reg)
+		if err != nil {
+			s.EmitAuditEvent(context.Background(), &apievents.SFTP{
+				Metadata: apievents.Metadata{
+					Code: events.SFTPDisallowedCode,
+					Type: events.SFTPEvent,
+					Time: time.Now(),
+				},
+				UserMetadata:   ctx.Identity.GetUserMetadata(),
+				ServerMetadata: ctx.GetServerMetadata(),
+				Error:          err.Error(),
+			})
 			return nil, trace.Wrap(err)
 		}
 
-		return newSFTPSubsys()
+		return newSFTPSubsys(ctx.ConsumeApprovedFileTransferRequest())
 	default:
 		return nil, trace.BadParameter("unrecognized subsystem: %v", r.Name)
 	}

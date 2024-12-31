@@ -17,11 +17,8 @@ limitations under the License.
 package teleport
 
 import (
-	"fmt"
 	"strings"
 	"time"
-
-	"github.com/coreos/go-semver/semver"
 )
 
 // WebAPIVersion is a current webapi version
@@ -49,9 +46,6 @@ const (
 
 	// SSHSessionID is the UUID of the current session.
 	SSHSessionID = "SSH_SESSION_ID"
-
-	// EnableNonInteractiveSessionRecording can be used to record non-interactive SSH session.
-	EnableNonInteractiveSessionRecording = "SSH_TELEPORT_RECORD_NON_INTERACTIVE"
 )
 
 const (
@@ -224,6 +218,9 @@ const (
 
 	// ComponentTSH is the "tsh" binary.
 	ComponentTSH = "tsh"
+
+	// ComponentTCTL is the "tctl" binary.
+	ComponentTCTL = "tctl"
 
 	// ComponentTBot is the "tbot" binary
 	ComponentTBot = "tbot"
@@ -529,6 +526,10 @@ const (
 	// HomeDirNotFound is returned when a the "teleport checkhomedir" command cannot
 	// find the user's home directory.
 	HomeDirNotFound = 254
+	// HomeDirNotAccessible is returned when a the "teleport checkhomedir" command has
+	// found the user's home directory, but the user does NOT have permissions to
+	// access it.
+	HomeDirNotAccessible = 253
 )
 
 // MaxEnvironmentFileLines is the maximum number of lines in a environment file.
@@ -569,9 +570,6 @@ const (
 	// TraitTeams is the name of the role variable use to store team
 	// membership information
 	TraitTeams = "github_teams"
-
-	// TraitJWT is the name of the trait containing JWT header for app access.
-	TraitJWT = "jwt"
 
 	// TraitInternalLoginsVariable is the variable used to store allowed
 	// logins for local accounts.
@@ -682,16 +680,6 @@ const (
 	SystemAccessApproverUserName = "@teleport-access-approval-bot"
 )
 
-// MinClientVersion is the minimum client version required by the server.
-var MinClientVersion string
-
-func init() {
-	// Per https://github.com/gravitational/teleport/blob/master/rfd/0012-teleport-versioning.md,
-	// only one major version backwards is supported for clients.
-	ver := semver.New(Version)
-	MinClientVersion = fmt.Sprintf("%d.0.0", ver.Major-1)
-}
-
 const (
 	// RemoteClusterStatusOffline indicates that cluster is considered as
 	// offline, since it has missed a series of heartbeats
@@ -733,7 +721,7 @@ const (
 	// EnvSSHSessionReason is a reason attached to started sessions meant to describe their intent.
 	EnvSSHSessionReason = "TELEPORT_SESSION_REASON"
 
-	// EnvSSHSessionInvited is an environment variable listning people invited to a session.
+	// EnvSSHSessionInvited is an environment variable listing people invited to a session.
 	EnvSSHSessionInvited = "TELEPORT_SESSION_JOIN_MODE"
 
 	// EnvSSHSessionDisplayParticipantRequirements is set to true or false to indicate if participant

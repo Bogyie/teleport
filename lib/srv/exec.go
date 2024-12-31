@@ -25,6 +25,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"syscall"
@@ -33,7 +34,6 @@ import (
 	"github.com/gravitational/trace"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
-	"golang.org/x/exp/slices"
 
 	"github.com/gravitational/teleport"
 	tracessh "github.com/gravitational/teleport/api/observability/tracing/ssh"
@@ -159,13 +159,7 @@ func (e *localExec) Start(ctx context.Context, channel ssh.Channel) (*ExecResult
 
 	// Connect stdout and stderr to the channel so the user can interact with the command.
 	e.Cmd.Stderr = channel.Stderr()
-
-	if e.Ctx.recordNonInteractiveSession {
-		e.Ctx.Tracef("Starting local exec and recording non-interactive session")
-		e.Cmd.Stdout = io.MultiWriter(e.Ctx.multiWriter, channel)
-	} else {
-		e.Cmd.Stdout = channel
-	}
+	e.Cmd.Stdout = channel
 
 	// Copy from the channel (client input) into stdin of the process.
 	inputWriter, err := e.Cmd.StdinPipe()
@@ -259,6 +253,16 @@ func (e *localExec) String() string {
 func (e *localExec) transformSecureCopy() error {
 	isSCPCmd, err := checkSCPAllowed(e.Ctx, e.GetCommand())
 	if err != nil {
+		e.Ctx.GetServer().EmitAuditEvent(context.WithoutCancel(e.Ctx.Context), &apievents.SFTP{
+			Metadata: apievents.Metadata{
+				Code: events.SCPDisallowedCode,
+				Type: events.SCPEvent,
+				Time: time.Now(),
+			},
+			UserMetadata:   e.Ctx.Identity.GetUserMetadata(),
+			ServerMetadata: e.Ctx.GetServerMetadata(),
+			Error:          err.Error(),
+		})
 		return trace.Wrap(err)
 	}
 	if !isSCPCmd {
@@ -354,17 +358,21 @@ func (e *remoteExec) SetCommand(command string) {
 // ExecResult is only used to communicate an error while launching.
 func (e *remoteExec) Start(ctx context.Context, ch ssh.Channel) (*ExecResult, error) {
 	if _, err := checkSCPAllowed(e.ctx, e.GetCommand()); err != nil {
+		e.ctx.GetServer().EmitAuditEvent(context.WithoutCancel(ctx), &apievents.SFTP{
+			Metadata: apievents.Metadata{
+				Code: events.SCPDisallowedCode,
+				Type: events.SCPEvent,
+				Time: time.Now(),
+			},
+			UserMetadata:   e.ctx.Identity.GetUserMetadata(),
+			ServerMetadata: e.ctx.GetServerMetadata(),
+			Error:          err.Error(),
+		})
 		return nil, trace.Wrap(err)
 	}
 
 	// hook up stdout/err the channel so the user can interact with the command
-	if e.ctx.recordNonInteractiveSession {
-		e.ctx.Tracef("Starting remote exec and recording non-interactive session")
-		e.session.Stdout = io.MultiWriter(e.ctx.multiWriter, ch)
-	} else {
-		e.session.Stdout = ch
-	}
-
+	e.session.Stdout = ch
 	e.session.Stderr = ch.Stderr()
 	inputWriter, err := e.session.StdinPipe()
 	if err != nil {

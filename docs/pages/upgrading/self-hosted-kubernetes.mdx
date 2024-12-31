@@ -13,6 +13,8 @@ Kubernetes.
 - A self-hosted Teleport cluster in which the Auth Service and Proxy Service run
   on Kubernetes. This guide assumes that you have deployed the Teleport cluster
   using the `teleport-cluster` Helm chart.
+- (!docs/pages/includes/tctl-tsh-prerequisite.mdx!)
+- (!docs/pages/includes/tctl.mdx!)
 
 This guide assumes that you have configured the `teleport-cluster` Helm chart
 with a values file called `values.yaml`, and that your `teleport-cluster`
@@ -43,15 +45,15 @@ running on Kubernetes.
 1. Update the Teleport Helm chart repository so you can install the latest
    version of the `teleport-cluster` chart:
 
-    (!docs/pages/kubernetes-access/helm/includes/helm-repo-add.mdx!)
+   (!docs/pages/includes/kubernetes-access/helm/helm-repo-add.mdx!)
 
 1. Upgrade the Helm release:
 
-    ```code
-    $ helm upgrade teleport-cluster teleport/teleport-cluster \
-      --version=<Var name="(=teleport.version=)" /> \
-      --values=values.yaml
-    ```
+   ```code
+   $ helm upgrade teleport-cluster teleport/teleport-cluster \
+     --version=<Var name="(=teleport.version=)" /> \
+     --values=values.yaml
+   ```
 
 The `teleport-cluster` Helm chart automatically waits for the previous version
 of the Proxy Service to stop responding to requests before running a new version
@@ -64,7 +66,7 @@ Run the following commands to upgrade Teleport agents running on Kubernetes.
 1. Update the Teleport Helm chart repository so you can install the latest
    version of the `teleport-kube-agent` chart:
 
-      (!docs/pages/kubernetes-access/helm/includes/helm-repo-add.mdx!)
+   (!docs/pages/includes/kubernetes-access/helm/helm-repo-add.mdx!)
 
 1. Upgrade the Helm release:
 

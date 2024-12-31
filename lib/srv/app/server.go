@@ -22,6 +22,7 @@ package app
 import (
 	"context"
 	"crypto/tls"
+	"crypto/x509"
 	"errors"
 	"net"
 	"net/http"
@@ -32,6 +33,7 @@ import (
 	"github.com/gravitational/trace"
 	"github.com/jonboulle/clockwork"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/gravitational/teleport"
 	apidefaults "github.com/gravitational/teleport/api/defaults"
@@ -39,9 +41,11 @@ import (
 	"github.com/gravitational/teleport/api/types/events"
 	apiutils "github.com/gravitational/teleport/api/utils"
 	"github.com/gravitational/teleport/lib/auth"
+	"github.com/gravitational/teleport/lib/auth/authclient"
 	"github.com/gravitational/teleport/lib/authz"
 	"github.com/gravitational/teleport/lib/defaults"
 	"github.com/gravitational/teleport/lib/httplib"
+	"github.com/gravitational/teleport/lib/inventory"
 	"github.com/gravitational/teleport/lib/labels"
 	"github.com/gravitational/teleport/lib/reversetunnel"
 	"github.com/gravitational/teleport/lib/services"
@@ -76,10 +80,10 @@ type Config struct {
 	DataDir string
 
 	// AuthClient is a client directly connected to the Auth server.
-	AuthClient *auth.Client
+	AuthClient *authclient.Client
 
 	// AccessPoint is a caching client connected to the Auth Server.
-	AccessPoint auth.AppsAccessPoint
+	AccessPoint authclient.AppsAccessPoint
 
 	// TLSConfig is the *tls.Config for this server.
 	TLSConfig *tls.Config
@@ -128,6 +132,9 @@ type Config struct {
 	// ConnectionMonitor monitors connections and terminates any if
 	// any session controls prevent them.
 	ConnectionMonitor ConnMonitor
+
+	// InventoryHandle is used to send app server heartbeats via the inventory control stream.
+	InventoryHandle inventory.DownstreamHandle
 }
 
 // CheckAndSetDefaults makes sure the configuration has the minimum required
@@ -195,7 +202,7 @@ type Server struct {
 	tlsConfig  *tls.Config
 
 	mu            sync.RWMutex
-	heartbeats    map[string]*srv.Heartbeat
+	heartbeats    map[string]srv.HeartbeatI
 	dynamicLabels map[string]*labels.Dynamic
 
 	connAuthMu sync.Mutex
@@ -214,7 +221,11 @@ type Server struct {
 
 	proxyPort string
 
-	cache *sessionChunkCache
+	// cache holds sessionChunk objects for in-flight app sessions.
+	cache *utils.FnCache
+	// cacheCloseWg prevents closing the app server until all app
+	// sessions have been removed from the cache and closed.
+	cacheCloseWg sync.WaitGroup
 
 	awsHandler   http.Handler
 	azureHandler http.Handler
@@ -297,7 +308,7 @@ func New(ctx context.Context, c *Config) (*Server, error) {
 		log: logrus.WithFields(logrus.Fields{
 			trace.Component: teleport.ComponentApp,
 		}),
-		heartbeats:    make(map[string]*srv.Heartbeat),
+		heartbeats:    make(map[string]srv.HeartbeatI),
 		dynamicLabels: make(map[string]*labels.Dynamic),
 		apps:          make(map[string]types.Application),
 		connAuth:      make(map[net.Conn]error),
@@ -336,16 +347,38 @@ func New(ctx context.Context, c *Config) (*Server, error) {
 
 	// Create a new session cache, this holds sessions that can be used to
 	// forward requests.
-	s.cache, err = s.newSessionChunkCache()
+	s.cache, err = utils.NewFnCache(utils.FnCacheConfig{
+		TTL:             5 * time.Minute,
+		Context:         s.closeContext,
+		Clock:           s.c.Clock,
+		CleanupInterval: time.Second,
+		OnExpiry:        s.onSessionExpired,
+	})
 	if err != nil {
 		return nil, trace.Wrap(err)
 	}
+
+	go s.expireSessions()
 
 	// Figure out the port the proxy is running on.
 	s.proxyPort = s.getProxyPort()
 
 	callClose = false
 	return s, nil
+}
+
+func (s *Server) expireSessions() {
+	ticker := time.NewTicker(time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			s.cache.RemoveExpired()
+		case <-s.closeContext.Done():
+			return
+		}
+	}
 }
 
 // startApp registers the specified application.
@@ -428,17 +461,14 @@ func (s *Server) stopDynamicLabels(name string) {
 
 // startHeartbeat starts the registration heartbeat to the auth server.
 func (s *Server) startHeartbeat(ctx context.Context, app types.Application) error {
-	heartbeat, err := srv.NewHeartbeat(srv.HeartbeatConfig{
-		Context:         s.closeContext,
-		Component:       teleport.ComponentApp,
-		Mode:            srv.HeartbeatModeApp,
-		Announcer:       s.c.AccessPoint,
-		GetServerInfo:   s.getServerInfoFunc(app),
-		KeepAlivePeriod: apidefaults.ServerKeepAliveTTL(),
-		AnnouncePeriod:  apidefaults.ServerAnnounceTTL/2 + utils.RandomDuration(apidefaults.ServerAnnounceTTL/10),
-		CheckPeriod:     defaults.HeartbeatCheckPeriod,
-		ServerTTL:       apidefaults.ServerAnnounceTTL,
+	heartbeat, err := srv.NewAppServerHeartbeat(srv.HeartbeatV2Config[*types.AppServerV3]{
+		InventoryHandle: s.c.InventoryHandle,
+		GetResource:     s.getServerInfoFunc(app),
 		OnHeartbeat:     s.c.OnHeartbeat,
+		// Announcer is provided to allow falling back to non-ICS heartbeats if
+		// the Auth server is older than the app service.
+		// TODO(tross): DELETE IN 16.0.0
+		Announcer: s.c.AccessPoint,
 	})
 	if err != nil {
 		return trace.Wrap(err)
@@ -464,14 +494,14 @@ func (s *Server) stopHeartbeat(name string) error {
 
 // getServerInfoFunc returns function that the heartbeater uses to report the
 // provided application to the auth server.
-func (s *Server) getServerInfoFunc(app types.Application) func() (types.Resource, error) {
-	return func() (types.Resource, error) {
+func (s *Server) getServerInfoFunc(app types.Application) func(context.Context) (*types.AppServerV3, error) {
+	return func(context.Context) (*types.AppServerV3, error) {
 		return s.getServerInfo(app)
 	}
 }
 
 // getServerInfo returns up-to-date app resource.
-func (s *Server) getServerInfo(app types.Application) (types.Resource, error) {
+func (s *Server) getServerInfo(app types.Application) (*types.AppServerV3, error) {
 	// Make sure to return a new object, because it gets cached by
 	// heartbeat and will always compare as equal otherwise.
 	s.mu.RLock()
@@ -489,17 +519,14 @@ func (s *Server) getServerInfo(app types.Application) (types.Resource, error) {
 		App:      copy,
 		ProxyIDs: s.c.ConnectedProxyGetter.GetProxyIDs(),
 	})
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
 
-	return server, nil
+	return server, trace.Wrap(err)
 }
 
 // getRotationState is a helper to return this server's CA rotation state.
 func (s *Server) getRotationState() types.Rotation {
 	rotation, err := s.c.GetRotation(types.RoleApp)
-	if err != nil && !trace.IsNotFound(err) {
+	if err != nil && !trace.IsNotFound(err) && !trace.IsConnectionProblem(err) {
 		s.log.WithError(err).Warn("Failed to get rotation state.")
 	}
 	if rotation != nil {
@@ -532,17 +559,6 @@ func (s *Server) updateApp(ctx context.Context, app types.Application) error {
 		}
 		return trace.Wrap(err)
 	}
-	return nil
-}
-
-// unregisterApp stops proxying the app.
-func (s *Server) unregisterApp(ctx context.Context, name string) error {
-	if err := s.stopApp(ctx, name); err != nil {
-		return trace.Wrap(err)
-	}
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	delete(s.apps, name)
 	return nil
 }
 
@@ -602,26 +618,80 @@ func (s *Server) Shutdown(ctx context.Context) error {
 }
 
 func (s *Server) close(ctx context.Context) error {
-	var errs []error
+	shouldDeleteApps := services.ShouldDeleteServerHeartbeatsOnShutdown(ctx)
 
-	// Stop all proxied apps.
-	for _, app := range s.getApps() {
-		if services.ShouldDeleteServerHeartbeatsOnShutdown(ctx) {
-			errs = append(errs, trace.Wrap(s.unregisterAndRemoveApp(ctx, app.GetName())))
-		} else {
-			errs = append(errs, trace.Wrap(s.unregisterApp(ctx, app.GetName())))
+	g, gctx := errgroup.WithContext(ctx)
+	g.SetLimit(100)
+
+	sender, ok := s.c.InventoryHandle.GetSender()
+	if ok {
+		// Manual deletion per app is only required if the auth server
+		// doesn't support actively cleaning up app resources when the
+		// inventory control stream is terminated during shutdown.
+		if capabilities := sender.Hello().Capabilities; capabilities != nil {
+			shouldDeleteApps = shouldDeleteApps && !capabilities.AppCleanup
 		}
 	}
 
-	// Stop HTTP server.
-	if err := s.httpServer.Close(); err != nil {
-		errs = append(errs, err)
+	// Hold the READ lock while iterating the applications here to prevent
+	// deadlocking in flight heartbeats. The heartbeat announce acquires
+	// the lock to build the app resource to send. If the WRITE lock is
+	// held during the shutdown procedure below, any in flight heartbeats
+	// will block acquiring the mutex until shutdown completes, at which
+	// point the heartbeat will be emitted and the removal of the app
+	// server below would be undone.
+	s.mu.RLock()
+	for name := range s.apps {
+		name := name
+		heartbeat := s.heartbeats[name]
+
+		if dynamic, ok := s.dynamicLabels[name]; ok {
+			dynamic.Close()
+		}
+
+		if heartbeat != nil {
+			log := s.log.WithField("app", name)
+			log.Debug("Stopping app")
+			if err := heartbeat.Close(); err != nil {
+				log.WithError(err).Warn("Failed to stop app.")
+			} else {
+				log.Debug("Stopped app")
+			}
+
+			if shouldDeleteApps {
+				g.Go(func() error {
+					log.Debug("Deleting app")
+					if err := s.removeAppServer(gctx, name); err != nil {
+						log.WithError(err).Warn("Failed to delete app.")
+					} else {
+						log.Debug("Deleted app")
+					}
+					return nil
+				})
+			}
+		}
+	}
+	s.mu.RUnlock()
+
+	if err := g.Wait(); err != nil {
+		s.log.WithError(err).Warn("Deleting all apps failed")
 	}
 
-	// Close the session cache and its remaining sessions. Sessions
-	// use server.closeContext to complete cleanup, so we must wait
-	// for sessions to finish closing before closing the context.
-	s.cache.closeAllSessions()
+	s.mu.Lock()
+	clear(s.apps)
+	clear(s.dynamicLabels)
+	clear(s.heartbeats)
+	s.mu.Unlock()
+
+	// Stop HTTP server.
+	err := s.httpServer.Close()
+
+	// Close the session cache and its remaining sessions.
+	s.cache.Shutdown(s.closeContext)
+	// Any sessions still in the cache during shutdown are closed in
+	// background goroutines. We must wait for sessions to finish closing
+	// before proceeding any further.
+	s.cacheCloseWg.Wait()
 
 	// Signal to any blocking go routine that it should exit.
 	s.closeFunc()
@@ -631,26 +701,13 @@ func (s *Server) close(ctx context.Context) error {
 		s.watcher.Close()
 	}
 
-	return trace.NewAggregate(errs...)
+	return trace.Wrap(err)
 }
 
 // Wait will block while the server is running.
 func (s *Server) Wait() error {
 	<-s.closeContext.Done()
 	return s.closeContext.Err()
-}
-
-// ForceHeartbeat is used in tests to force updating of app servers.
-func (s *Server) ForceHeartbeat() error {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-	for name, heartbeat := range s.heartbeats {
-		s.log.Debugf("Forcing heartbeat for %q.", name)
-		if err := heartbeat.ForceSend(time.Second); err != nil {
-			return trace.Wrap(err)
-		}
-	}
-	return nil
 }
 
 func (s *Server) getAndDeleteConnAuth(conn net.Conn) error {
@@ -720,7 +777,7 @@ func (s *Server) handleConnection(conn net.Conn) (func(), error) {
 		return nil, trace.Wrap(err)
 	}
 
-	ctx = authz.ContextWithUser(s.closeContext, user)
+	ctx = authz.ContextWithUser(ctx, user)
 	ctx = authz.ContextWithClientSrcAddr(ctx, conn.RemoteAddr())
 	authCtx, _, err := s.authorizeContext(ctx)
 
@@ -744,16 +801,23 @@ func (s *Server) handleConnection(conn net.Conn) (func(), error) {
 		}
 	}
 
+	// Add user certificate into the context after the monitor connection
+	// initialization to ensure value is present on the context.
+	ctx = authz.ContextWithUserCertificate(ctx, leafCertFromConn(tlsConn))
+
 	// Application access supports plain TCP connections which are handled
 	// differently than HTTP requests from web apps.
 	if app.IsTCP() {
 		identity := authCtx.Identity.GetIdentity()
-		return nil, s.handleTCPApp(ctx, tlsConn, &identity, app)
+		defer cancel(nil)
+		return nil, trace.Wrap(s.handleTCPApp(ctx, tlsConn, &identity, app))
 	}
 
-	return func() {
+	cleanup := func() {
+		cancel(nil)
 		s.deleteConnAuth(tlsConn)
-	}, s.handleHTTPApp(ctx, tlsConn)
+	}
+	return cleanup, trace.Wrap(s.handleHTTPApp(ctx, tlsConn))
 }
 
 // handleTCPApp handles connection for a TCP application.
@@ -865,8 +929,16 @@ func (s *Server) serveAWSWebConsole(w http.ResponseWriter, r *http.Request, iden
 func (s *Server) serveSession(w http.ResponseWriter, r *http.Request, identity *tlsca.Identity, app types.Application, opts ...sessionOpt) error {
 	// Fetch a cached request forwarder (or create one) that lives about 5
 	// minutes. Used to stream session chunks to the Audit Log.
-	session, err := s.getSession(r.Context(), identity, app, opts...)
+	ttl := min(identity.Expires.Sub(s.c.Clock.Now()), 5*time.Minute)
+	session, err := utils.FnCacheGetWithTTL(r.Context(), s.cache, identity.RouteToApp.SessionID, ttl, func(ctx context.Context) (*sessionChunk, error) {
+		session, err := s.newSessionChunk(ctx, identity, app, s.sessionStartTime(r.Context()), opts...)
+		return session, trace.Wrap(err)
+	})
 	if err != nil {
+		return trace.Wrap(err)
+	}
+
+	if err := session.acquire(); err != nil {
 		return trace.Wrap(err)
 	}
 	defer session.release()
@@ -978,27 +1050,6 @@ func (s *Server) authorizeContext(ctx context.Context) (*authz.Context, types.Ap
 	return authContext, app, nil
 }
 
-// getSession returns a request session used to proxy the request to the
-// target application. Always checks if the session is valid first and if so,
-// will return a cached session, otherwise will create one.
-// The in-flight request count is automatically incremented on the session.
-// The caller must call session.release() after finishing its use
-func (s *Server) getSession(ctx context.Context, identity *tlsca.Identity, app types.Application, opts ...sessionOpt) (*sessionChunk, error) {
-	session, err := s.cache.get(identity.RouteToApp.SessionID)
-	// If a cached forwarder exists, return it right away.
-	if err == nil && session.acquire() == nil {
-		return session, nil
-	}
-
-	// Create a new session with a recorder and forwarder in it.
-	session, err = s.newSessionChunk(ctx, identity, app, opts...)
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-
-	return session, nil
-}
-
 // getApp returns an application matching the public address. If multiple
 // matching applications exist, the first one is returned. Random selection
 // (or round robin) does not need to occur here because they will all point
@@ -1066,25 +1117,9 @@ func (s *Server) newHTTPServer(clusterName string) *http.Server {
 // newTCPServer creates a server that proxies TCP applications.
 func (s *Server) newTCPServer() (*tcpServer, error) {
 	return &tcpServer{
-		newAudit: func(sessionID string) (common.Audit, error) {
-			// Audit stream is using server context, not session context,
-			// to make sure that session is uploaded even after it is closed.
-			rec, err := s.newSessionRecorder(s.closeContext, sessionID)
-			if err != nil {
-				return nil, trace.Wrap(err)
-			}
-			audit, err := common.NewAudit(common.AuditConfig{
-				Emitter:  s.c.Emitter,
-				Recorder: rec,
-			})
-			if err != nil {
-				return nil, trace.Wrap(err)
-			}
-
-			return audit, nil
-		},
-		hostID: s.c.HostID,
-		log:    s.log,
+		emitter: s.c.Emitter,
+		hostID:  s.c.HostID,
+		log:     s.log,
 	}, nil
 }
 
@@ -1104,9 +1139,20 @@ func (s *Server) getProxyPort() string {
 	return port
 }
 
+// sessionStartTime fetches the session start time based on the the certificate
+// valid date.
+func (s *Server) sessionStartTime(ctx context.Context) time.Time {
+	if userCert, err := authz.UserCertificateFromContext(ctx); err == nil {
+		return userCert.NotBefore
+	}
+
+	s.log.Warn("Unable to retrieve session start time from certificate.")
+	return time.Time{}
+}
+
 // CopyAndConfigureTLS can be used to copy and modify an existing *tls.Config
 // for Teleport application proxy servers.
-func CopyAndConfigureTLS(log logrus.FieldLogger, client auth.AccessCache, config *tls.Config) *tls.Config {
+func CopyAndConfigureTLS(log logrus.FieldLogger, client authclient.CAGetter, config *tls.Config) *tls.Config {
 	tlsConfig := config.Clone()
 
 	// Require clients to present a certificate
@@ -1121,7 +1167,7 @@ func CopyAndConfigureTLS(log logrus.FieldLogger, client auth.AccessCache, config
 	return tlsConfig
 }
 
-func newGetConfigForClientFn(log logrus.FieldLogger, client auth.AccessCache, tlsConfig *tls.Config) func(*tls.ClientHelloInfo) (*tls.Config, error) {
+func newGetConfigForClientFn(log logrus.FieldLogger, client authclient.CAGetter, tlsConfig *tls.Config) func(*tls.ClientHelloInfo) (*tls.Config, error) {
 	return func(info *tls.ClientHelloInfo) (*tls.Config, error) {
 		var clusterName string
 		var err error
@@ -1138,7 +1184,7 @@ func newGetConfigForClientFn(log logrus.FieldLogger, client auth.AccessCache, tl
 
 		// Fetch list of CAs that could have signed this certificate. If clusterName
 		// is empty, all CAs that this cluster knows about are returned.
-		pool, _, err := auth.DefaultClientCertPool(client, clusterName)
+		pool, _, err := authclient.DefaultClientCertPool(info.Context(), client, clusterName)
 		if err != nil {
 			// If this request fails, return nil and fallback to the default ClientCAs.
 			log.Debugf("Failed to retrieve client pool: %v.", trace.DebugReport(err))
@@ -1151,4 +1197,14 @@ func newGetConfigForClientFn(log logrus.FieldLogger, client auth.AccessCache, tl
 		tlsCopy.ClientCAs = pool
 		return tlsCopy, nil
 	}
+}
+
+// leafCertFromConn returns the leaf certificate from the connection.
+func leafCertFromConn(tlsConn *tls.Conn) *x509.Certificate {
+	state := tlsConn.ConnectionState()
+	if len(state.PeerCertificates) == 0 {
+		return nil
+	}
+
+	return state.PeerCertificates[0]
 }

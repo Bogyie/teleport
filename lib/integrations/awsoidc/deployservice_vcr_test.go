@@ -87,14 +87,12 @@ func TestDeployDBService(t *testing.T) {
 				"subnet-0ef025345dd791986",
 				"subnet-099632749366c2c56",
 			},
-			TaskRoleARN:         taskRole,
-			TeleportClusterName: clusterName,
-			IntegrationName:     integrationName,
-			DeploymentMode:      DatabaseServiceDeploymentMode,
-			ProxyServerHostPort: "marcodinis.teleportdemo.net:443",
-			DatabaseResourceMatcherLabels: types.Labels{
-				types.Wildcard: []string{types.Wildcard},
-			},
+			TaskRoleARN:             taskRole,
+			TeleportClusterName:     clusterName,
+			IntegrationName:         integrationName,
+			DeploymentMode:          DatabaseServiceDeploymentMode,
+			DeploymentJoinTokenName: "my-iam-join-token",
+			TeleportConfigString:    "config using b64",
 		}
 	}
 
@@ -117,7 +115,7 @@ func TestDeployDBService(t *testing.T) {
 
 	iamJoinToken := &types.ProvisionTokenV2{
 		Metadata: types.Metadata{
-			Name: defaultTeleportIAMTokenName,
+			Name: "some-token-name",
 		},
 		Spec: types.ProvisionTokenSpecV2{
 			JoinMethod: types.JoinMethodIAM,

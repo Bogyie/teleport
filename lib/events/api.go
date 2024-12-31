@@ -25,6 +25,8 @@ import (
 
 	"github.com/gravitational/trace"
 
+	auditlogpb "github.com/gravitational/teleport/api/gen/proto/go/teleport/auditlog/v1"
+	"github.com/gravitational/teleport/api/internalutils/stream"
 	"github.com/gravitational/teleport/api/types"
 	apievents "github.com/gravitational/teleport/api/types/events"
 	"github.com/gravitational/teleport/lib/session"
@@ -697,7 +699,26 @@ const (
 	// ExternalAuditStorageDisableEvent is emitted when External Audit Storage is
 	// disabled.
 	ExternalAuditStorageDisableEvent = "external_audit_storage.disable"
+
+	// DiscoveryConfigCreatedEvent is emitted when a discovery config is created.
+	DiscoveryConfigCreateEvent = "discovery_config.create"
+	// DiscoveryConfigUpdatedEvent is emitted when a discovery config is updated.
+	DiscoveryConfigUpdateEvent = "discovery_config.update"
+	// DiscoveryConfigDeletedEvent is emitted when a discovery config is deleted.
+	DiscoveryConfigDeleteEvent = "discovery_config.delete"
+	// DiscoveryConfigDeletedAllEvent is emitted when all discovery configs are deleted.
+	DiscoveryConfigDeleteAllEvent = "discovery_config.delete_all"
+
+	// IntegrationCreateEvent is emitted when an integration resource is created.
+	IntegrationCreateEvent = "integration.create"
+	//IntegrationUpdateEvent is emitted when an integration resource is updated.
+	IntegrationUpdateEvent = "integration.update"
+	// IntegrationDeleteEvent is emitted when an integration resource is deleted.
+	IntegrationDeleteEvent = "integration.delete"
 )
+
+// Add an entry to eventsMap in lib/events/events_test.go when you add
+// a new event name here.
 
 const (
 	// MaxChunkBytes defines the maximum size of a session stream chunk that
@@ -776,6 +797,9 @@ type StreamPart struct {
 	Number int64
 	// ETag is a part e-tag
 	ETag string
+	// LastModified is the time of last modification of this part (if
+	// available).
+	LastModified time.Time
 }
 
 // StreamUpload represents stream multipart upload
@@ -889,9 +913,13 @@ type SessionStreamer interface {
 	// after is used to return events after a specified cursor ID
 	GetSessionEvents(namespace string, sid session.ID, after int) ([]EventFields, error)
 
-	// StreamSessionEvents streams all events from a given session recording. An error is returned on the first
-	// channel if one is encountered. Otherwise the event channel is closed when the stream ends.
-	// The event channel is not closed on error to prevent race conditions in downstream select statements.
+	// StreamSessionEvents streams all events from a given session recording. An
+	// error is returned on the first channel if one is encountered. Otherwise
+	// the event channel is closed when the stream ends. The event channel is
+	// not closed on error to prevent race conditions in downstream select
+	// statements. Both returned channels must be driven until the event channel
+	// is exhausted or the error channel reports an error, or until the context
+	// is canceled.
 	StreamSessionEvents(ctx context.Context, sessionID session.ID, startIndex int64) (chan apievents.AuditEvent, chan error)
 }
 
@@ -958,6 +986,14 @@ type AuditLogger interface {
 	//
 	// This function may never return more than 1 MiB of event data.
 	SearchSessionEvents(ctx context.Context, req SearchSessionEventsRequest) ([]apievents.AuditEvent, string, error)
+
+	// ExportUnstructuredEvents exports events from a given event chunk returned by GetEventExportChunks. This API prioritizes
+	// performance over ordering and filtering, and is intended for bulk export of events.
+	ExportUnstructuredEvents(ctx context.Context, req *auditlogpb.ExportUnstructuredEventsRequest) stream.Stream[*auditlogpb.ExportEventUnstructured]
+
+	// GetEventExportChunks returns a stream of event chunks that can be exported via ExportUnstructuredEvents. The returned
+	// list isn't ordered and polling for new chunks requires re-consuming the entire stream from the beginning.
+	GetEventExportChunks(ctx context.Context, req *auditlogpb.GetEventExportChunksRequest) stream.Stream[*auditlogpb.EventExportChunk]
 }
 
 // EventFields instance is attached to every logged event

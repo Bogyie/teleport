@@ -19,23 +19,22 @@ package common
 import (
 	"fmt"
 	"path"
+	"slices"
 	"sort"
 	"strings"
 	"time"
 
 	"github.com/ghodss/yaml"
 	"github.com/gravitational/trace"
-	"golang.org/x/exp/slices"
 
 	"github.com/gravitational/teleport"
 	"github.com/gravitational/teleport/api/accessrequest"
 	"github.com/gravitational/teleport/api/client"
 	"github.com/gravitational/teleport/api/client/proto"
-	"github.com/gravitational/teleport/api/constants"
 	kubeproto "github.com/gravitational/teleport/api/gen/proto/go/teleport/kube/v1"
 	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/asciitable"
-	"github.com/gravitational/teleport/lib/auth"
+	"github.com/gravitational/teleport/lib/auth/authclient"
 	"github.com/gravitational/teleport/lib/kube/kubeconfig"
 	"github.com/gravitational/teleport/lib/services"
 	"github.com/gravitational/teleport/lib/utils"
@@ -56,7 +55,7 @@ func onRequestList(cf *CLIConf) error {
 
 	var reqs []types.AccessRequest
 
-	err = tc.WithRootClusterClient(cf.Context, func(clt auth.ClientI) error {
+	err = tc.WithRootClusterClient(cf.Context, func(clt authclient.ClientI) error {
 		reqs, err = clt.GetAccessRequests(cf.Context, types.AccessRequestFilter{})
 		return trace.Wrap(err)
 	})
@@ -150,7 +149,7 @@ func onRequestShow(cf *CLIConf) error {
 	}
 
 	var req types.AccessRequest
-	err = tc.WithRootClusterClient(cf.Context, func(clt auth.ClientI) error {
+	err = tc.WithRootClusterClient(cf.Context, func(clt authclient.ClientI) error {
 		req, err = services.GetAccessRequest(cf.Context, clt, cf.RequestID)
 		return trace.Wrap(err)
 	})
@@ -221,7 +220,7 @@ func printRequest(cf *CLIConf, req types.AccessRequest) error {
 		table.AddRow([]string{"Access Expires:", req.GetAccessExpiry().Local().Format(time.DateTime)})
 	}
 	if req.GetAssumeStartTime() != nil {
-		table.AddRow([]string{"Assume Start Time (UTC):", req.GetAssumeStartTime().UTC().Format(time.RFC822)})
+		table.AddRow([]string{"Assume Start Time:", req.GetAssumeStartTime().Local().Format(time.DateTime)})
 	}
 	table.AddRow([]string{"Status:", req.GetState().String()})
 
@@ -315,10 +314,6 @@ func onRequestReview(cf *CLIConf) error {
 			return trace.BadParameter("parsing assume-start-time (required format RFC3339 e.g 2023-12-12T23:20:50.52Z): %v", err)
 		}
 		parsedAssumeStartTime = &assumeStartTime
-		if time.Until(*parsedAssumeStartTime) > constants.MaxAssumeStartDuration {
-			return trace.BadParameter("assume-start-time too far in future: latest date %q",
-				parsedAssumeStartTime.Add(constants.MaxAssumeStartDuration).Format(time.RFC3339))
-		}
 	}
 
 	var state types.RequestState
@@ -330,7 +325,7 @@ func onRequestReview(cf *CLIConf) error {
 	}
 
 	var req types.AccessRequest
-	err = tc.WithRootClusterClient(cf.Context, func(clt auth.ClientI) error {
+	err = tc.WithRootClusterClient(cf.Context, func(clt authclient.ClientI) error {
 		req, err = clt.SubmitAccessReview(cf.Context, types.AccessReviewSubmission{
 			RequestID: cf.RequestID,
 			Review: types.AccessReview{
@@ -359,14 +354,19 @@ func showRequestTable(cf *CLIConf, reqs []types.AccessRequest) error {
 		return reqs[i].GetCreationTime().After(reqs[j].GetCreationTime())
 	})
 
-	table := asciitable.MakeTable([]string{"ID", "User", "Roles"})
+	table := asciitable.MakeTable([]string{"ID", "User"})
+	table.AddColumn(asciitable.Column{
+		Title:         "Roles",
+		MaxCellLength: 20,
+		FootnoteLabel: "[+]",
+	})
 	table.AddColumn(asciitable.Column{
 		Title:         "Resources",
 		MaxCellLength: 20,
 		FootnoteLabel: "[+]",
 	})
 	table.AddFootnote("[+]",
-		"Requested resources truncated, use `tsh request show <request-id>` to view the full list")
+		"Columns are truncated, use 'tsh request show <request-id>' to view the full list")
 	table.AddColumn(asciitable.Column{Title: "Created At (UTC)"})
 	table.AddColumn(asciitable.Column{Title: "Request TTL"})
 	table.AddColumn(asciitable.Column{Title: "Session TTL"})

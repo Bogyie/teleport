@@ -141,6 +141,9 @@ message ServerMetadata {
 
   // ServerSubKind is the sub kind of the server the session occurred on.
   string ServerSubKind = 7 [(gogoproto.jsontag) = "server_sub_kind,omitempty"];
+
+  // ServerVersion is the component version the session occurred on.
+  string ServerVersion = 8 [(gogoproto.jsontag) = "server_version,omitempty"];
 }
 
 // Connection contains connection info
@@ -300,6 +303,15 @@ message AccessListReviewMetadata {
 
   // RemovedMembers are the members that were removed as part of the review.
   repeated string RemovedMembers = 6 [(gogoproto.jsontag) = "removed_members,omitempty"];
+}
+
+// LockMetadata contains common metadata for lock resource events.
+message LockMetadata {
+  // Target describes the set of interactions that the lock applies to
+  types.LockTarget Target = 4 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "target"
+  ];
 }
 
 // SessionStart is a session start event
@@ -2739,6 +2751,10 @@ message DatabaseSessionStart {
     (gogoproto.embed) = true,
     (gogoproto.jsontag) = ""
   ];
+  // PostgresPID is the Postgres backend PID that was created for a Postgres
+  // connection. This can be useful for backend process cancellation or
+  // termination and it is not a sensitive or secret value.
+  uint32 PostgresPID = 8 [(gogoproto.jsontag) = "postgres_pid,omitempty"];
 }
 
 // DatabaseSessionQuery is emitted when a user executes a database query.
@@ -3162,9 +3178,17 @@ message LockCreate {
   ];
 
   // Target describes the set of interactions that the lock applies to
+  // Deprecated: use Lock instead.
   types.LockTarget Target = 4 [
+    deprecated = true,
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "target"
+  ];
+
+  // Lock is a common lock event metadata
+  LockMetadata Lock = 5 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "lock"
   ];
 }
 
@@ -3189,6 +3213,12 @@ message LockDelete {
     (gogoproto.nullable) = false,
     (gogoproto.embed) = true,
     (gogoproto.jsontag) = ""
+  ];
+
+  // Lock is a common lock event metadata
+  LockMetadata Lock = 4 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "lock"
   ];
 }
 
@@ -3295,6 +3325,13 @@ message CertificateCreate {
 
   // Identity is the identity associated with the certificate, as interpreted by Teleport.
   Identity Identity = 3 [(gogoproto.jsontag) = "identity"];
+
+  // Client is the common client event metadata
+  ClientMetadata Client = 4 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
 }
 
 // RenewableCertificateGenerationMismatch is emitted when a renewable
@@ -3341,6 +3378,12 @@ message BotJoin {
     (gogoproto.jsontag) = "attributes,omitempty",
     (gogoproto.casttype) = "Struct"
   ];
+  // ConnectionMetadata holds information about the connection
+  ConnectionMetadata Connection = 8 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
 }
 
 // InstanceJoin records an instance join event.
@@ -3379,6 +3422,12 @@ message InstanceJoin {
     (gogoproto.stdtime) = true,
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "token_expires"
+  ];
+  // ConnectionMetadata holds information about the connection
+  ConnectionMetadata Connection = 10 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
   ];
 }
 
@@ -3494,6 +3543,264 @@ message DeviceEvent2 {
     (gogoproto.embed) = true,
     (gogoproto.jsontag) = ""
   ];
+}
+
+// DiscoveryConfigCreate is emitted when a discovery config is created.
+message DiscoveryConfigCreate {
+  // Metadata is a common event metadata
+  Metadata Metadata = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+
+  // User is a common user event metadata
+  UserMetadata User = 2 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+
+  // ResourceMetadata is a common resource event metadata
+  ResourceMetadata Resource = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+
+  // ConnectionMetadata holds information about the connection
+  ConnectionMetadata Connection = 4 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+}
+
+// DiscoveryConfigUpdate is emitted when a discovery config is updated.
+message DiscoveryConfigUpdate {
+  // Metadata is a common event metadata
+  Metadata Metadata = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+
+  // User is a common user event metadata
+  UserMetadata User = 2 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+
+  // ResourceMetadata is a common resource event metadata
+  ResourceMetadata Resource = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+
+  // ConnectionMetadata holds information about the connection
+  ConnectionMetadata Connection = 4 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+}
+
+// DiscoveryConfigDelete is emitted when a discovery config is deleted.
+message DiscoveryConfigDelete {
+  // Metadata is a common event metadata
+  Metadata Metadata = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+
+  // User is a common user event metadata
+  UserMetadata User = 2 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+
+  // ResourceMetadata is a common resource event metadata
+  ResourceMetadata Resource = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+
+  // ConnectionMetadata holds information about the connection
+  ConnectionMetadata Connection = 4 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+}
+
+// DiscoveryConfigDeleteAll is emitted when all discovery configs are deleted.
+message DiscoveryConfigDeleteAll {
+  // Metadata is a common event metadata
+  Metadata Metadata = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+
+  // User is a common user event metadata
+  UserMetadata User = 2 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+
+  // ConnectionMetadata holds information about the connection
+  ConnectionMetadata Connection = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+}
+
+// IntegrationCreate is emitted when an integration resource is created.
+message IntegrationCreate {
+  // Metadata is a common event metadata.
+  Metadata Metadata = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+
+  // User is a common user event metadata.
+  UserMetadata User = 2 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+
+  // ResourceMetadata is a common resource event metadata.
+  ResourceMetadata Resource = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+
+  IntegrationMetadata Integration = 4 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+
+  // ConnectionMetadata holds information about the connection.
+  ConnectionMetadata Connection = 5 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+}
+
+// IntegrationUpdate is emitted when an integration resource is updated.
+message IntegrationUpdate {
+  // Metadata is a common event metadata.
+  Metadata Metadata = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+
+  // User is a common user event metadata.
+  UserMetadata User = 2 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+
+  // ResourceMetadata is a common resource event metadata.
+  ResourceMetadata Resource = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+
+  IntegrationMetadata Integration = 4 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+
+  // ConnectionMetadata holds information about the connection.
+  ConnectionMetadata Connection = 5 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+}
+
+// IntegrationDelete is emitted when an integration is deleted.
+message IntegrationDelete {
+  // Metadata is a common event metadata.
+  Metadata Metadata = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+
+  // User is a common user event metadata.
+  UserMetadata User = 2 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+
+  // ResourceMetadata is a common resource event metadata.
+  ResourceMetadata Resource = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+
+  IntegrationMetadata Integration = 4 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+
+  // ConnectionMetadata holds information about the connection.
+  ConnectionMetadata Connection = 5 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+}
+
+// IntegrationMetadata contains information about integration resources.
+message IntegrationMetadata {
+  // SubKind is the sub kind of the integration resource.
+  string SubKind = 1 [(gogoproto.jsontag) = "sub_kind"];
+
+  // AWSOIDC contains metadata for AWS OIDC integrations.
+  AWSOIDCIntegrationMetadata AWSOIDC = 2 [(gogoproto.jsontag) = "aws_oidc,omitempty"];
+  // AzureOIDC contains metadata for Azure OIDC integrations.
+  AzureOIDCIntegrationMetadata AzureOIDC = 3 [(gogoproto.jsontag) = "azure_oidc,omitempty"];
+}
+
+// AWSOIDCIntegrationMetadata contains metadata for AWS OIDC integrations.
+message AWSOIDCIntegrationMetadata {
+  // RoleARN contains the Role ARN used to set up the Integration.
+  // This is the AWS Role that Teleport will use to issue tokens for API Calls.
+  string RoleARN = 1 [(gogoproto.jsontag) = "role_arn,omitempty"];
+
+  // IssuerS3URI is the Identity Provider that was configured in AWS.
+  string IssuerS3URI = 2 [(gogoproto.jsontag) = "issuer_s3_uri,omitempty"];
+}
+
+// AzureOIDCIntegrationMetadata contains metadata for Azure OIDC integrations.
+message AzureOIDCIntegrationMetadata {
+  // TenantID specifies the ID of Entra Tenant (Directory).
+  string TenantID = 1 [(gogoproto.jsontag) = "tenant_id,omitempty"];
+
+  // ClientID specifies the ID of Azure enterprise application (client).
+  string ClientID = 2 [(gogoproto.jsontag) = "client_id,omitempty"];
 }
 
 // OneOf is a union of one of audit events submitted to the auth service
@@ -3636,6 +3943,19 @@ message OneOf {
     events.SecurityReportRun SecurityReportRun = 135;
     events.ExternalAuditStorageEnable ExternalAuditStorageEnable = 141;
     events.ExternalAuditStorageDisable ExternalAuditStorageDisable = 142;
+    events.DiscoveryConfigCreate DiscoveryConfigCreate = 160;
+    events.DiscoveryConfigUpdate DiscoveryConfigUpdate = 161;
+    events.DiscoveryConfigDelete DiscoveryConfigDelete = 162;
+    events.DiscoveryConfigDeleteAll DiscoveryConfigDeleteAll = 163;
+    events.IntegrationCreate IntegrationCreate = 165;
+    events.IntegrationUpdate IntegrationUpdate = 166;
+    events.IntegrationDelete IntegrationDelete = 167;
+    events.AutoUpdateConfigCreate AutoUpdateConfigCreate = 173;
+    events.AutoUpdateConfigUpdate AutoUpdateConfigUpdate = 174;
+    events.AutoUpdateConfigDelete AutoUpdateConfigDelete = 175;
+    events.AutoUpdateVersionCreate AutoUpdateVersionCreate = 176;
+    events.AutoUpdateVersionUpdate AutoUpdateVersionUpdate = 177;
+    events.AutoUpdateVersionDelete AutoUpdateVersionDelete = 178;
   }
 }
 
@@ -3763,6 +4083,9 @@ message Identity {
   // BotName indicates the name of the Machine ID bot this identity was issued
   // to, if any.
   string BotName = 27 [(gogoproto.jsontag) = "bot_name,omitempty"];
+  // DeviceExtensions holds the device trust device extensions for the identity,
+  // if any.
+  DeviceExtensions DeviceExtensions = 28 [(gogoproto.jsontag) = "device_extensions,omitempty"];
 }
 
 // RouteToApp contains parameters for application access certificate requests.
@@ -3795,6 +4118,20 @@ message RouteToDatabase {
   string Database = 4 [(gogoproto.jsontag) = "database,omitempty"];
   // Roles is an optional list of database roles to embed.
   repeated string Roles = 5 [(gogoproto.jsontag) = "roles,omitempty"];
+}
+
+// DeviceExtensions holds certificate extensions (X.509 and SSH) for device
+// trust.
+//
+// Mimics tlsca.DeviceExtensions.
+message DeviceExtensions {
+  // DeviceID is the trusted device identifier.
+  string device_id = 1 [(gogoproto.jsontag) = "device_id,omitempty"];
+  // AssetTag is the device inventory identifier.
+  string asset_tag = 2 [(gogoproto.jsontag) = "asset_tag,omitempty"];
+  // CredentialID is the identifier for the credential used by the device to
+  // authenticate itself.
+  string credential_id = 3 [(gogoproto.jsontag) = "credential_id,omitempty"];
 }
 
 // AccessRequestResourceSearch is emitted when a user searches for resources as
@@ -5497,4 +5834,190 @@ message ExternalAuditStorageDetails {
   string policy_name = 10;
   // Region is the AWS region where the infrastructure is hosted.
   string region = 11;
+}
+
+// AutoUpdateConfigCreate is emitted when an auto update config is created.
+message AutoUpdateConfigCreate {
+  // Metadata is a common event metadata
+  Metadata Metadata = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+
+  // ResourceMetadata is a common resource event metadata
+  ResourceMetadata Resource = 2 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+
+  // User is a common user event metadata
+  UserMetadata User = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+
+  // ConnectionMetadata holds information about the connection
+  ConnectionMetadata Connection = 4 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+}
+
+// AutoUpdateConfigUpdate is emitted when an auto update config is updated.
+message AutoUpdateConfigUpdate {
+  // Metadata is a common event metadata
+  Metadata Metadata = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+
+  // Status indicates whether the update was successful.
+  Status Status = 2 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+
+  // User is a common user event metadata
+  UserMetadata User = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+
+  // ConnectionMetadata holds information about the connection
+  ConnectionMetadata Connection = 4 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+}
+
+// AutoUpdateConfigDelete is emitted when an auto update config is deleted.
+message AutoUpdateConfigDelete {
+  // Metadata is a common event metadata
+  Metadata Metadata = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+
+  // ResourceMetadata is a common resource event metadata
+  ResourceMetadata Resource = 2 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+
+  // User is a common user event metadata
+  UserMetadata User = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+
+  // ConnectionMetadata holds information about the connection
+  ConnectionMetadata Connection = 4 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+}
+
+// AutoUpdateVersionCreate is emitted when an auto update version is created.
+message AutoUpdateVersionCreate {
+  // Metadata is a common event metadata
+  Metadata Metadata = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+
+  // ResourceMetadata is a common resource event metadata
+  ResourceMetadata Resource = 2 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+
+  // User is a common user event metadata
+  UserMetadata User = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+
+  // ConnectionMetadata holds information about the connection
+  ConnectionMetadata Connection = 4 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+}
+
+// AutoUpdateVersionUpdate is emitted when an auto update version is updated.
+message AutoUpdateVersionUpdate {
+  // Metadata is a common event metadata
+  Metadata Metadata = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+
+  // Status indicates whether the update was successful.
+  Status Status = 2 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+
+  // User is a common user event metadata
+  UserMetadata User = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+
+  // ConnectionMetadata holds information about the connection
+  ConnectionMetadata Connection = 4 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+}
+
+// AutoUpdateVersionDelete is emitted when an auto update version is deleted.
+message AutoUpdateVersionDelete {
+  // Metadata is a common event metadata
+  Metadata Metadata = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+
+  // ResourceMetadata is a common resource event metadata
+  ResourceMetadata Resource = 2 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+
+  // User is a common user event metadata
+  UserMetadata User = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
+
+  // ConnectionMetadata holds information about the connection
+  ConnectionMetadata Connection = 4 [
+    (gogoproto.nullable) = false,
+    (gogoproto.embed) = true,
+    (gogoproto.jsontag) = ""
+  ];
 }

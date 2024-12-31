@@ -98,6 +98,8 @@ const cfg = {
     dateFormat: 'YYYY-MM-DD',
   },
 
+  defaultDatabaseTTL: '2190h',
+
   routes: {
     root: '/web',
     discover: '/web/discover',
@@ -133,6 +135,8 @@ const cfg = {
     player: '/web/cluster/:clusterId/session/:sid', // ?recordingType=ssh|desktop|k8s&durationMs=1234
     login: '/web/login',
     loginSuccess: '/web/msg/info/login_success',
+    loginTerminalRedirect: '/web/msg/info/login_terminal',
+    loginClose: '/web/msg/info/login_close',
     loginErrorLegacy: '/web/msg/error/login_failed',
     loginError: '/web/msg/error/login',
     loginErrorCallback: '/web/msg/error/login/callback',
@@ -148,6 +152,8 @@ const cfg = {
     locks: '/web/locks',
     newLock: '/web/locks/new',
     requests: '/web/requests/:requestId?',
+
+    downloadCenter: '/web/downloads',
 
     // whitelist sso handlers
     oidcHandler: '/v1/webapi/oidc/*',
@@ -191,12 +197,14 @@ const cfg = {
     desktopServicesPath: `/v1/webapi/sites/:clusterId/desktopservices?searchAsRoles=:searchAsRoles?&limit=:limit?&startKey=:startKey?&query=:query?&search=:search?&sort=:sort?`,
     desktopPath: `/v1/webapi/sites/:clusterId/desktops/:desktopName`,
     desktopWsAddr:
-      'wss://:fqdn/v1/webapi/sites/:clusterId/desktops/:desktopName/connect?access_token=:token&username=:username&width=:width&height=:height',
+      'wss://:fqdn/v1/webapi/sites/:clusterId/desktops/:desktopName/connect/ws?username=:username&width=:width&height=:height',
     desktopPlaybackWsAddr:
-      'wss://:fqdn/v1/webapi/sites/:clusterId/desktopplayback/:sid?access_token=:token',
+      'wss://:fqdn/v1/webapi/sites/:clusterId/desktopplayback/:sid/ws',
     desktopIsActive: '/v1/webapi/sites/:clusterId/desktops/:desktopName/active',
     ttyWsAddr:
-      'wss://:fqdn/v1/webapi/sites/:clusterId/connect?access_token=:token&params=:params&traceparent=:traceparent',
+      'wss://:fqdn/v1/webapi/sites/:clusterId/connect/ws?params=:params&traceparent=:traceparent',
+    ttyPlaybackWsAddr:
+      'wss://:fqdn/v1/webapi/sites/:clusterId/ttyplayback/:sid?access_token=:token', // TODO(zmb3): get token out of URL
     activeAndPendingSessionsPath: '/v1/webapi/sites/:clusterId/sessions',
     sshPlaybackPrefix: '/v1/webapi/sites/:clusterId/sessions/:sid', // prefix because this is eventually concatenated with "/stream" or "/events"
     kubernetesPath:
@@ -206,7 +214,9 @@ const cfg = {
     userWithUsernamePath: '/v1/webapi/users/:username',
     createPrivilegeTokenPath: '/v1/webapi/users/privilege/token',
 
-    rolesPath: '/v1/webapi/roles/:name?',
+    listRolesPath:
+      '/v1/webapi/roles?startKey=:startKey?&search=:search?&limit=:limit?',
+    rolePath: '/v1/webapi/roles/:name?',
     presetRolesPath: '/v1/webapi/presetroles',
     githubConnectorsPath: '/v1/webapi/github/:name?',
     trustedClustersPath: '/v1/webapi/trustedcluster/:name?',
@@ -259,16 +269,16 @@ const cfg = {
     thumbprintPath: '/v1/webapi/thumbprint',
 
     awsConfigureIamScriptOidcIdpPath:
-      '/webapi/scripts/integrations/configure/awsoidc-idp.sh?integrationName=:integrationName&role=:roleName',
+      '/v1/webapi/scripts/integrations/configure/awsoidc-idp.sh?integrationName=:integrationName&role=:roleName',
     awsConfigureIamScriptDeployServicePath:
-      '/webapi/scripts/integrations/configure/deployservice-iam.sh?integrationName=:integrationName&awsRegion=:region&role=:awsOidcRoleArn&taskRole=:taskRoleArn',
+      '/v1/webapi/scripts/integrations/configure/deployservice-iam.sh?integrationName=:integrationName&awsRegion=:region&role=:awsOidcRoleArn&taskRole=:taskRoleArn',
     awsConfigureIamScriptListDatabasesPath:
-      '/webapi/scripts/integrations/configure/listdatabases-iam.sh?awsRegion=:region&role=:iamRoleName',
+      '/v1/webapi/scripts/integrations/configure/listdatabases-iam.sh?awsRegion=:region&role=:iamRoleName',
     awsConfigureIamScriptEc2InstanceConnectPath:
       '/v1/webapi/scripts/integrations/configure/eice-iam.sh?awsRegion=:region&role=:iamRoleName',
 
     awsRdsDbDeployServicesPath:
-      '/webapi/sites/:clusterId/integrations/aws-oidc/:name/deploydatabaseservices',
+      '/v1/webapi/sites/:clusterId/integrations/aws-oidc/:name/deploydatabaseservices',
     awsRdsDbRequiredVpcsPath:
       '/v1/webapi/sites/:clusterId/integrations/aws-oidc/:name/requireddatabasesvpcs',
     awsRdsDbListPath:
@@ -294,11 +304,11 @@ const cfg = {
       '/v1/webapi/assistant/conversations/:conversationId/title',
     assistGenerateSummaryPath: '/v1/webapi/assistant/title/summary',
     assistConversationWebSocketPath:
-      'wss://:hostname/v1/webapi/sites/:clusterId/assistant',
+      'wss://:hostname/v1/webapi/sites/:clusterId/assistant/ws',
     assistConversationHistoryPath:
       '/v1/webapi/assistant/conversations/:conversationId',
     assistExecuteCommandWebSocketPath:
-      'wss://:hostname/v1/webapi/command/:clusterId/execute',
+      'wss://:hostname/v1/webapi/command/:clusterId/execute/ws',
     userPreferencesPath: '/v1/webapi/user/preferences',
     userClusterPreferencesPath: '/v1/webapi/user/preferences/:clusterId',
 
@@ -433,10 +443,11 @@ const cfg = {
   },
 
   getAwsOidcConfigureIdpScriptUrl(p: UrlAwsOidcConfigureIdp) {
-    return (
-      cfg.baseUrl +
-      generatePath(cfg.api.awsConfigureIamScriptOidcIdpPath, { ...p })
-    );
+    let path = cfg.api.awsConfigureIamScriptOidcIdpPath;
+    if (p.s3Bucket && p.s3Prefix) {
+      path += '&s3Bucket=:s3Bucket&s3Prefix=:s3Prefix';
+    }
+    return cfg.baseUrl + generatePath(path, { ...p });
   },
 
   getDbScriptUrl(token: string) {
@@ -671,6 +682,11 @@ const cfg = {
     return generatePath(cfg.api.dbSign, { clusterId });
   },
 
+  getDatabaseCertificateTTL() {
+    // the length of the certificate to request for the database
+    return cfg.defaultDatabaseTTL;
+  },
+
   getDesktopsUrl(clusterId: string, params: UrlResourcesParams) {
     return generateResourcePath(cfg.api.desktopsPath, {
       clusterId,
@@ -728,8 +744,16 @@ const cfg = {
     return generatePath(cfg.api.trustedClustersPath, { name });
   },
 
-  getRolesUrl(name?: string) {
-    return generatePath(cfg.api.rolesPath, { name });
+  getListRolesUrl(params?: UrlListRolesParams) {
+    return generatePath(cfg.api.listRolesPath, {
+      search: params?.search || undefined,
+      startKey: params?.startKey || undefined,
+      limit: params?.limit || undefined,
+    });
+  },
+
+  getRoleUrl(name?: string) {
+    return generatePath(cfg.api.rolePath, { name });
   },
 
   getDiscoveryConfigUrl(clusterId: string) {
@@ -836,12 +860,10 @@ const cfg = {
   getAssistConversationWebSocketUrl(
     hostname: string,
     clusterId: string,
-    accessToken: string,
     conversationId: string
   ) {
     const searchParams = new URLSearchParams();
 
-    searchParams.set('access_token', accessToken);
     searchParams.set('conversation_id', conversationId);
 
     return (
@@ -855,12 +877,10 @@ const cfg = {
   getAssistActionWebSocketUrl(
     hostname: string,
     clusterId: string,
-    accessToken: string,
     action: string
   ) {
     const searchParams = new URLSearchParams();
 
-    searchParams.set('access_token', accessToken);
     searchParams.set('action', action);
 
     return (
@@ -880,12 +900,10 @@ const cfg = {
   getAssistExecuteCommandUrl(
     hostname: string,
     clusterId: string,
-    accessToken: string,
     params: Record<string, string>
   ) {
     const searchParams = new URLSearchParams();
 
-    searchParams.set('access_token', accessToken);
     searchParams.set('params', JSON.stringify(params));
 
     return (
@@ -1047,6 +1065,12 @@ export interface UrlDesktopParams {
   clusterId: string;
 }
 
+export interface UrlListRolesParams {
+  search?: string;
+  limit?: number;
+  startKey?: string;
+}
+
 export interface UrlResourcesParams {
   query?: string;
   search?: string;
@@ -1059,14 +1083,6 @@ export interface UrlResourcesParams {
   kinds?: string[];
 }
 
-export interface UrlIntegrationExecuteRequestParams {
-  // name is the name of integration to execute (use).
-  name: string;
-  // action is the expected backend string value
-  // used to describe what to use the integration for.
-  action: 'aws-oidc/list_databases';
-}
-
 export interface UrlDeployServiceIamConfigureScriptParams {
   integrationName: string;
   region: Regions;
@@ -1077,6 +1093,8 @@ export interface UrlDeployServiceIamConfigureScriptParams {
 export interface UrlAwsOidcConfigureIdp {
   integrationName: string;
   roleName: string;
+  s3Bucket?: string;
+  s3Prefix?: string;
 }
 
 export interface UrlAwsConfigureIamScriptParams {

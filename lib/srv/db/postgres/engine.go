@@ -17,6 +17,7 @@ limitations under the License.
 package postgres
 
 import (
+	"cmp"
 	"context"
 	"crypto/tls"
 	"encoding/base64"
@@ -32,10 +33,10 @@ import (
 
 	"github.com/gravitational/teleport/api/defaults"
 	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/services"
 	"github.com/gravitational/teleport/lib/srv/db/cloud"
 	"github.com/gravitational/teleport/lib/srv/db/common"
 	"github.com/gravitational/teleport/lib/srv/db/common/role"
+	discoverycommon "github.com/gravitational/teleport/lib/srv/discovery/common"
 	"github.com/gravitational/teleport/lib/utils"
 )
 
@@ -136,7 +137,7 @@ func (e *Engine) HandleConnection(ctx context.Context, sessionCtx *common.Sessio
 	defer func() {
 		err := e.GetUserProvisioner(e).Teardown(ctx, sessionCtx)
 		if err != nil {
-			e.Log.WithError(err).Error("Failed to teardown auto user.")
+			e.Log.WithError(err).WithField("user", sessionCtx.DatabaseUser).Error("Failed to teardown auto user.")
 		}
 	}()
 	// This is where we connect to the actual Postgres database.
@@ -145,6 +146,8 @@ func (e *Engine) HandleConnection(ctx context.Context, sessionCtx *common.Sessio
 		cancelAutoUserLease()
 		return trace.Wrap(err)
 	}
+	sessionCtx.PostgresPID = hijackedConn.PID
+	e.Log = e.Log.WithField("pg_backend_pid", hijackedConn.PID)
 	e.rawServerConn = hijackedConn.Conn
 	// Release the auto-users semaphore now that we've successfully connected.
 	cancelAutoUserLease()
@@ -223,14 +226,18 @@ func (e *Engine) handleStartup(client *pgproto3.Backend, sessionCtx *common.Sess
 }
 
 func (e *Engine) checkAccess(ctx context.Context, sessionCtx *common.Session) error {
-	// When using auto-provisioning, force the database username to be same
-	// as Teleport username. If it's not provided explicitly, some database
-	// clients (e.g. psql) get confused and display incorrect username.
-	if sessionCtx.AutoCreateUserMode.IsEnabled() {
-		if sessionCtx.DatabaseUser != sessionCtx.Identity.Username {
-			return trace.AccessDenied("please use your Teleport username (%q) to connect instead of %q",
-				sessionCtx.Identity.Username, sessionCtx.DatabaseUser)
-		}
+	// Don't allow an empty user names. Postgres will silently use
+	// the user name as the database name if no database name is passed which
+	// can cause Teleport to allow connections that are explicitly blocked by
+	// RBAC rules. Follow Postgres' behavior and use the user name as the
+	// database name if no database name is passed.
+	if sessionCtx.DatabaseUser == "" {
+		return trace.BadParameter("user name must not be empty")
+	}
+	sessionCtx.DatabaseName = cmp.Or(sessionCtx.DatabaseName, sessionCtx.DatabaseUser)
+
+	if err := sessionCtx.CheckUsernameForAutoUserProvisioning(); err != nil {
+		return trace.Wrap(err)
 	}
 	authPref, err := e.Auth.GetAuthPreference(ctx)
 	if err != nil {
@@ -417,8 +424,6 @@ func (e *Engine) receiveFromServer(serverConn *pgconn.PgConn, serverErrCh chan<-
 	// parse and count the messages from the server in a separate goroutine,
 	// operating on a copy of the server message stream. the copy is arranged below.
 	copyReader, copyWriter := io.Pipe()
-	defer copyWriter.Close()
-
 	closeChan := make(chan struct{})
 
 	go func() {
@@ -459,6 +464,12 @@ func (e *Engine) receiveFromServer(serverConn *pgconn.PgConn, serverErrCh chan<-
 		log.WithError(err).Warn("Server -> Client copy finished with unexpected error.")
 	}
 
+	// We need to close the writer half of the pipe to notify the analysis
+	// goroutine that the connection is done. This will result in the goroutine
+	// receiving an io.ErrClosedPipe error, which will cause it to finish its
+	// execution. After that, wait until the closeChan is closed to ensure the
+	// goroutine is completed, avoiding data races.
+	copyWriter.Close()
 	<-closeChan
 
 	serverErrCh <- trace.Wrap(err)
@@ -536,7 +547,7 @@ func (e *Engine) getConnectConfig(ctx context.Context, sessionCtx *common.Sessio
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}
-		config.User = services.MakeAzureDatabaseLoginUsername(sessionCtx.Database, config.User)
+		config.User = discoverycommon.MakeAzureDatabaseLoginUsername(sessionCtx.Database, config.User)
 	}
 	return config, nil
 }

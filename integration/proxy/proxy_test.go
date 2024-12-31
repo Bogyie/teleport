@@ -373,6 +373,7 @@ func TestALPNSNIProxyKube(t *testing.T) {
 		PinnedIP:            "127.0.0.1",
 		KubeUsers:           kubeRoleSpec.Allow.KubeGroups,
 		KubeGroups:          kubeRoleSpec.Allow.KubeUsers,
+		KubeCluster:         "root.example.com",
 		CustomTLSServerName: localK8SNI,
 		TargetAddress:       suite.root.Config.Proxy.WebAddr,
 	})
@@ -489,6 +490,7 @@ func TestALPNSNIProxyKubeV2Leaf(t *testing.T) {
 		PinnedIP:            "127.0.0.1",
 		KubeUsers:           kubeRoleSpec.Allow.KubeGroups,
 		KubeGroups:          kubeRoleSpec.Allow.KubeUsers,
+		KubeCluster:         "gke_project_europecentral2a_cluster1",
 		CustomTLSServerName: localK8SNI,
 		TargetAddress:       suite.root.Config.Proxy.WebAddr,
 		RouteToCluster:      suite.leaf.Secrets.SiteName,
@@ -640,6 +642,7 @@ func TestKubePROXYProtocol(t *testing.T) {
 					Username:            kubeRoleSpec.Allow.Logins[0],
 					KubeUsers:           kubeRoleSpec.Allow.KubeGroups,
 					KubeGroups:          kubeRoleSpec.Allow.KubeUsers,
+					KubeCluster:         kubeClusterName,
 					CustomTLSServerName: kubeCluster,
 					TargetAddress:       targetAddr,
 					RouteToCluster:      testCluster.Secrets.SiteName,
@@ -767,6 +770,7 @@ func TestKubeIPPinning(t *testing.T) {
 				PinnedIP:            tc.pinnedIP,
 				KubeUsers:           kubeRoleSpec.Allow.KubeGroups,
 				KubeGroups:          kubeRoleSpec.Allow.KubeUsers,
+				KubeCluster:         kubeClusterName,
 				CustomTLSServerName: kubeCluster,
 				TargetAddress:       suite.root.Config.Proxy.WebAddr,
 				RouteToCluster:      tc.routeToCluster,
@@ -1475,14 +1479,14 @@ func TestALPNProxyDialProxySSHWithoutInsecureMode(t *testing.T) {
 
 	// Try to connect to the separate proxy SSH listener.
 	tc.TLSRoutingEnabled = false
-	err = tc.SSH(ctx, cmd, false)
+	err = tc.SSH(ctx, cmd)
 	require.NoError(t, err)
 	require.Equal(t, "hello world\n", output.String())
 	output.Reset()
 
 	// Try to connect to the ALPN SNI Listener.
 	tc.TLSRoutingEnabled = true
-	err = tc.SSH(ctx, cmd, false)
+	err = tc.SSH(ctx, cmd)
 	require.NoError(t, err)
 	require.Equal(t, "hello world\n", output.String())
 }

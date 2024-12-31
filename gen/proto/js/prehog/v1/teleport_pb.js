@@ -569,7 +569,10 @@ proto.prehog.v1.UserActivityRecord.toObject = function(includeInstance, msg) {
     kubeRequests: jspb.Message.getFieldWithDefault(msg, 10, 0),
     sftpEvents: jspb.Message.getFieldWithDefault(msg, 11, 0),
     sshPortV2Sessions: jspb.Message.getFieldWithDefault(msg, 12, 0),
-    kubePortSessions: jspb.Message.getFieldWithDefault(msg, 13, 0)
+    kubePortSessions: jspb.Message.getFieldWithDefault(msg, 13, 0),
+    spiffeSvidsIssued: jspb.Message.getFieldWithDefault(msg, 15, 0),
+    botJoins: jspb.Message.getFieldWithDefault(msg, 16, 0),
+    certificatesIssued: jspb.Message.getFieldWithDefault(msg, 17, 0)
   };
 
   if (includeInstance) {
@@ -661,6 +664,18 @@ proto.prehog.v1.UserActivityRecord.deserializeBinaryFromReader = function(msg, r
     case 13:
       var value = /** @type {number} */ (reader.readUint64());
       msg.setKubePortSessions(value);
+      break;
+    case 15:
+      var value = /** @type {number} */ (reader.readUint64());
+      msg.setSpiffeSvidsIssued(value);
+      break;
+    case 16:
+      var value = /** @type {number} */ (reader.readUint64());
+      msg.setBotJoins(value);
+      break;
+    case 17:
+      var value = /** @type {number} */ (reader.readUint64());
+      msg.setCertificatesIssued(value);
       break;
     default:
       reader.skipField();
@@ -786,6 +801,27 @@ proto.prehog.v1.UserActivityRecord.serializeBinaryToWriter = function(message, w
   if (f !== 0) {
     writer.writeUint64(
       13,
+      f
+    );
+  }
+  f = message.getSpiffeSvidsIssued();
+  if (f !== 0) {
+    writer.writeUint64(
+      15,
+      f
+    );
+  }
+  f = message.getBotJoins();
+  if (f !== 0) {
+    writer.writeUint64(
+      16,
+      f
+    );
+  }
+  f = message.getCertificatesIssued();
+  if (f !== 0) {
+    writer.writeUint64(
+      17,
       f
     );
   }
@@ -1065,6 +1101,60 @@ proto.prehog.v1.UserActivityRecord.prototype.getKubePortSessions = function() {
  */
 proto.prehog.v1.UserActivityRecord.prototype.setKubePortSessions = function(value) {
   return jspb.Message.setProto3IntField(this, 13, value);
+};
+
+
+/**
+ * optional uint64 spiffe_svids_issued = 15;
+ * @return {number}
+ */
+proto.prehog.v1.UserActivityRecord.prototype.getSpiffeSvidsIssued = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 15, 0));
+};
+
+
+/**
+ * @param {number} value
+ * @return {!proto.prehog.v1.UserActivityRecord} returns this
+ */
+proto.prehog.v1.UserActivityRecord.prototype.setSpiffeSvidsIssued = function(value) {
+  return jspb.Message.setProto3IntField(this, 15, value);
+};
+
+
+/**
+ * optional uint64 bot_joins = 16;
+ * @return {number}
+ */
+proto.prehog.v1.UserActivityRecord.prototype.getBotJoins = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 16, 0));
+};
+
+
+/**
+ * @param {number} value
+ * @return {!proto.prehog.v1.UserActivityRecord} returns this
+ */
+proto.prehog.v1.UserActivityRecord.prototype.setBotJoins = function(value) {
+  return jspb.Message.setProto3IntField(this, 16, value);
+};
+
+
+/**
+ * optional uint64 certificates_issued = 17;
+ * @return {number}
+ */
+proto.prehog.v1.UserActivityRecord.prototype.getCertificatesIssued = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 17, 0));
+};
+
+
+/**
+ * @param {number} value
+ * @return {!proto.prehog.v1.UserActivityRecord} returns this
+ */
+proto.prehog.v1.UserActivityRecord.prototype.setCertificatesIssued = function(value) {
+  return jspb.Message.setProto3IntField(this, 17, value);
 };
 
 

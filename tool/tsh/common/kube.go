@@ -24,6 +24,7 @@ import (
 	"net"
 	"net/url"
 	"os"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -33,7 +34,6 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/gravitational/trace"
 	dockerterm "github.com/moby/term"
-	"golang.org/x/exp/slices"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -60,7 +60,7 @@ import (
 	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/api/utils/keypaths"
 	"github.com/gravitational/teleport/lib/asciitable"
-	"github.com/gravitational/teleport/lib/auth"
+	"github.com/gravitational/teleport/lib/auth/authclient"
 	"github.com/gravitational/teleport/lib/client"
 	"github.com/gravitational/teleport/lib/defaults"
 	"github.com/gravitational/teleport/lib/kube/kubeconfig"
@@ -509,7 +509,7 @@ type kubeSessionsCommand struct {
 
 func newKubeSessionsCommand(parent *kingpin.CmdClause) *kubeSessionsCommand {
 	c := &kubeSessionsCommand{
-		CmdClause: parent.Command("sessions", "Get a list of active Kubernetes sessions."),
+		CmdClause: parent.Command("sessions", "Get a list of active Kubernetes sessions. (DEPRECATED: use tsh sessions ls --kind=kube instead)"),
 	}
 	c.Flag("format", defaults.FormatFlagDescription(defaults.DefaultFormats...)).Short('f').Default(teleport.Text).EnumVar(&c.format, defaults.DefaultFormats...)
 	c.Flag("cluster", clusterHelp).Short('c').StringVar(&c.siteName)
@@ -536,61 +536,8 @@ func (c *kubeSessionsCommand) run(cf *CLIConf) error {
 		return trace.Wrap(err)
 	}
 
-	filteredSessions := make([]types.SessionTracker, 0)
-	for _, session := range sessions {
-		if session.GetSessionKind() == types.KubernetesSessionKind {
-			filteredSessions = append(filteredSessions, session)
-		}
-	}
-
-	sort.Slice(filteredSessions, func(i, j int) bool {
-		return filteredSessions[i].GetCreated().Before(filteredSessions[j].GetCreated())
-	})
-
-	format := strings.ToLower(c.format)
-	switch format {
-	case teleport.Text, "":
-		printSessions(cf.Stdout(), filteredSessions)
-	case teleport.JSON, teleport.YAML:
-		out, err := serializeKubeSessions(sessions, format)
-		if err != nil {
-			return trace.Wrap(err)
-		}
-		fmt.Fprintln(cf.Stdout(), out)
-	default:
-		return trace.BadParameter("unsupported format %q", c.format)
-	}
-	return nil
-}
-
-func serializeKubeSessions(sessions []types.SessionTracker, format string) (string, error) {
-	var out []byte
-	var err error
-	if format == teleport.JSON {
-		out, err = utils.FastMarshalIndent(sessions, "", "  ")
-	} else {
-		out, err = yaml.Marshal(sessions)
-	}
-	return string(out), trace.Wrap(err)
-}
-
-func printSessions(output io.Writer, sessions []types.SessionTracker) {
-	table := asciitable.MakeTable([]string{"ID", "State", "Created", "Hostname", "Address", "Login", "Reason", "Command"})
-	for _, s := range sessions {
-		table.AddRow([]string{
-			s.GetSessionID(),
-			s.GetState().String(),
-			s.GetCreated().Format(time.RFC3339),
-			s.GetHostname(),
-			s.GetAddress(),
-			s.GetLogin(),
-			s.GetReason(),
-			strings.Join(s.GetCommand(), " "),
-		})
-	}
-
-	tableOutput := table.AsBuffer().String()
-	fmt.Fprintln(output, tableOutput)
+	filteredSessions := sortAndFilterSessions(sessions, []types.SessionKind{types.KubernetesSessionKind})
+	return trace.Wrap(serializeSessions(filteredSessions, strings.ToLower(c.format), cf.Stdout()))
 }
 
 type kubeCredentialsCommand struct {
@@ -778,7 +725,12 @@ func (c *kubeCredentialsCommand) issueCert(cf *CLIConf) error {
 				if cf.MockSSOLogin != nil {
 					lockTimeout = utils.FSLockRetryDelay
 				}
-				unlockKubeCred, err = takeKubeCredLock(cf.Context, cf.HomePath, cf.Proxy, lockTimeout)
+				proxy := cf.Proxy
+				// if proxy is empty, fallback to WebProxyAddr
+				if proxy == "" {
+					proxy = tc.WebProxyAddr
+				}
+				unlockKubeCred, err = takeKubeCredLock(cf.Context, cf.HomePath, proxy, lockTimeout)
 				return trace.Wrap(err)
 			},
 		),
@@ -1704,7 +1656,7 @@ func (c *kubeLoginCommand) accessRequestForKubeCluster(ctx context.Context, cf *
 	// we will get an error here.
 	req.SetDryRun(true)
 	req.SetRequestReason("Dry run, this request will not be created. If you see this, there is a bug.")
-	if err := tc.WithRootClusterClient(ctx, func(clt auth.ClientI) error {
+	if err := tc.WithRootClusterClient(ctx, func(clt authclient.ClientI) error {
 		req, err = clt.CreateAccessRequestV2(ctx, req)
 		return trace.Wrap(err)
 	}); err != nil {

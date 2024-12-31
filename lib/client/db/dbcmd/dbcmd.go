@@ -109,12 +109,19 @@ func (s SystemExecer) LookPath(file string) (string, error) {
 type CLICommandBuilder struct {
 	tc          *client.TeleportClient
 	rootCluster string
-	profile     *client.ProfileStatus
-	db          *tlsca.RouteToDatabase
-	host        string
-	port        int
-	options     connectionCommandOpts
-	uid         utils.UID
+	// profile is the currently selected tsh profile.
+	//
+	// Note that profile.Cluster indicates the cluster selected with `tsh login
+	// <root/leaf>`. However, the target cluster can be overwritten with
+	// --cluster flag. Therefore profile.Cluster is not suitable for
+	// determining the target cluster or the root cluster. Use tc.SiteName for
+	// the target cluster and rootCluster for root cluster.
+	profile *client.ProfileStatus
+	db      *tlsca.RouteToDatabase
+	host    string
+	port    int
+	options connectionCommandOpts
+	uid     utils.UID
 }
 
 func NewCmdBuilder(tc *client.TeleportClient, profile *client.ProfileStatus,
@@ -698,7 +705,7 @@ func (j *jdbcOracleThinConnection) ConnString() string {
 }
 
 func (c *CLICommandBuilder) getOracleCommand() (*exec.Cmd, error) {
-	tnsAdminPath := c.profile.OracleWalletDir(c.profile.Cluster, c.db.ServiceName)
+	tnsAdminPath := c.profile.OracleWalletDir(c.tc.SiteName, c.db.ServiceName)
 	if runtime.GOOS == constants.WindowsOS {
 		tnsAdminPath = strings.ReplaceAll(tnsAdminPath, `\`, `\\`)
 	}
@@ -861,7 +868,7 @@ func WithPassword(pass string) ConnectCommandFunc {
 // WithPrintFormat is known to be used for the following situations:
 // - tsh db config --format cmd <database>
 // - tsh proxy db --tunnel <database>
-// - Teleport Connect where the command is put into a terminal.
+// - Teleport Connect where the gateway command is shown in the UI.
 //
 // WithPrintFormat should NOT be used when the exec.Cmd gets executed by the
 // client application.

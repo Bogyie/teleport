@@ -353,6 +353,16 @@ func testDeleteRange(t *testing.T, newBackend Constructor) {
 		require.NoError(t, err, "Failed creating value: %q => %q", item.Key, item.Value)
 	}
 
+	// Some Backends (e.g. DynamoDB) have a limit on the number of items that can
+	// be deleted in a single operation. This test is designed to be run with
+	// a backend that has a limit of 25 items per delete operation.
+	for i := 0; i < 100; i++ {
+		item := &backend.Item{Key: prefix(fmt.Sprintf("/prefix/c/cn%d", i)), Value: []byte(fmt.Sprintf("val cn%d", i))}
+		lease, err := uut.Create(ctx, *item)
+		require.NoError(t, err, "Failed creating value: %q => %q", item.Key, item.Value)
+		item.Revision = lease.Revision
+	}
+
 	err = uut.DeleteRange(ctx, prefix("/prefix/c"), backend.RangeEnd(prefix("/prefix/c")))
 	require.NoError(t, err)
 
@@ -506,7 +516,7 @@ func testKeepAlive(t *testing.T, newBackend Constructor) {
 	defer cancel()
 
 	// When I create a new watcher...
-	watcher, err := uut.NewWatcher(ctx, backend.Watch{Prefixes: [][]byte{prefix("")}})
+	watcher, err := uut.NewWatcher(ctx, backend.Watch{Prefixes: []backend.Key{prefix("")}})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, watcher.Close()) }()
 
@@ -568,7 +578,7 @@ func testEvents(t *testing.T, newBackend Constructor) {
 	defer cancel()
 
 	// Create a new watcher for the test prefix.
-	watcher, err := uut.NewWatcher(ctx, backend.Watch{Prefixes: [][]byte{prefix("")}})
+	watcher, err := uut.NewWatcher(ctx, backend.Watch{Prefixes: []backend.Key{prefix("")}})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, watcher.Close()) }()
 
@@ -696,7 +706,7 @@ func testLimit(t *testing.T, newBackend Constructor) {
 // requireEvent asserts that a given event type with the given key is emitted
 // by a watcher within the supplied timeout, returning that event for further
 // inspection if successful.
-func requireEvent(t *testing.T, watcher backend.Watcher, eventType types.OpType, key []byte, timeout time.Duration) backend.Event {
+func requireEvent(t *testing.T, watcher backend.Watcher, eventType types.OpType, key backend.Key, timeout time.Duration) backend.Event {
 	t.Helper()
 	select {
 	case e := <-watcher.Events():
@@ -745,7 +755,7 @@ func testWatchersClose(t *testing.T, newBackend Constructor) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	watcher, err := uut.NewWatcher(ctx, backend.Watch{Prefixes: [][]byte{prefix("")}})
+	watcher, err := uut.NewWatcher(ctx, backend.Watch{Prefixes: []backend.Key{prefix("")}})
 	require.NoError(t, err)
 
 	// cancel context -> get watcher to close
@@ -758,7 +768,7 @@ func testWatchersClose(t *testing.T, newBackend Constructor) {
 	}
 
 	// closing backend should close associated watcher too
-	watcher, err = uut.NewWatcher(context.Background(), backend.Watch{Prefixes: [][]byte{prefix("")}})
+	watcher, err = uut.NewWatcher(context.Background(), backend.Watch{Prefixes: []backend.Key{prefix("")}})
 	require.NoError(t, err)
 
 	require.NoError(t, uut.Close())
@@ -823,7 +833,7 @@ func testLocking(t *testing.T, newBackend Constructor) {
 	defer requireNoAsyncErrors()
 
 	// Given a lock named `tok1` on the backend...
-	lock, err := backend.AcquireLock(ctx, backend.LockConfiguration{Backend: uut, LockName: tok1, TTL: ttl})
+	lock, err := backend.AcquireLock(ctx, backend.LockConfiguration{Backend: uut, LockNameComponents: []string{tok1}, TTL: ttl})
 	require.NoError(t, err)
 
 	//  When I asynchronously release the lock...
@@ -838,7 +848,7 @@ func testLocking(t *testing.T, newBackend Constructor) {
 	}()
 
 	// ...and simultaneously attempt to create a new lock with the same name
-	lock, err = backend.AcquireLock(ctx, backend.LockConfiguration{Backend: uut, LockName: tok1, TTL: ttl})
+	lock, err = backend.AcquireLock(ctx, backend.LockConfiguration{Backend: uut, LockNameComponents: []string{tok1}, TTL: ttl})
 
 	// expect that the asynchronous Release() has executed - we're using the
 	// change in the value of the marker value as a proxy for the Release().
@@ -850,7 +860,7 @@ func testLocking(t *testing.T, newBackend Constructor) {
 	require.NoError(t, lock.Release(ctx, uut))
 
 	// Given a lock with the same name as previously-existing, manually-released lock
-	lock, err = backend.AcquireLock(ctx, backend.LockConfiguration{Backend: uut, LockName: tok1, TTL: ttl})
+	lock, err = backend.AcquireLock(ctx, backend.LockConfiguration{Backend: uut, LockNameComponents: []string{tok1}, TTL: ttl})
 	require.NoError(t, err)
 	atomic.StoreInt32(&marker, 7)
 
@@ -865,7 +875,7 @@ func testLocking(t *testing.T, newBackend Constructor) {
 	}()
 
 	// ...and simultaneously try to acquire another lock with the same name
-	lock, err = backend.AcquireLock(ctx, backend.LockConfiguration{Backend: uut, LockName: tok1, TTL: ttl})
+	lock, err = backend.AcquireLock(ctx, backend.LockConfiguration{Backend: uut, LockNameComponents: []string{tok1}, TTL: ttl})
 
 	// expect that the asynchronous Release() has executed - we're using the
 	// change in the value of the marker value as a proxy for the call to
@@ -879,9 +889,9 @@ func testLocking(t *testing.T, newBackend Constructor) {
 
 	// Given a pair of locks named `tok1` and `tok2`
 	y := int32(0)
-	lock1, err := backend.AcquireLock(ctx, backend.LockConfiguration{Backend: uut, LockName: tok1, TTL: ttl})
+	lock1, err := backend.AcquireLock(ctx, backend.LockConfiguration{Backend: uut, LockNameComponents: []string{tok1}, TTL: ttl})
 	require.NoError(t, err)
-	lock2, err := backend.AcquireLock(ctx, backend.LockConfiguration{Backend: uut, LockName: tok2, TTL: ttl})
+	lock2, err := backend.AcquireLock(ctx, backend.LockConfiguration{Backend: uut, LockNameComponents: []string{tok2}, TTL: ttl})
 	require.NoError(t, err)
 
 	//  When I asynchronously release the locks...
@@ -898,7 +908,7 @@ func testLocking(t *testing.T, newBackend Constructor) {
 		}
 	}()
 
-	lock, err = backend.AcquireLock(ctx, backend.LockConfiguration{Backend: uut, LockName: tok1, TTL: ttl})
+	lock, err = backend.AcquireLock(ctx, backend.LockConfiguration{Backend: uut, LockNameComponents: []string{tok1}, TTL: ttl})
 	require.NoError(t, err)
 	require.Equal(t, int32(15), atomic.LoadInt32(&y))
 	require.NoError(t, lock.Release(ctx, uut))
@@ -1016,7 +1026,7 @@ func testMirror(t *testing.T, newBackend Constructor) {
 	defer cancel()
 
 	// Create a new watcher for the test prefix.
-	watcher, err := uut.NewWatcher(ctx, backend.Watch{Prefixes: [][]byte{prefix("")}})
+	watcher, err := uut.NewWatcher(ctx, backend.Watch{Prefixes: []backend.Key{prefix("")}})
 	require.NoError(t, err)
 	defer func() { require.NoError(t, watcher.Close()) }()
 
@@ -1082,7 +1092,7 @@ func testMirror(t *testing.T, newBackend Constructor) {
 	require.NoError(t, err)
 }
 
-func AddItem(ctx context.Context, t *testing.T, uut backend.Backend, key []byte, value string, expires time.Time) (backend.Item, backend.Lease) {
+func AddItem(ctx context.Context, t *testing.T, uut backend.Backend, key backend.Key, value string, expires time.Time) (backend.Item, backend.Lease) {
 	t.Helper()
 	item := backend.Item{
 		Key:     key,
@@ -1113,9 +1123,9 @@ func requireWaitGroupToFinish(ctx context.Context, t *testing.T, waitGroup *sync
 
 // MakePrefix returns function that appends unique prefix
 // to any key, used to make test suite concurrent-run proof
-func MakePrefix() func(k string) []byte {
+func MakePrefix() func(k string) backend.Key {
 	id := "/" + uuid.New().String()
-	return func(k string) []byte {
-		return []byte(id + k)
+	return func(k string) backend.Key {
+		return backend.Key(id + k)
 	}
 }

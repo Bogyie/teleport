@@ -18,12 +18,15 @@ package clusters
 
 import (
 	"context"
+	"encoding/json"
 	"net"
 
 	"github.com/gravitational/trace"
 
 	"github.com/gravitational/teleport/api/profile"
 	"github.com/gravitational/teleport/lib/client"
+	dtauthn "github.com/gravitational/teleport/lib/devicetrust/authn"
+	dtenroll "github.com/gravitational/teleport/lib/devicetrust/enroll"
 	"github.com/gravitational/teleport/lib/teleterm/api/uri"
 )
 
@@ -150,11 +153,8 @@ func (s *Storage) addCluster(ctx context.Context, dir, webProxyAddress string) (
 		return nil, nil, trace.BadParameter("cluster directory is missing")
 	}
 
-	cfg := client.MakeDefaultConfig()
+	cfg := s.makeDefaultClientConfig()
 	cfg.WebProxyAddr = webProxyAddress
-	cfg.HomePath = s.Dir
-	cfg.KeysDir = s.Dir
-	cfg.InsecureSkipVerify = s.InsecureSkipVerify
 
 	profileName := parseName(webProxyAddress)
 	clusterURI := uri.NewClusterURI(profileName)
@@ -170,6 +170,15 @@ func (s *Storage) addCluster(ctx context.Context, dir, webProxyAddress string) (
 		return nil, nil, trace.Wrap(err)
 	}
 
+	clusterLog := s.Log.WithField("cluster", clusterURI)
+
+	pingResponseJSON, err := json.Marshal(pingResponse)
+	if err != nil {
+		clusterLog.WithError(err).Debugln("Could not marshal ping response to JSON")
+	} else {
+		clusterLog.WithField("response", string(pingResponseJSON)).Debugln("Got ping response")
+	}
+
 	if err := clusterClient.SaveProfile(false); err != nil {
 		return nil, nil, trace.Wrap(err)
 	}
@@ -183,7 +192,7 @@ func (s *Storage) addCluster(ctx context.Context, dir, webProxyAddress string) (
 		clusterClient: clusterClient,
 		dir:           s.Dir,
 		clock:         s.Clock,
-		Log:           s.Log.WithField("cluster", clusterURI),
+		Log:           clusterLog,
 	}, clusterClient, nil
 }
 
@@ -198,13 +207,10 @@ func (s *Storage) fromProfile(profileName, leafClusterName string) (*Cluster, *c
 
 	profileStore := client.NewFSProfileStore(s.Dir)
 
-	cfg := client.MakeDefaultConfig()
+	cfg := s.makeDefaultClientConfig()
 	if err := cfg.LoadProfile(profileStore, profileName); err != nil {
 		return nil, nil, trace.Wrap(err)
 	}
-	cfg.KeysDir = s.Dir
-	cfg.HomePath = s.Dir
-	cfg.InsecureSkipVerify = s.InsecureSkipVerify
 
 	if leafClusterName != "" {
 		clusterNameForKey = leafClusterName
@@ -259,6 +265,17 @@ func (s *Storage) loadProfileStatusAndClusterKey(clusterClient *client.TeleportC
 	}
 
 	return status, nil
+}
+
+func (s *Storage) makeDefaultClientConfig() *client.Config {
+	cfg := client.MakeDefaultConfig()
+
+	cfg.HomePath = s.Dir
+	cfg.KeysDir = s.Dir
+	cfg.InsecureSkipVerify = s.InsecureSkipVerify
+	cfg.DTAuthnRunCeremony = dtauthn.NewCeremony().Run
+	cfg.DTAutoEnroll = dtenroll.AutoEnroll
+	return cfg
 }
 
 // parseName gets cluster name from cluster web proxy address

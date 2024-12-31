@@ -48,7 +48,6 @@ message Watch {
 message HostCertsRequest {
   reserved 12; // system_role_assertion_id
   reserved "UnstableSystemRoleAssertionID";
-
   // HostID is a unique ID of the host.
   string HostID = 1 [(gogoproto.jsontag) = "host_id"];
   // NodeName is a user-friendly host name.
@@ -86,6 +85,11 @@ message HostCertsRequest {
     (gogoproto.jsontag) = "system_roles,omitempty",
     (gogoproto.casttype) = "github.com/gravitational/teleport/api/types.SystemRole"
   ];
+  // SystemRoleAssertionID is used by agents to prove that they have a given system role when
+  // their credentials originate from multiple separate join tokens so that they can be issued
+  // an instance certificate that encompasses all of their capabilities. This field will be
+  // deprecated once we have a more comprehensive model for join token joining/replacement.
+  string SystemRoleAssertionID = 13 [(gogoproto.jsontag) = "system_role_assertion_id,omitempty"];
 }
 
 // OpenSSHCertRequest specifies certificate-generation parameters
@@ -535,7 +539,11 @@ message Features {
   // IdentityGovernance indicates whether IGS related features are enabled:
   // access list, access request, access monitoring, device trust.
   bool IdentityGovernance = 23 [(gogoproto.jsontag) = "identity_governance,omitempty"];
-  // AccessGraph indicates whether Teleport Access Graph is enabled.
+  // AccessGraph enables the usage of access graph.
+  // NOTE: this is a legacy flag that is currently used to signal
+  // that Access Graph integration is *enabled* on a cluster.
+  // *Access* to the feature is gated on the `Policy` flag.
+  // TODO(justinas): remove this field once "TAG enabled" status is moved to a resource in the backend.
   bool AccessGraph = 24 [(gogoproto.jsontag) = "access_graph,omitempty"];
   // AccessListFeature holds its namesake feature settings.
   AccessListFeature AccessList = 25 [(gogoproto.jsontag) = "access_list,omitempty"];
@@ -543,6 +551,9 @@ message Features {
   AccessMonitoringFeature AccessMonitoring = 26 [(gogoproto.jsontag) = "access_monitoring,omitempty"];
   // ProductType describes the product being used.
   ProductType ProductType = 27 [(gogoproto.jsontag) = "product_type,omitempty"];
+  // Policy enables the Teleport Policy feature set.
+  // At the time of writing, this includes Teleport Access Graph (TAG).
+  PolicyFeature Policy = 28 [(gogoproto.jsontag) = "policy,omitempty"];
 }
 
 // DeviceTrustFeature holds the Device Trust feature general and usage-based
@@ -588,6 +599,12 @@ message AccessMonitoringFeature {
   bool enabled = 1 [(gogoproto.jsontag) = "enabled,omitempty"];
   // Defines the max number of days to include in an access report.
   int32 max_report_range_limit = 2 [(gogoproto.jsontag) = "max_report_range_limit,omitempty"];
+}
+
+// PolicyFeature holds the Teleport Policy feature set settings.
+message PolicyFeature {
+  // True if Teleport Policy is enabled in the license.
+  bool enabled = 1 [(gogoproto.jsontag) = "enabled,omitempty"];
 }
 
 // DeleteUserRequest is the input value for the DeleteUser method.
@@ -1043,6 +1060,29 @@ message GetRoleRequest {
 message GetRolesResponse {
   // Roles is a list of roles.
   repeated types.RoleV6 Roles = 1;
+}
+
+// ListRolesRequest encodes parameters for paginated role lookup.
+message ListRolesRequest {
+  // Limit is the maximum amount of roles per page.
+  int32 Limit = 1;
+
+  // StartKey is used to resume a query in order to enable pagination.
+  // If the previous response had LastKey set then this should be
+  // set to its value. Otherwise leave empty.
+  string StartKey = 2;
+
+  // Filter matches roles.
+  types.RoleFilter Filter = 3;
+}
+
+// ListRolesResponse is a page of roles.
+message ListRolesResponse {
+  // Roles is a page of roles.
+  repeated types.RoleV6 Roles = 1;
+
+  // NextKey will serve as the StartKey for the next page of roles.
+  string NextKey = 2;
 }
 
 // DeleteRoleRequest is a request to delete a role.
@@ -2054,6 +2094,41 @@ message GetSSODiagnosticInfoRequest {
   string AuthRequestID = 2 [(gogoproto.jsontag) = "auth_request_id"];
 }
 
+// SystemRoleAssertion is used by agents to prove that they have a given system role when their
+// credentials originate from multiple separate join tokens so that they can be issued an
+// instance certificate that encompasses all of their capabilities. This type will be
+// deprecated once we have a more comprehensive model for join token joining/replacement.
+message SystemRoleAssertion {
+  // ServerID is the server ID of the instance that the assertion is for. Assertions are
+  // only accepted if the calling agent's certificate matches this server id.
+  string ServerID = 1 [(gogoproto.jsontag) = "server_id,omitempty"];
+  // AssertionID is a random UUID that uniquely identifies a set of assertions
+  // as originating from the same teleport process.
+  string AssertionID = 2 [(gogoproto.jsontag) = "assertion_id,omitempty"];
+  // SystemRole is the system role being asserted. Assertions are only accepted if
+  // the calling agent's certificate authorizes it for this system role.
+  string SystemRole = 3 [
+    (gogoproto.jsontag) = "system_role,omitempty",
+    (gogoproto.casttype) = "github.com/gravitational/teleport/api/types.SystemRole"
+  ];
+}
+
+// SystemRoleAssertionSet is an aggregate generated as a result of one or more successful
+// assertions. This type will be deprecated once we have a more comprehensive model for
+// join token joining/replacement.
+message SystemRoleAssertionSet {
+  // ServerID is the server ID of the agent that generated the assertions.
+  string ServerID = 1 [(gogoproto.jsontag) = "server_id,omitempty"];
+  // AssertionID is a random UUID that identified all constituent assertions as originating
+  // from the same teleport process.
+  string AssertionID = 2 [(gogoproto.jsontag) = "assertion_id,omitempty"];
+  // SystemRoles is the set of system roles that the agent has successfully asserted.
+  repeated string SystemRoles = 3 [
+    (gogoproto.jsontag) = "system_roles,omitempty",
+    (gogoproto.casttype) = "github.com/gravitational/teleport/api/types.SystemRole"
+  ];
+}
+
 // UpstreamInventoryOneOf is the upstream message for the inventory control stream,
 // sent from teleport instances to the auth server.
 message UpstreamInventoryOneOf {
@@ -2066,6 +2141,8 @@ message UpstreamInventoryOneOf {
     UpstreamInventoryPong Pong = 3;
     // UpstreamInventoryAgentMetadata advertises instance metadata.
     UpstreamInventoryAgentMetadata AgentMetadata = 4;
+    // UpstreamInventoryGoodbye advertises that the instance is terminating.
+    UpstreamInventoryGoodbye Goodbye = 5;
   }
 }
 
@@ -2146,6 +2223,51 @@ message DownstreamInventoryHello {
   string Version = 1;
   // ServerID advertises the server ID of the auth server.
   string ServerID = 2;
+
+  // SupportedCapabilities indicate which features of the ICS that
+  // the connect auth server supports. This allows agents to determine
+  // how they should interact with the auth server to maintain compatibility.
+  message SupportedCapabilities {
+    // ProxyHeartbeats indicates the ICS supports heartbeating proxy servers.
+    bool ProxyHeartbeats = 1;
+    // ProxyCleanup indicates the ICS supports deleting proxies when UpstreamInventoryGoodbye.DeleteResources is set.
+    bool ProxyCleanup = 2;
+    // ProxyHeartbeats indicates the ICS supports heartbeating proxy servers.
+    bool AuthHeartbeats = 3;
+    // ProxyCleanup indicates the ICS supports deleting proxies when UpstreamInventoryGoodbye.DeleteResources is set.
+    bool AuthCleanup = 4;
+    // NodeHeartbeats indicates the ICS supports heartbeating ssh servers.
+    bool NodeHeartbeats = 5;
+    // NodeCleanup indicates the ICS supports deleting nodes when UpstreamInventoryGoodbye.DeleteResources is set.
+    bool NodeCleanup = 6;
+    // AppHeartbeats indicates the ICS supports heartbeating app servers.
+    bool AppHeartbeats = 7;
+    // AppCleanup indicates the ICS supports deleting apps when UpstreamInventoryGoodbye.DeleteResources is set.
+    bool AppCleanup = 8;
+    // DatabaseHeartbeats indicates the ICS supports heartbeating databases.
+    bool DatabaseHeartbeats = 9;
+    // DatabaseCleanup indicates the ICS supports deleting databases when UpstreamInventoryGoodbye.DeleteResources is set.
+    bool DatabaseCleanup = 10;
+    // DatabaseServiceHeartbeats indicates the ICS supports heartbeating databse services.
+    bool DatabaseServiceHeartbeats = 11;
+    // DatabaseServiceCleanup indicates the ICS supports deleting database services when UpstreamInventoryGoodbye.DeleteResources is set.
+    bool DatabaseServiceCleanup = 12;
+    // WindowsDesktopHeartbeats indicates the ICS supports heartbeating windows desktop servers.
+    bool WindowsDesktopHeartbeats = 13;
+    // WindowsDesktopCleanup indicates the ICS supports deleting windows desktops when UpstreamInventoryGoodbye.DeleteResources is set.
+    bool WindowsDesktopCleanup = 14;
+    // WindowsDesktopHeartbeats indicates the ICS supports heartbeating windows desktop services.
+    bool WindowsDesktopServiceHeartbeats = 15;
+    // WindowsDesktopCleanup indicates the ICS supports deleting windows desktop services when UpstreamInventoryGoodbye.DeleteResources is set.
+    bool WindowsDesktopServiceCleanup = 16;
+    // KubernetesHeartbeats indicates the ICS supports heartbeating kubernetes clusters.
+    bool KubernetesHeartbeats = 17;
+    // KubernetesCleanup indicates the ICS supports deleting kubernetes clusters when UpstreamInventoryGoodbye.DeleteResources is set.
+    bool KubernetesCleanup = 18;
+  }
+
+  // SupportedCapabilities advertises the supported features of the auth server.
+  SupportedCapabilities Capabilities = 3;
 }
 
 // LabelUpdateKind is the type of service to update labels for.
@@ -2184,6 +2306,16 @@ message InventoryHeartbeat {
   // we should be able to cut down on network usage fairly significantly by moving static values
   // to the hello message and only heartbeating dynamic values here).
   types.ServerV2 SSHServer = 1;
+  // AppServer is a complete app server spec to be heartbeated.
+  types.AppServerV3 AppServer = 2;
+}
+
+// UpstreamInventoryGoodbye informs the upstream service that instance
+// is terminating
+message UpstreamInventoryGoodbye {
+  // DeleteResources indicates that any heartbeats received from
+  // the instance should be terminated when the stream is closed.
+  bool DeleteResources = 1;
 }
 
 // InventoryStatusRequest requests inventory status info.
@@ -2363,6 +2495,51 @@ message ExportUpgradeWindowsResponse {
   string SystemdUnitSchedule = 3;
 }
 
+// AccessRequestSort determines access request sort index.
+enum AccessRequestSort {
+  // DEFAULT sorts access requests by their native backend index. this is currently equivalent
+  // to sorting by request ID, but that is subject to change.
+  DEFAULT = 0;
+
+  // CREATED sorts access requests by creation time (this is the sort index typically used in
+  // user interfaces since most users are looking for recently-created requests).
+  CREATED = 1;
+
+  // STATE sorts access requests by their state (PENDING, APPROVED, etc).
+  STATE = 2;
+}
+
+// ListAccessRequestsRequest encodes the parameters for a paginated access request lookup.
+message ListAccessRequestsRequest {
+  // Filter matches access requests.
+  types.AccessRequestFilter Filter = 1;
+
+  // Sort determines the sort order of returned access requests.
+  AccessRequestSort Sort = 2;
+
+  // Descending requests descending sort order if true (teleport APIs generally always
+  // defaults to ascending sort order since that is the native sort order used in the
+  // teleport backend).
+  bool Descending = 3;
+
+  // Limit is the maximum amount of requests per page.
+  int32 Limit = 4;
+
+  // StartKey is used to resume a query in order to enable pagination.
+  // If the previous response had NextKey set then this should be
+  // set to its value. Otherwise leave empty.
+  string StartKey = 5;
+}
+
+// ListAccessRequestsResponse is a page of access requests.
+message ListAccessRequestsResponse {
+  // AccessRequests is a page of access requests.
+  repeated types.AccessRequestV3 AccessRequests = 1;
+
+  // NextKey will serve as the StartKey for the next page of requests.
+  string NextKey = 2;
+}
+
 // AccessRequestAllowedPromotionRequest is the request to AccessRequestAllowedPromotion RPC call.
 message AccessRequestAllowedPromotionRequest {
   // AccessRequest is the access request to get promotions for.
@@ -2460,6 +2637,10 @@ service AuthService {
 
   // GetAccessRequestsV2 gets all pending access requests.
   rpc GetAccessRequestsV2(types.AccessRequestFilter) returns (stream types.AccessRequestV3);
+
+  // ListAccessRequests gets access requests with pagination and sorting.
+  rpc ListAccessRequests(ListAccessRequestsRequest) returns (ListAccessRequestsResponse);
+
   // CreateAccessRequest creates a new access request.
   // Deprecated: use CreateAccessRequestV2 instead.
   // DELETE IN v15.0.0.
@@ -2491,6 +2672,8 @@ service AuthService {
   rpc GetResetPasswordToken(GetResetPasswordTokenRequest) returns (types.UserTokenV3);
   // CreateResetPasswordToken resets users current password and second factors and creates a reset
   // password token.
+  //
+  // Only local users may be reset.
   rpc CreateResetPasswordToken(CreateResetPasswordTokenRequest) returns (types.UserTokenV3);
 
   // CreateBot creates a new bot user.
@@ -2516,6 +2699,8 @@ service AuthService {
   // DeleteUser deletes an existing user in a backend by username.
   rpc DeleteUser(DeleteUserRequest) returns (google.protobuf.Empty);
   // ChangePassword allows a user to change their own password.
+  //
+  // Only local users may change their password.
   rpc ChangePassword(ChangePasswordRequest) returns (google.protobuf.Empty);
 
   // AcquireSemaphore acquires lease with requested resources from semaphore.
@@ -2571,17 +2756,29 @@ service AuthService {
   rpc DeleteAllSnowflakeSessions(google.protobuf.Empty) returns (google.protobuf.Empty);
 
   // CreateSAMLIdPSession creates web session with sub kind saml_idp used by the SAML IdP.
-  rpc CreateSAMLIdPSession(CreateSAMLIdPSessionRequest) returns (CreateSAMLIdPSessionResponse);
+  rpc CreateSAMLIdPSession(CreateSAMLIdPSessionRequest) returns (CreateSAMLIdPSessionResponse) {
+    option deprecated = true;
+  }
   // GetSAMLIdPSession returns a SAML IdP session with sub kind saml_idp.
-  rpc GetSAMLIdPSession(GetSAMLIdPSessionRequest) returns (GetSAMLIdPSessionResponse);
+  rpc GetSAMLIdPSession(GetSAMLIdPSessionRequest) returns (GetSAMLIdPSessionResponse) {
+    option deprecated = true;
+  }
   // ListSAMLIdPSessions gets all SAML IdP sessions.
-  rpc ListSAMLIdPSessions(ListSAMLIdPSessionsRequest) returns (ListSAMLIdPSessionsResponse);
+  rpc ListSAMLIdPSessions(ListSAMLIdPSessionsRequest) returns (ListSAMLIdPSessionsResponse) {
+    option deprecated = true;
+  }
   // DeleteSAMLIdPSession removes a SAML IdP session.
-  rpc DeleteSAMLIdPSession(DeleteSAMLIdPSessionRequest) returns (google.protobuf.Empty);
+  rpc DeleteSAMLIdPSession(DeleteSAMLIdPSessionRequest) returns (google.protobuf.Empty) {
+    option deprecated = true;
+  }
   // DeleteAllSAMLIdPSessions removes all SAML IdP sessions.
-  rpc DeleteAllSAMLIdPSessions(google.protobuf.Empty) returns (google.protobuf.Empty);
+  rpc DeleteAllSAMLIdPSessions(google.protobuf.Empty) returns (google.protobuf.Empty) {
+    option deprecated = true;
+  }
   // DeleteUserSAMLIdPSessions deletes all user’s SAML IdP sessions.
-  rpc DeleteUserSAMLIdPSessions(DeleteUserSAMLIdPSessionsRequest) returns (google.protobuf.Empty);
+  rpc DeleteUserSAMLIdPSessions(DeleteUserSAMLIdPSessionsRequest) returns (google.protobuf.Empty) {
+    option deprecated = true;
+  }
 
   // GetWebSession gets a web session.
   rpc GetWebSession(types.GetWebSessionRequest) returns (GetWebSessionResponse);
@@ -2639,7 +2836,11 @@ service AuthService {
   // GetRole retrieves a role described by the given request.
   rpc GetRole(GetRoleRequest) returns (types.RoleV6);
   // GetRole retrieves all roles.
+  //
+  // DELETE IN 17.0
   rpc GetRoles(google.protobuf.Empty) returns (GetRolesResponse);
+  // ListRoles is a paginated role getter.
+  rpc ListRoles(ListRolesRequest) returns (ListRolesResponse);
   // UpsertRole upserts a role in a backend.
   rpc UpsertRole(types.RoleV6) returns (google.protobuf.Empty);
   // DeleteRole deletes an existing role in a backend described by the given request.
@@ -2891,6 +3092,8 @@ service AuthService {
   // also adds a new MFA device. After successful invocation, a new web session is created as well
   // as a new set of recovery codes (if user meets the requirements to receive them), invalidating
   // any existing codes the user previously had.
+  //
+  // Only local users may be targeted by this RPC.
   rpc ChangeUserAuthentication(ChangeUserAuthenticationRequest) returns (ChangeUserAuthenticationResponse);
 
   // StartAccountRecovery (exclusive to cloud users) is the first out of two step user
@@ -2904,6 +3107,8 @@ service AuthService {
   // user account gets temporarily locked from further recovery attempts and from logging in.
   //
   // Start tokens last RecoveryStartTokenTTL.
+  //
+  // Only local users may perform account recovery
   rpc StartAccountRecovery(StartAccountRecoveryRequest) returns (types.UserTokenV3);
   // VerifyAccountRecovery (exclusive to cloud users) is the second step of the two step
   // verification needed to allow a user to recover their account, after RPC StartAccountRecovery.
@@ -2984,6 +3189,12 @@ service AuthService {
   // without signing keys. If the cluster has multiple TLS certs, they will
   // all be appended.
   rpc GetClusterCACert(google.protobuf.Empty) returns (GetClusterCACertResponse);
+
+  // AssertSystemRole is used by agents to prove that they have a given system role when their
+  // credentials originate from multiple separate join tokens so that they can be issued an instance
+  // certificate that encompasses all of their capabilities. This method will be deprecated once we
+  // have a more comprehensive model for join token joining/replacement.
+  rpc AssertSystemRole(SystemRoleAssertion) returns (google.protobuf.Empty);
 
   // SubmitUsageEvent submits an external usage event.
   rpc SubmitUsageEvent(SubmitUsageEventRequest) returns (google.protobuf.Empty);

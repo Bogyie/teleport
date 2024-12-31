@@ -27,6 +27,7 @@ import (
 	"github.com/gravitational/trace"
 
 	"github.com/gravitational/teleport/api/constants"
+	autoupdatev1pb "github.com/gravitational/teleport/api/gen/proto/go/teleport/autoupdate/v1"
 	devicepb "github.com/gravitational/teleport/api/gen/proto/go/teleport/devicetrust/v1"
 	loginrulepb "github.com/gravitational/teleport/api/gen/proto/go/teleport/loginrule/v1"
 	"github.com/gravitational/teleport/api/types"
@@ -1344,6 +1345,79 @@ func (c *accessListCollection) writeText(w io.Writer, verbose bool) error {
 			al.Spec.Audit.NextAuditDate.Format(time.RFC822),
 		})
 	}
+	_, err := t.AsBuffer().WriteTo(w)
+	return trace.Wrap(err)
+}
+
+type accessRequestCollection struct {
+	accessRequests []types.AccessRequest
+}
+
+func (c *accessRequestCollection) resources() []types.Resource {
+	r := make([]types.Resource, len(c.accessRequests))
+	for i, resource := range c.accessRequests {
+		r[i] = resource
+	}
+	return r
+}
+
+func (c *accessRequestCollection) writeText(w io.Writer, verbose bool) error {
+	var t asciitable.Table
+	var rows [][]string
+	for _, al := range c.accessRequests {
+		var annotations []string
+		for k, v := range al.GetSystemAnnotations() {
+			annotations = append(annotations, fmt.Sprintf("%s/%s", k, strings.Join(v, ",")))
+		}
+		rows = append(rows, []string{
+			al.GetName(),
+			al.GetUser(),
+			strings.Join(al.GetRoles(), ", "),
+			strings.Join(annotations, ", "),
+		})
+	}
+	if verbose {
+		t = asciitable.MakeTable([]string{"Name", "User", "Roles", "Annotations"}, rows...)
+	} else {
+		t = asciitable.MakeTableWithTruncatedColumn([]string{"Name", "User", "Roles", "Annotations"}, rows, "Annotations")
+	}
+
+	_, err := t.AsBuffer().WriteTo(w)
+	return trace.Wrap(err)
+}
+
+type autoUpdateConfigCollection struct {
+	config *autoupdatev1pb.AutoUpdateConfig
+}
+
+func (c *autoUpdateConfigCollection) resources() []types.Resource {
+	return []types.Resource{types.Resource153ToLegacy(c.config)}
+}
+
+func (c *autoUpdateConfigCollection) writeText(w io.Writer, verbose bool) error {
+	t := asciitable.MakeTable([]string{"Name", "Tools AutoUpdate Enabled"})
+	t.AddRow([]string{
+		c.config.GetMetadata().GetName(),
+		fmt.Sprintf("%v", c.config.GetSpec().GetToolsAutoupdate()),
+	})
+	_, err := t.AsBuffer().WriteTo(w)
+	return trace.Wrap(err)
+}
+
+type autoUpdateVersionCollection struct {
+	version *autoupdatev1pb.AutoUpdateVersion
+}
+
+func (c *autoUpdateVersionCollection) resources() []types.Resource {
+	return []types.Resource{types.Resource153ToLegacy(c.version)}
+}
+
+func (c *autoUpdateVersionCollection) writeText(w io.Writer, verbose bool) error {
+	t := asciitable.MakeTable([]string{"Name", "Tools AutoUpdate Version"})
+	t.AddRow([]string{
+		c.version.GetMetadata().GetName(),
+		fmt.Sprintf("%v", c.version.GetSpec().GetToolsVersion()),
+	})
 	_, err := t.AsBuffer().WriteTo(w)
 	return trace.Wrap(err)
 }

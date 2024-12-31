@@ -57,7 +57,7 @@ export type SubscribeToTshdEvent = <
   RpcHandlerServerCall extends Parameters<RpcHandler>[0],
   RpcHandlerRequestObject extends ReturnType<
     RpcHandlerServerCall['request']['toObject']
-  >
+  >,
 >(
   eventName: RpcName,
   listener: (eventData: {
@@ -71,4 +71,6 @@ export type ElectronGlobals = {
   readonly tshClient: TshClient;
   readonly ptyServiceClient: PtyServiceClient;
   readonly subscribeToTshdEvent: SubscribeToTshdEvent;
+  /** Exposes Electron's webUtils.getPathForFile. */
+  getPathForFile(file: File): string;
 };

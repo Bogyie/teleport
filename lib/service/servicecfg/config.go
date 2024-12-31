@@ -34,10 +34,10 @@ import (
 	"github.com/gravitational/teleport"
 	"github.com/gravitational/teleport/api/breaker"
 	"github.com/gravitational/teleport/api/types"
-	"github.com/gravitational/teleport/lib/auth"
+	"github.com/gravitational/teleport/lib/auth/state"
 	"github.com/gravitational/teleport/lib/backend"
 	"github.com/gravitational/teleport/lib/backend/lite"
-	"github.com/gravitational/teleport/lib/cloud"
+	"github.com/gravitational/teleport/lib/cloud/imds"
 	"github.com/gravitational/teleport/lib/defaults"
 	"github.com/gravitational/teleport/lib/events"
 	"github.com/gravitational/teleport/lib/plugin"
@@ -52,8 +52,7 @@ import (
 type Config struct {
 	// Teleport configuration version.
 	Version string
-	// DataDir is the directory where teleport stores its permanent state
-	// (in case of auth server backed by BoltDB) or local state, e.g. keys
+	// DataDir is the directory where teleport stores its local state, e.g. keys
 	DataDir string
 
 	// Hostname is a node host name
@@ -70,7 +69,7 @@ type Config struct {
 
 	// Identities is an optional list of pre-generated key pairs
 	// for teleport roles, this is helpful when server is preconfigured
-	Identities []*auth.Identity
+	Identities []*state.Identity
 
 	// AdvertiseIP is used to "publish" an alternative IP address or hostname this node
 	// can be reached on, if running behind NAT
@@ -160,6 +159,9 @@ type Config struct {
 	// ClusterConfiguration is a service that provides cluster configuration
 	ClusterConfiguration services.ClusterConfiguration
 
+	// AutoUpdateService is a service that provides auto update configuration and version.
+	AutoUpdateService services.AutoUpdateService
+
 	// CipherSuites is a list of TLS ciphersuites that Teleport supports. If
 	// omitted, a Teleport selected list of defaults will be used.
 	CipherSuites []uint16
@@ -237,7 +239,7 @@ type Config struct {
 	AdditionalReadyEvents []string
 
 	// InstanceMetadataClient specifies the instance metadata client.
-	InstanceMetadataClient cloud.InstanceMetadata
+	InstanceMetadataClient imds.Client
 
 	// Testing is a group of properties that are used in tests.
 	Testing ConfigTesting
@@ -539,7 +541,6 @@ func ApplyDefaults(cfg *Config) {
 	cfg.Auth.SessionRecordingConfig = types.DefaultSessionRecordingConfig()
 	cfg.Auth.Preference = types.DefaultAuthPreference()
 	defaults.ConfigureLimiter(&cfg.Auth.Limiter)
-	cfg.Auth.LicenseFile = filepath.Join(cfg.DataDir, defaults.LicenseFile)
 
 	cfg.Proxy.WebAddr = *defaults.ProxyWebListenAddr()
 	// Proxy service defaults.
@@ -551,7 +552,6 @@ func ApplyDefaults(cfg *Config) {
 
 	// SSH service defaults.
 	cfg.SSH.Enabled = true
-	cfg.SSH.Shell = defaults.DefaultShell
 	defaults.ConfigureLimiter(&cfg.SSH.Limiter)
 	cfg.SSH.PAM = &PAMConfig{Enabled: false}
 	cfg.SSH.BPF = &BPFConfig{Enabled: false}

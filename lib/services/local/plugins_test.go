@@ -95,7 +95,7 @@ func TestPluginsCRUD(t *testing.T) {
 	require.IsType(t, trace.AlreadyExists(""), err)
 
 	// Set plugin status.
-	status := types.PluginStatusV1{
+	status := &types.PluginStatusV1{
 		Code: types.PluginStatusCode_OTHER_ERROR,
 	}
 	err = service.SetPluginStatus(ctx, plugin1.GetName(), status)
@@ -198,6 +198,16 @@ func TestListPlugins(t *testing.T) {
 
 	t.Run("single", func(t *testing.T) {
 		fetchedPlugins, nextKey, err := service.ListPlugins(ctx, apidefaults.DefaultChunkSize, "", true)
+		require.NoError(t, err)
+		require.Empty(t, nextKey)
+
+		require.Empty(t, cmp.Diff(insertedPlugins, fetchedPlugins,
+			cmpopts.IgnoreFields(types.Metadata{}, "ID", "Revision"),
+		))
+	})
+
+	t.Run("zero page size uses default value", func(t *testing.T) {
+		fetchedPlugins, nextKey, err := service.ListPlugins(ctx, 0, "", true)
 		require.NoError(t, err)
 		require.Empty(t, nextKey)
 

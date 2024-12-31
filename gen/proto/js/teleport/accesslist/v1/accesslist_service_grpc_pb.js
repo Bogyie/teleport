@@ -67,6 +67,28 @@ function deserialize_teleport_accesslist_v1_AccessRequestPromoteResponse(buffer_
   return teleport_accesslist_v1_accesslist_service_pb.AccessRequestPromoteResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_teleport_accesslist_v1_CountAccessListMembersRequest(arg) {
+  if (!(arg instanceof teleport_accesslist_v1_accesslist_service_pb.CountAccessListMembersRequest)) {
+    throw new Error('Expected argument of type teleport.accesslist.v1.CountAccessListMembersRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_teleport_accesslist_v1_CountAccessListMembersRequest(buffer_arg) {
+  return teleport_accesslist_v1_accesslist_service_pb.CountAccessListMembersRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_teleport_accesslist_v1_CountAccessListMembersResponse(arg) {
+  if (!(arg instanceof teleport_accesslist_v1_accesslist_service_pb.CountAccessListMembersResponse)) {
+    throw new Error('Expected argument of type teleport.accesslist.v1.CountAccessListMembersResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_teleport_accesslist_v1_CountAccessListMembersResponse(buffer_arg) {
+  return teleport_accesslist_v1_accesslist_service_pb.CountAccessListMembersResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_teleport_accesslist_v1_CreateAccessListReviewRequest(arg) {
   if (!(arg instanceof teleport_accesslist_v1_accesslist_service_pb.CreateAccessListReviewRequest)) {
     throw new Error('Expected argument of type teleport.accesslist.v1.CreateAccessListReviewRequest');
@@ -364,6 +386,28 @@ function deserialize_teleport_accesslist_v1_Member(buffer_arg) {
   return teleport_accesslist_v1_accesslist_pb.Member.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_teleport_accesslist_v1_UpdateAccessListMemberRequest(arg) {
+  if (!(arg instanceof teleport_accesslist_v1_accesslist_service_pb.UpdateAccessListMemberRequest)) {
+    throw new Error('Expected argument of type teleport.accesslist.v1.UpdateAccessListMemberRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_teleport_accesslist_v1_UpdateAccessListMemberRequest(buffer_arg) {
+  return teleport_accesslist_v1_accesslist_service_pb.UpdateAccessListMemberRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_teleport_accesslist_v1_UpdateAccessListRequest(arg) {
+  if (!(arg instanceof teleport_accesslist_v1_accesslist_service_pb.UpdateAccessListRequest)) {
+    throw new Error('Expected argument of type teleport.accesslist.v1.UpdateAccessListRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_teleport_accesslist_v1_UpdateAccessListRequest(buffer_arg) {
+  return teleport_accesslist_v1_accesslist_service_pb.UpdateAccessListRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 function serialize_teleport_accesslist_v1_UpsertAccessListMemberRequest(arg) {
   if (!(arg instanceof teleport_accesslist_v1_accesslist_service_pb.UpsertAccessListMemberRequest)) {
     throw new Error('Expected argument of type teleport.accesslist.v1.UpsertAccessListMemberRequest');
@@ -459,6 +503,18 @@ upsertAccessList: {
     responseSerialize: serialize_teleport_accesslist_v1_AccessList,
     responseDeserialize: deserialize_teleport_accesslist_v1_AccessList,
   },
+  // UpdateAccessList updates an access list resource.
+updateAccessList: {
+    path: '/teleport.accesslist.v1.AccessListService/UpdateAccessList',
+    requestStream: false,
+    responseStream: false,
+    requestType: teleport_accesslist_v1_accesslist_service_pb.UpdateAccessListRequest,
+    responseType: teleport_accesslist_v1_accesslist_pb.AccessList,
+    requestSerialize: serialize_teleport_accesslist_v1_UpdateAccessListRequest,
+    requestDeserialize: deserialize_teleport_accesslist_v1_UpdateAccessListRequest,
+    responseSerialize: serialize_teleport_accesslist_v1_AccessList,
+    responseDeserialize: deserialize_teleport_accesslist_v1_AccessList,
+  },
   // DeleteAccessList hard deletes the specified access list resource.
 deleteAccessList: {
     path: '/teleport.accesslist.v1.AccessListService/DeleteAccessList',
@@ -483,7 +539,8 @@ deleteAllAccessLists: {
     responseSerialize: serialize_google_protobuf_Empty,
     responseDeserialize: deserialize_google_protobuf_Empty,
   },
-  // GetAccessListsToReview will return access lists that need to be reviewed by the current user.
+  // GetAccessListsToReview will return access lists that need to be reviewed by
+// the current user.
 getAccessListsToReview: {
     path: '/teleport.accesslist.v1.AccessListService/GetAccessListsToReview',
     requestStream: false,
@@ -494,6 +551,19 @@ getAccessListsToReview: {
     requestDeserialize: deserialize_teleport_accesslist_v1_GetAccessListsToReviewRequest,
     responseSerialize: serialize_teleport_accesslist_v1_GetAccessListsToReviewResponse,
     responseDeserialize: deserialize_teleport_accesslist_v1_GetAccessListsToReviewResponse,
+  },
+  // CountAccessListMembers returns the count of access list members in an
+// access list.
+countAccessListMembers: {
+    path: '/teleport.accesslist.v1.AccessListService/CountAccessListMembers',
+    requestStream: false,
+    responseStream: false,
+    requestType: teleport_accesslist_v1_accesslist_service_pb.CountAccessListMembersRequest,
+    responseType: teleport_accesslist_v1_accesslist_service_pb.CountAccessListMembersResponse,
+    requestSerialize: serialize_teleport_accesslist_v1_CountAccessListMembersRequest,
+    requestDeserialize: deserialize_teleport_accesslist_v1_CountAccessListMembersRequest,
+    responseSerialize: serialize_teleport_accesslist_v1_CountAccessListMembersResponse,
+    responseDeserialize: deserialize_teleport_accesslist_v1_CountAccessListMembersResponse,
   },
   // ListAccessListMembers returns a paginated list of all access list members.
 listAccessListMembers: {
@@ -507,7 +577,8 @@ listAccessListMembers: {
     responseSerialize: serialize_teleport_accesslist_v1_ListAccessListMembersResponse,
     responseDeserialize: deserialize_teleport_accesslist_v1_ListAccessListMembersResponse,
   },
-  // ListAllAccessListMembers returns a paginated list of all access list members for all access lists.
+  // ListAllAccessListMembers returns a paginated list of all access list
+// members for all access lists.
 listAllAccessListMembers: {
     path: '/teleport.accesslist.v1.AccessListService/ListAllAccessListMembers',
     requestStream: false,
@@ -543,7 +614,20 @@ upsertAccessListMember: {
     responseSerialize: serialize_teleport_accesslist_v1_Member,
     responseDeserialize: deserialize_teleport_accesslist_v1_Member,
   },
-  // DeleteAccessListMember hard deletes the specified access list member resource.
+  // UpdateAccessListMember conditionally updates an access list member resource.
+updateAccessListMember: {
+    path: '/teleport.accesslist.v1.AccessListService/UpdateAccessListMember',
+    requestStream: false,
+    responseStream: false,
+    requestType: teleport_accesslist_v1_accesslist_service_pb.UpdateAccessListMemberRequest,
+    responseType: teleport_accesslist_v1_accesslist_pb.Member,
+    requestSerialize: serialize_teleport_accesslist_v1_UpdateAccessListMemberRequest,
+    requestDeserialize: deserialize_teleport_accesslist_v1_UpdateAccessListMemberRequest,
+    responseSerialize: serialize_teleport_accesslist_v1_Member,
+    responseDeserialize: deserialize_teleport_accesslist_v1_Member,
+  },
+  // DeleteAccessListMember hard deletes the specified access list member
+// resource.
 deleteAccessListMember: {
     path: '/teleport.accesslist.v1.AccessListService/DeleteAccessListMember',
     requestStream: false,
@@ -555,7 +639,8 @@ deleteAccessListMember: {
     responseSerialize: serialize_google_protobuf_Empty,
     responseDeserialize: deserialize_google_protobuf_Empty,
   },
-  // DeleteAllAccessListMembers hard deletes all access list members for an access list.
+  // DeleteAllAccessListMembers hard deletes all access list members for an
+// access list.
 deleteAllAccessListMembersForAccessList: {
     path: '/teleport.accesslist.v1.AccessListService/DeleteAllAccessListMembersForAccessList',
     requestStream: false,
@@ -567,7 +652,8 @@ deleteAllAccessListMembersForAccessList: {
     responseSerialize: serialize_google_protobuf_Empty,
     responseDeserialize: deserialize_google_protobuf_Empty,
   },
-  // DeleteAllAccessListMembers hard deletes all access list members for an access list.
+  // DeleteAllAccessListMembers hard deletes all access list members for an
+// access list.
 deleteAllAccessListMembers: {
     path: '/teleport.accesslist.v1.AccessListService/DeleteAllAccessListMembers',
     requestStream: false,
@@ -591,7 +677,8 @@ upsertAccessListWithMembers: {
     responseSerialize: serialize_teleport_accesslist_v1_UpsertAccessListWithMembersResponse,
     responseDeserialize: deserialize_teleport_accesslist_v1_UpsertAccessListWithMembersResponse,
   },
-  // ListAccessListReviews will list access list reviews for a particular access list.
+  // ListAccessListReviews will list access list reviews for a particular access
+// list.
 listAccessListReviews: {
     path: '/teleport.accesslist.v1.AccessListService/ListAccessListReviews',
     requestStream: false,
@@ -603,7 +690,8 @@ listAccessListReviews: {
     responseSerialize: serialize_teleport_accesslist_v1_ListAccessListReviewsResponse,
     responseDeserialize: deserialize_teleport_accesslist_v1_ListAccessListReviewsResponse,
   },
-  // ListAllAccessListReviews will list access list reviews for all access lists.
+  // ListAllAccessListReviews will list access list reviews for all access
+// lists.
 listAllAccessListReviews: {
     path: '/teleport.accesslist.v1.AccessListService/ListAllAccessListReviews',
     requestStream: false,
@@ -615,8 +703,9 @@ listAllAccessListReviews: {
     responseSerialize: serialize_teleport_accesslist_v1_ListAllAccessListReviewsResponse,
     responseDeserialize: deserialize_teleport_accesslist_v1_ListAllAccessListReviewsResponse,
   },
-  // CreateAccessListReview will create a new review for an access list. It will also modify the original access list
-// and its members depending on the details of the review.
+  // CreateAccessListReview will create a new review for an access list. It will
+// also modify the original access list and its members depending on the
+// details of the review.
 createAccessListReview: {
     path: '/teleport.accesslist.v1.AccessListService/CreateAccessListReview',
     requestStream: false,
@@ -652,7 +741,8 @@ accessRequestPromote: {
     responseSerialize: serialize_teleport_accesslist_v1_AccessRequestPromoteResponse,
     responseDeserialize: deserialize_teleport_accesslist_v1_AccessRequestPromoteResponse,
   },
-  // GetSuggestedAccessLists returns suggested access lists for an access request.
+  // GetSuggestedAccessLists returns suggested access lists for an access
+// request.
 getSuggestedAccessLists: {
     path: '/teleport.accesslist.v1.AccessListService/GetSuggestedAccessLists',
     requestStream: false,

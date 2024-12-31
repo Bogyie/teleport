@@ -10,10 +10,10 @@ clusters.
 Teleport agents run an **upgrader** that queries a **version server** to
 determine whether they are out of date. This guide describes how to set up your
 infrastructure to support automatic upgrades. If you are a Teleport Cloud user
-or run a version server already, return to the [Upgrading](../upgrading.mdx)
+or run a version server already, return to the [Upgrading](upgrading.mdx)
 menu for the appropriate next steps to upgrade Teleport.
 
-The [Automatic Update Architecture](../architecture/agent-update-management.mdx)
+The [Automatic Update Architecture](../reference/architecture/agent-update-management.mdx)
 guide explains how automatic agent upgrades work in more detail.
 
 <Admonition type="warning">
@@ -31,6 +31,8 @@ Teleport v13.3.2 forward, including future major releases.
 - Familiarity with the [Upgrading Compatibility Overview](./overview.mdx) guide,
   which describes the sequence in which to upgrade components of your cluster.
 - Self-hosted Teleport cluster v13.0 or higher.
+- (!docs/pages/includes/tctl-tsh-prerequisite.mdx!)
+- (!docs/pages/includes/tctl.mdx!)
 
 The version server must be hosted on a webserver with trusted TLS certificates
 and reachable by all agents. You must have either:
@@ -248,8 +250,9 @@ roles provide this ability, so you will need to create one.
    version: v7
    metadata:
      name: cmc-editor
-   allow:
-     rules:
+   spec:
+     allow:
+       rules:
        - resources: ['cluster_maintenance_config']
          verbs: ['create', 'read', 'update', 'delete']
    ```
@@ -262,7 +265,7 @@ roles provide this ability, so you will need to create one.
 
 1. Add the role to your Teleport user:
 
-  (!docs/pages/includes/add-role-to-user.mdx!)
+  (!docs/pages/includes/add-role-to-user.mdx role="cmc-editor"!)
 
 ### Create a cluster maintenance configuration
 
@@ -337,10 +340,10 @@ This section assumes that the name of your `teleport-kube-agent` release is
    
 1. Check for any deployment issues by checking the updater logs:
    
-    ```code
-    $ kubectl -n <Var name="teleport" /> logs deployment/<Var name="teleport-agent" />-updater
-    2023-04-28T13:13:30Z	INFO	StatefulSet is already up-to-date, not updating.	{"controller": "statefulset", "controllerGroup": "apps", "controllerKind": "StatefulSet", "StatefulSet": {"name":"my-agent","namespace":"agent"}, "namespace": "agent", "name": "my-agent", "reconcileID": "10419f20-a4c9-45d4-a16f-406866b7fc05", "namespacedname": "agent/my-agent", "kind": "StatefulSet", "err": "no new version (current: \"v12.2.3\", next: \"v12.2.3\")"}
-    ```
+   ```code
+   $ kubectl -n <Var name="teleport" /> logs deployment/<Var name="teleport-agent" />-updater
+   2023-04-28T13:13:30Z	INFO	StatefulSet is already up-to-date, not updating.	{"controller": "statefulset", "controllerGroup": "apps", "controllerKind": "StatefulSet", "StatefulSet": {"name":"my-agent","namespace":"agent"}, "namespace": "agent", "name": "my-agent", "reconcileID": "10419f20-a4c9-45d4-a16f-406866b7fc05", "namespacedname": "agent/my-agent", "kind": "StatefulSet", "err": "no new version (current: \"v12.2.3\", next: \"v12.2.3\")"}
+   ```
 
 ### Troubleshooting automatic agent upgrades on Kubernetes
 

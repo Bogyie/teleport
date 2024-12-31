@@ -421,7 +421,7 @@ func TestNodeCRUD(t *testing.T) {
 			// Get all nodes, transparently handle limit exceeded errors
 			nodes, err := presence.GetNodes(ctx, apidefaults.Namespace)
 			require.NoError(t, err)
-			require.EqualValues(t, len(nodes), 2)
+			require.Len(t, nodes, 2)
 			require.Empty(t, cmp.Diff([]types.Server{node1, node2}, nodes,
 				cmpopts.IgnoreFields(types.Metadata{}, "ID", "Revision")))
 
@@ -688,6 +688,25 @@ func TestListResources(t *testing.T) {
 				return presence.DeleteAllWindowsDesktopServices(ctx)
 			},
 		},
+		"WindowsDesktop": {
+			resourceType: types.KindWindowsDesktop,
+			createResourceFunc: func(ctx context.Context, presence *PresenceService, name string, labels map[string]string) error {
+				desktopService := NewWindowsDesktopService(presence.Backend)
+				desktop, err := types.NewWindowsDesktopV3(name, labels, types.WindowsDesktopSpecV3{
+					Addr: "localhost:1234",
+				})
+				if err != nil {
+					return err
+				}
+
+				err = desktopService.UpsertWindowsDesktop(ctx, desktop)
+				return err
+			},
+			deleteAllResourcesFunc: func(ctx context.Context, presence *PresenceService) error {
+				desktopService := NewWindowsDesktopService(presence.Backend)
+				return desktopService.DeleteAllWindowsDesktops(ctx)
+			},
+		},
 	}
 
 	for testName, test := range tests {
@@ -862,12 +881,11 @@ func TestListResources_Helpers(t *testing.T) {
 				require.NoError(t, err)
 
 				return FakePaginate(types.Servers(nodes).AsResources(), FakePaginateParams{
-					ResourceType:        req.ResourceType,
-					Limit:               req.Limit,
-					Labels:              req.Labels,
-					SearchKeywords:      req.SearchKeywords,
-					PredicateExpression: req.PredicateExpression,
-					StartKey:            req.StartKey,
+					ResourceType:   req.ResourceType,
+					Limit:          req.Limit,
+					Labels:         req.Labels,
+					SearchKeywords: req.SearchKeywords,
+					StartKey:       req.StartKey,
 				})
 			},
 		},

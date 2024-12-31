@@ -42,6 +42,7 @@ import (
 	apievents "github.com/gravitational/teleport/api/types/events"
 	apiutils "github.com/gravitational/teleport/api/utils"
 	"github.com/gravitational/teleport/lib/auth"
+	"github.com/gravitational/teleport/lib/auth/authclient"
 	"github.com/gravitational/teleport/lib/bpf"
 	"github.com/gravitational/teleport/lib/events"
 	restricted "github.com/gravitational/teleport/lib/restrictedsession"
@@ -86,7 +87,7 @@ func init() {
 // AccessPoint is the access point contract required by a Server
 type AccessPoint interface {
 	// Announcer adds methods used to announce presence
-	auth.Announcer
+	authclient.Announcer
 
 	// Semaphores provides semaphore operations
 	types.Semaphores
@@ -408,12 +409,6 @@ type ServerContext struct {
 	killShellr *os.File
 	killShellw *os.File
 
-	// multiWriter is used to record non-interactive session output.
-	// Currently, used by Assist.
-	multiWriter io.Writer
-	// recordNonInteractiveSession enables non-interactive session recording. Used by Assist.
-	recordNonInteractiveSession bool
-
 	// ChannelType holds the type of the channel. For example "session" or
 	// "direct-tcpip". Used to create correct subcommand during re-exec.
 	ChannelType string
@@ -452,8 +447,9 @@ type ServerContext struct {
 	// ServerSubKind if the sub kind of the node this context is for.
 	ServerSubKind string
 
-	// UserCreatedByTeleport is true when the system user was created by Teleport user auto-provision.
-	UserCreatedByTeleport bool
+	// approvedFileReq is an approved file transfer request that will only be
+	// set when the session's pending file transfer request is approved.
+	approvedFileReq *FileTransferRequest
 }
 
 // NewServerContext creates a new *ServerContext which is used to pass and
@@ -1238,7 +1234,7 @@ func buildEnvironment(ctx *ServerContext) []string {
 	if session != nil {
 		if session.term != nil {
 			env.AddTrusted("TERM", session.term.GetTermType())
-			env.AddTrusted("SSH_TTY", session.term.TTY().Name())
+			env.AddTrusted("SSH_TTY", session.term.TTYName())
 		}
 		if session.id != "" {
 			env.AddTrusted(teleport.SSHSessionID, string(session.id))
@@ -1302,8 +1298,8 @@ func ComputeLockTargets(clusterName, serverID string, id IdentityContext) []type
 	lockTargets := []types.LockTarget{
 		{User: id.TeleportUser},
 		{Login: id.Login},
-		{Node: serverID},
-		{Node: auth.HostFQDN(serverID, clusterName)},
+		{Node: serverID, ServerID: serverID},
+		{Node: authclient.HostFQDN(serverID, clusterName), ServerID: authclient.HostFQDN(serverID, clusterName)},
 	}
 	if mfaDevice := id.Certificate.Extensions[teleport.CertExtensionMFAVerified]; mfaDevice != "" {
 		lockTargets = append(lockTargets, types.LockTarget{MFADevice: mfaDevice})
@@ -1369,6 +1365,7 @@ func (c *ServerContext) GetExecRequest() (Exec, error) {
 
 func (c *ServerContext) GetServerMetadata() apievents.ServerMetadata {
 	return apievents.ServerMetadata{
+		ServerVersion:   teleport.Version,
 		ServerID:        c.srv.HostUUID(),
 		ServerHostname:  c.srv.GetInfo().GetHostname(),
 		ServerNamespace: c.srv.GetNamespace(),
@@ -1381,4 +1378,24 @@ func (c *ServerContext) GetSessionMetadata() apievents.SessionMetadata {
 		WithMFA:          c.Identity.Certificate.Extensions[teleport.CertExtensionMFAVerified],
 		PrivateKeyPolicy: c.Identity.Certificate.Extensions[teleport.CertExtensionPrivateKeyPolicy],
 	}
+}
+
+func (c *ServerContext) setApprovedFileTransferRequest(req *FileTransferRequest) {
+	c.mu.Lock()
+	c.approvedFileReq = req
+	c.mu.Unlock()
+}
+
+// ConsumeApprovedFileTransferRequest will return the approved file transfer
+// request for this session if there is one present. Note that if an
+// approved request is returned future calls to this method will return
+// nil to prevent an approved request getting reused incorrectly.
+func (c *ServerContext) ConsumeApprovedFileTransferRequest() *FileTransferRequest {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	req := c.approvedFileReq
+	c.approvedFileReq = nil
+
+	return req
 }

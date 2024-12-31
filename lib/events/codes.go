@@ -37,7 +37,8 @@ type Event struct {
 //   - Suffix code with one of these letters: I (info), W (warn), E (error).
 //
 // After defining an event code, make sure to keep
-// `web/packages/teleport/src/services/audit/types.ts` in sync.
+// `web/packages/teleport/src/services/audit/types.ts` in sync and add an
+// entry in the `eventsMap` in `lib/events/events_test.go`.
 const (
 	// UserLocalLoginCode is the successful local user login event code.
 	UserLocalLoginCode = "T1000I"
@@ -272,6 +273,8 @@ const (
 	// Note: some requests (like exec into a pod) use other codes (like
 	// ExecCode).
 	KubeRequestCode = "T3009I"
+	// SCPDisallowedCode is the SCP disallowed event code.
+	SCPDisallowedCode = "T3010E"
 
 	// KubernetesClusterCreateCode is the kube.create event code.
 	KubernetesClusterCreateCode = "T3010I"
@@ -319,6 +322,7 @@ const (
 	SFTPSymlinkFailureCode  = "TS018E"
 	SFTPLinkCode            = "TS019I"
 	SFTPLinkFailureCode     = "TS019E"
+	SFTPDisallowedCode      = "TS020E"
 
 	// SessionCommandCode is a session command code.
 	SessionCommandCode = "T4000I"
@@ -381,8 +385,12 @@ const (
 
 	// BotJoinCode is the 'bot.join' event code.
 	BotJoinCode = "TJ001I"
+	// BotJoinFailureCode is the 'bot.join' event code for failures.
+	BotJoinFailureCode = "TJ001E"
 	// InstanceJoinCode is the 'node.join' event code.
 	InstanceJoinCode = "TJ002I"
+	// InstanceJoinFailureCode is the 'node.join' event code for failures.
+	InstanceJoinFailureCode = "TJ002E"
 
 	// LockCreatedCode is the lock created event code.
 	LockCreatedCode = "TLK00I"
@@ -530,6 +538,22 @@ const (
 	ExternalAuditStorageEnableCode = "TEA001I"
 	// ExternalAuditStorageDisableCode is the External Audit Storage disabled code.
 	ExternalAuditStorageDisableCode = "TEA002I"
+
+	// DiscoveryConfigCreateCode is the discovery config created event code.
+	DiscoveryConfigCreateCode = "DC001I"
+	// DiscoveryConfigUpdateCode is the discovery config updated event code.
+	DiscoveryConfigUpdateCode = "DC002I"
+	// DiscoveryConfigDeleteCode is the discovery config delete event code.
+	DiscoveryConfigDeleteCode = "DC003I"
+	// DiscoveryConfigDeleteAllCode is the discovery config delete all event code.
+	DiscoveryConfigDeleteAllCode = "DC004I"
+
+	// IntegrationCreateCode is the integration resource create event code.
+	IntegrationCreateCode = "IG001I"
+	// IntegrationUpdateCode is the integration resource update event code.
+	IntegrationUpdateCode = "IG002I"
+	// IntegrationDeleteCode is the integration resource delete event code.
+	IntegrationDeleteCode = "IG003I"
 
 	// UnknownCode is used when an event of unknown type is encountered.
 	UnknownCode = apievents.UnknownCode

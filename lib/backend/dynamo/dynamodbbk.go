@@ -17,7 +17,6 @@ limitations under the License.
 package dynamo
 
 import (
-	"bytes"
 	"context"
 	"net/http"
 	"sort"
@@ -381,7 +380,7 @@ func (b *Backend) Update(ctx context.Context, item backend.Item) (*backend.Lease
 }
 
 // GetRange returns range of elements
-func (b *Backend) GetRange(ctx context.Context, startKey []byte, endKey []byte, limit int) (*backend.GetResult, error) {
+func (b *Backend) GetRange(ctx context.Context, startKey, endKey backend.Key, limit int) (*backend.GetResult, error) {
 	if len(startKey) == 0 {
 		return nil, trace.BadParameter("missing parameter startKey")
 	}
@@ -410,7 +409,7 @@ func (b *Backend) GetRange(ctx context.Context, startKey []byte, endKey []byte, 
 	return &backend.GetResult{Items: values}, nil
 }
 
-func (b *Backend) getAllRecords(ctx context.Context, startKey []byte, endKey []byte, limit int) (*getResult, error) {
+func (b *Backend) getAllRecords(ctx context.Context, startKey, endKey backend.Key, limit int) (*getResult, error) {
 	var result getResult
 
 	// this code is being extra careful here not to introduce endless loop
@@ -435,8 +434,16 @@ func (b *Backend) getAllRecords(ctx context.Context, startKey []byte, endKey []b
 	return nil, trace.BadParameter("backend entered endless loop")
 }
 
+const (
+	// batchOperationItemsLimit is the maximum number of items that can be put or deleted in a single batch operation.
+	// From https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Limits.html:
+	// A single call to BatchWriteItem can transmit up to 16MB of data over the network,
+	// consisting of up to 25 item put or delete operations.
+	batchOperationItemsLimit = 25
+)
+
 // DeleteRange deletes range of items with keys between startKey and endKey
-func (b *Backend) DeleteRange(ctx context.Context, startKey, endKey []byte) error {
+func (b *Backend) DeleteRange(ctx context.Context, startKey, endKey backend.Key) error {
 	if len(startKey) == 0 {
 		return trace.BadParameter("missing parameter startKey")
 	}
@@ -447,7 +454,7 @@ func (b *Backend) DeleteRange(ctx context.Context, startKey, endKey []byte) erro
 	// keep the very large limit, just in case if someone else
 	// keeps adding records
 	for i := 0; i < backend.DefaultRangeLimit/100; i++ {
-		result, err := b.getRecords(ctx, prependPrefix(startKey), prependPrefix(endKey), 100, nil)
+		result, err := b.getRecords(ctx, prependPrefix(startKey), prependPrefix(endKey), batchOperationItemsLimit, nil)
 		if err != nil {
 			return trace.Wrap(err)
 		}
@@ -483,7 +490,7 @@ func (b *Backend) DeleteRange(ctx context.Context, startKey, endKey []byte) erro
 }
 
 // Get returns a single item or not found error
-func (b *Backend) Get(ctx context.Context, key []byte) (*backend.Item, error) {
+func (b *Backend) Get(ctx context.Context, key backend.Key) (*backend.Item, error) {
 	r, err := b.getKey(ctx, key)
 	if err != nil {
 		return nil, err
@@ -509,7 +516,7 @@ func (b *Backend) CompareAndSwap(ctx context.Context, expected backend.Item, rep
 	if len(replaceWith.Key) == 0 {
 		return nil, trace.BadParameter("missing parameter Key")
 	}
-	if !bytes.Equal(expected.Key, replaceWith.Key) {
+	if expected.Key.Compare(replaceWith.Key) != 0 {
 		return nil, trace.BadParameter("expected and replaceWith keys should match")
 	}
 	r := record{
@@ -552,7 +559,7 @@ func (b *Backend) CompareAndSwap(ctx context.Context, expected backend.Item, rep
 }
 
 // Delete deletes item by key
-func (b *Backend) Delete(ctx context.Context, key []byte) error {
+func (b *Backend) Delete(ctx context.Context, key backend.Key) error {
 	if len(key) == 0 {
 		return trace.BadParameter("missing parameter key")
 	}
@@ -829,13 +836,13 @@ const (
 
 // prependPrefix adds leading 'teleport/' to the key for backwards compatibility
 // with previous implementation of DynamoDB backend
-func prependPrefix(key []byte) string {
-	return keyPrefix + string(key)
+func prependPrefix(key backend.Key) string {
+	return keyPrefix + key.String()
 }
 
 // trimPrefix removes leading 'teleport' from the key
-func trimPrefix(key string) []byte {
-	return []byte(strings.TrimPrefix(key, keyPrefix))
+func trimPrefix(key string) backend.Key {
+	return backend.Key(strings.TrimPrefix(key, keyPrefix))
 }
 
 // create helper creates a new key/value pair in Dynamo with a given expiration
@@ -876,7 +883,7 @@ func (b *Backend) create(ctx context.Context, item backend.Item, mode int) error
 	return nil
 }
 
-func (b *Backend) deleteKey(ctx context.Context, key []byte) error {
+func (b *Backend) deleteKey(ctx context.Context, key backend.Key) error {
 	av, err := dynamodbattribute.MarshalMap(keyLookup{
 		HashKey:  hashKey,
 		FullPath: prependPrefix(key),
@@ -891,7 +898,7 @@ func (b *Backend) deleteKey(ctx context.Context, key []byte) error {
 	return nil
 }
 
-func (b *Backend) deleteKeyIfExpired(ctx context.Context, key []byte) error {
+func (b *Backend) deleteKeyIfExpired(ctx context.Context, key backend.Key) error {
 	_, err := b.svc.DeleteItemWithContext(ctx, &dynamodb.DeleteItemInput{
 		TableName: aws.String(b.TableName),
 		Key:       keyToAttributeValueMap(key),
@@ -907,7 +914,7 @@ func (b *Backend) deleteKeyIfExpired(ctx context.Context, key []byte) error {
 	return trace.Wrap(err)
 }
 
-func (b *Backend) getKey(ctx context.Context, key []byte) (*record, error) {
+func (b *Backend) getKey(ctx context.Context, key backend.Key) (*record, error) {
 	av, err := dynamodbattribute.MarshalMap(keyLookup{
 		HashKey:  hashKey,
 		FullPath: prependPrefix(key),
@@ -993,7 +1000,7 @@ func fullPathToAttributeValueMap(fullPath string) map[string]*dynamodb.Attribute
 	}
 }
 
-func keyToAttributeValueMap(key []byte) map[string]*dynamodb.AttributeValue {
+func keyToAttributeValueMap(key backend.Key) map[string]*dynamodb.AttributeValue {
 	return fullPathToAttributeValueMap(prependPrefix(key))
 }
 

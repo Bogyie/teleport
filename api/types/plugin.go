@@ -50,6 +50,8 @@ const (
 	PluginTypeMattermost = "mattermost"
 	// PluginTypeDiscord indicates the Discord access plugin
 	PluginTypeDiscord = "discord"
+	// PluginTypeGitlab indicates the Gitlab access plugin
+	PluginTypeGitlab = "gitlab"
 )
 
 // PluginSubkind represents the type of the plugin, e.g., access request, MDM etc.
@@ -62,6 +64,8 @@ const (
 	PluginSubkindMDM = "mdm"
 	// PluginSubkindAccess represents access request plugins collectively
 	PluginSubkindAccess = "access"
+	// PluginSubkindAccessGraph represents access graph plugins collectively
+	PluginSubkindAccessGraph = "accessgraph"
 )
 
 // Plugin represents a plugin instance
@@ -85,6 +89,9 @@ type PluginCredentials interface {
 // PluginStatus is the plugin status
 type PluginStatus interface {
 	GetCode() PluginStatusCode
+	GetErrorMessage() string
+	GetLastSyncTime() time.Time
+	GetGitlab() *PluginGitlabStatusV1
 }
 
 // NewPluginV1 creates a new PluginV1 resource.
@@ -263,7 +270,18 @@ func (p *PluginV1) CheckAndSetDefaults() error {
 		if staticCreds == nil {
 			return trace.BadParameter("ServiceNow plugin must be used with the static credentials ref type")
 		}
+	case *PluginSpecV1_Gitlab:
+		if settings.Gitlab == nil {
+			return trace.BadParameter("missing Gitlab settings")
+		}
+		if err := settings.Gitlab.Validate(); err != nil {
+			return trace.Wrap(err)
+		}
 
+		staticCreds := p.Credentials.GetStaticCredentialsRef()
+		if staticCreds == nil {
+			return trace.BadParameter("Gitlab plugin must be used with the static credentials ref type")
+		}
 	default:
 		return trace.BadParameter("settings are not set or have an unknown type")
 	}
@@ -384,7 +402,7 @@ func (p *PluginV1) SetCredentials(creds PluginCredentials) error {
 
 // GetStatus implements Plugin
 func (p *PluginV1) GetStatus() PluginStatus {
-	return p.Status
+	return &p.Status
 }
 
 // SetStatus implements Plugin
@@ -393,10 +411,13 @@ func (p *PluginV1) SetStatus(status PluginStatus) error {
 		p.Status = PluginStatusV1{}
 		return nil
 	}
-	p.Status = PluginStatusV1{
-		Code: status.GetCode(),
+	switch status := status.(type) {
+	case *PluginStatusV1:
+		p.Status = *status
+		return nil
+	default:
+		return trace.BadParameter("unsupported plugin status type %T", status)
 	}
-	return nil
 }
 
 // GetType implements Plugin
@@ -422,6 +443,8 @@ func (p *PluginV1) GetType() PluginType {
 		return PluginTypeDiscord
 	case *PluginSpecV1_ServiceNow:
 		return PluginTypeServiceNow
+	case *PluginSpecV1_Gitlab:
+		return PluginTypeGitlab
 	default:
 		return PluginTypeUnknown
 	}
@@ -574,4 +597,23 @@ func (c *PluginOAuth2AccessTokenCredentials) CheckAndSetDefaults() error {
 // GetCode returns the status code
 func (c PluginStatusV1) GetCode() PluginStatusCode {
 	return c.Code
+}
+
+// GetErrorMessage returns the error message
+func (c PluginStatusV1) GetErrorMessage() string {
+	return c.ErrorMessage
+}
+
+// GetLastSyncTime returns the last run of the plugin.
+func (c PluginStatusV1) GetLastSyncTime() time.Time {
+	return c.LastSyncTime
+}
+
+// CheckAndSetDefaults checks that the required fields for the Gitlab plugin are set.
+func (c *PluginGitlabSettings) Validate() error {
+	if c.ApiEndpoint == "" {
+		return trace.BadParameter("API endpoint must be set")
+	}
+
+	return nil
 }

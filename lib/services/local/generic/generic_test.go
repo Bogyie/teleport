@@ -159,6 +159,11 @@ func TestGenericCRUD(t *testing.T) {
 		cmpopts.IgnoreFields(types.Metadata{}, "ID"),
 	))
 
+	// Count all resources.
+	count, err := service.CountResources(ctx)
+	require.NoError(t, err)
+	require.Equal(t, uint(2), count)
+
 	// Fetch a list of all resources
 	allResources, err := service.GetResources(ctx)
 	require.NoError(t, err)
@@ -206,6 +211,11 @@ func TestGenericCRUD(t *testing.T) {
 		cmpopts.IgnoreFields(types.Metadata{}, "ID"),
 	))
 
+	// Make sure count is updated.
+	count, err = service.CountResources(ctx)
+	require.NoError(t, err)
+	require.Equal(t, uint(1), count)
+
 	// Upsert a resource (create).
 	r1, err = service.UpsertResource(ctx, r1)
 	require.NoError(t, err)
@@ -246,7 +256,7 @@ func TestGenericCRUD(t *testing.T) {
 	require.ErrorIs(t, err, trace.NotFound(`generic resource "doesnotexist" doesn't exist`))
 
 	// Test running while locked.
-	err = service.RunWhileLocked(ctx, "test-lock", time.Second*5, func(ctx context.Context, backend backend.Backend) error {
+	err = service.RunWhileLocked(ctx, []string{"test-lock"}, time.Second*5, func(ctx context.Context, backend backend.Backend) error {
 		item, err := backend.Get(ctx, service.MakeKey(r1.GetName()))
 		require.NoError(t, err)
 
@@ -267,4 +277,169 @@ func TestGenericCRUD(t *testing.T) {
 	require.NoError(t, err)
 	require.Empty(t, nextToken)
 	require.Empty(t, out)
+
+	// Make sure count is updated.
+	count, err = service.CountResources(ctx)
+	require.NoError(t, err)
+	require.Equal(t, uint(0), count)
+}
+
+func TestGenericListResourcesReturnNextResource(t *testing.T) {
+	ctx := context.Background()
+
+	memBackend, err := memory.New(memory.Config{
+		Context: ctx,
+		Clock:   clockwork.NewFakeClock(),
+	})
+	require.NoError(t, err)
+
+	service, err := NewService(&ServiceConfig[*testResource]{
+		Backend:       memBackend,
+		ResourceKind:  "generic resource",
+		PageLimit:     200,
+		BackendPrefix: "generic_prefix",
+		UnmarshalFunc: unmarshalResource,
+		MarshalFunc:   marshalResource,
+	})
+	require.NoError(t, err)
+
+	// Create a couple test resources.
+	r1 := newTestResource("r1")
+	r2 := newTestResource("r2")
+
+	_, err = service.WithPrefix("a-unique-prefix").UpsertResource(ctx, r1)
+	require.NoError(t, err)
+	_, err = service.WithPrefix("another-unique-prefix").UpsertResource(ctx, r2)
+	require.NoError(t, err)
+
+	page, next, err := service.ListResourcesReturnNextResource(ctx, 1, "")
+	require.NoError(t, err)
+	require.Empty(t, cmp.Diff([]*testResource{r1}, page,
+		cmpopts.IgnoreFields(types.Metadata{}, "ID"),
+	))
+	require.NotNil(t, next)
+
+	page, next, err = service.ListResourcesReturnNextResource(ctx, 1, "another-unique-prefix"+string(backend.Separator)+backend.GetPaginationKey(*next))
+	require.NoError(t, err)
+	require.Empty(t, cmp.Diff([]*testResource{r2}, page,
+		cmpopts.IgnoreFields(types.Metadata{}, "ID"),
+	))
+	require.Nil(t, next)
+}
+
+func TestGenericValidation(t *testing.T) {
+
+	ctx := context.Background()
+
+	memBackend, err := memory.New(memory.Config{
+		Context: ctx,
+		Clock:   clockwork.NewFakeClock(),
+	})
+	require.NoError(t, err)
+
+	validationErr := trace.BadParameter("invalid test resource")
+	service, err := NewService(&ServiceConfig[*testResource]{
+		Backend:       memBackend,
+		ResourceKind:  "generic resource",
+		PageLimit:     200,
+		BackendPrefix: "generic_prefix",
+		UnmarshalFunc: unmarshalResource,
+		MarshalFunc:   marshalResource,
+		ValidateFunc:  func(tr *testResource) error { return validationErr },
+	})
+	require.NoError(t, err)
+
+	r1 := newTestResource("r1")
+
+	_, err = service.CreateResource(ctx, r1)
+	require.ErrorIs(t, err, validationErr)
+
+	_, err = service.UpdateResource(ctx, r1)
+	require.ErrorIs(t, err, validationErr)
+
+	_, err = service.UpsertResource(ctx, r1)
+	require.ErrorIs(t, err, validationErr)
+
+}
+
+func TestGenericKeyOverride(t *testing.T) {
+	ctx := context.Background()
+	memBackend, err := memory.New(memory.Config{
+		Context: ctx,
+		Clock:   clockwork.NewFakeClock(),
+	})
+	require.NoError(t, err)
+
+	service, err := NewService(&ServiceConfig[*testResource]{
+		Backend:       memBackend,
+		ResourceKind:  "generic resource",
+		PageLimit:     200,
+		BackendPrefix: "generic_prefix",
+		UnmarshalFunc: unmarshalResource,
+		MarshalFunc:   marshalResource,
+		KeyFunc:       func(tr *testResource) string { return "llama" },
+	})
+	require.NoError(t, err)
+
+	r1 := newTestResource("r1")
+
+	// Create the test resource
+	created, err := service.CreateResource(ctx, r1)
+	require.NoError(t, err)
+	require.Empty(t, cmp.Diff(r1, created, cmpopts.IgnoreFields(types.Metadata{}, "Revision", "ID")))
+
+	// Validate that the resource is stored under the custom key
+	item, err := memBackend.Get(ctx, backend.NewKey("generic_prefix", "llama"))
+	require.NoError(t, err)
+	require.NotNil(t, item)
+
+	// Validate that the default key does not exist
+	item, err = memBackend.Get(ctx, backend.NewKey("generic_prefix", r1.GetName()))
+	require.Error(t, err)
+	require.Nil(t, item)
+
+	// Update the test resource
+	updated, err := service.UpdateResource(ctx, created)
+	require.NoError(t, err)
+	require.Empty(t, cmp.Diff(r1, updated, cmpopts.IgnoreFields(types.Metadata{}, "Revision", "ID")))
+
+	// Validate that the resource is stored under the custom key
+	item, err = memBackend.Get(ctx, backend.NewKey("generic_prefix", "llama"))
+	require.NoError(t, err)
+	require.NotNil(t, item)
+
+	// Validate that the default key still does not exist
+	item, err = memBackend.Get(ctx, backend.NewKey("generic_prefix", r1.GetName()))
+	require.Error(t, err)
+	require.Nil(t, item)
+
+	// Upsert the test resource
+	upserted, err := service.UpsertResource(ctx, updated)
+	require.NoError(t, err)
+	require.Empty(t, cmp.Diff(r1, upserted, cmpopts.IgnoreFields(types.Metadata{}, "Revision", "ID")))
+
+	// Validate that the resource is stored under the custom key
+	item, err = memBackend.Get(ctx, backend.NewKey("generic_prefix", "llama"))
+	require.NoError(t, err)
+	require.NotNil(t, item)
+
+	// Validate that the default key still does not exist
+	item, err = memBackend.Get(ctx, backend.NewKey("generic_prefix", r1.GetName()))
+	require.Error(t, err)
+	require.Nil(t, item)
+
+	// Compare and swap the resource
+	swapped, err := service.UpdateAndSwapResource(ctx, "llama", func(tr *testResource) error { return nil })
+	require.NoError(t, err)
+	require.Empty(t, cmp.Diff(r1, swapped, cmpopts.IgnoreFields(types.Metadata{}, "Revision", "ID")))
+
+	// Validate that the resource is stored under the custom key
+	item, err = memBackend.Get(ctx, backend.NewKey("generic_prefix", "llama"))
+	require.NoError(t, err)
+	require.NotNil(t, item)
+
+	// Validate that the default key still does not exist
+	item, err = memBackend.Get(ctx, backend.NewKey("generic_prefix", r1.GetName()))
+	require.Error(t, err)
+	require.Nil(t, item)
 }

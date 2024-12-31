@@ -32,7 +32,7 @@ import (
 	"github.com/gravitational/teleport/api/types"
 	apiutils "github.com/gravitational/teleport/api/utils"
 	"github.com/gravitational/teleport/lib/asciitable"
-	"github.com/gravitational/teleport/lib/auth"
+	"github.com/gravitational/teleport/lib/auth/authclient"
 	libclient "github.com/gravitational/teleport/lib/client"
 	"github.com/gravitational/teleport/lib/service/servicecfg"
 )
@@ -91,7 +91,7 @@ func (c *AlertCommand) Initialize(app *kingpin.Application, config *servicecfg.C
 }
 
 // TryRun takes the CLI command as an argument (like "alerts ls") and executes it.
-func (c *AlertCommand) TryRun(ctx context.Context, cmd string, client auth.ClientI) (match bool, err error) {
+func (c *AlertCommand) TryRun(ctx context.Context, cmd string, client *authclient.Client) (match bool, err error) {
 	switch cmd {
 	case c.alertList.FullCommand():
 		err = c.List(ctx, client)
@@ -105,7 +105,7 @@ func (c *AlertCommand) TryRun(ctx context.Context, cmd string, client auth.Clien
 	return true, trace.Wrap(err)
 }
 
-func (c *AlertCommand) ListAck(ctx context.Context, client auth.ClientI) error {
+func (c *AlertCommand) ListAck(ctx context.Context, client *authclient.Client) error {
 	acks, err := client.GetAlertAcks(ctx)
 	if err != nil {
 		return trace.Wrap(err)
@@ -123,7 +123,7 @@ func (c *AlertCommand) ListAck(ctx context.Context, client auth.ClientI) error {
 	return nil
 }
 
-func (c *AlertCommand) Ack(ctx context.Context, client auth.ClientI) error {
+func (c *AlertCommand) Ack(ctx context.Context, client *authclient.Client) error {
 	if c.clear {
 		return c.ClearAck(ctx, client)
 	}
@@ -152,7 +152,7 @@ func (c *AlertCommand) Ack(ctx context.Context, client auth.ClientI) error {
 	return nil
 }
 
-func (c *AlertCommand) ClearAck(ctx context.Context, client auth.ClientI) error {
+func (c *AlertCommand) ClearAck(ctx context.Context, client *authclient.Client) error {
 	req := proto.ClearAlertAcksRequest{
 		AlertID: c.alertID,
 	}
@@ -166,7 +166,7 @@ func (c *AlertCommand) ClearAck(ctx context.Context, client auth.ClientI) error 
 	return nil
 }
 
-func (c *AlertCommand) List(ctx context.Context, client auth.ClientI) error {
+func (c *AlertCommand) List(ctx context.Context, client *authclient.Client) error {
 	labels, err := libclient.ParseLabelSpec(c.labels)
 	if err != nil {
 		return trace.Wrap(err)
@@ -203,7 +203,7 @@ func (c *AlertCommand) List(ctx context.Context, client auth.ClientI) error {
 
 func displayAlertsText(alerts []types.ClusterAlert, verbose bool) {
 	if verbose {
-		table := asciitable.MakeTable([]string{"ID", "Severity", "Message", "Created", "Labels"})
+		table := asciitable.MakeTable([]string{"ID", "Severity", "Expires In", "Message", "Created", "Labels"})
 		for _, alert := range alerts {
 			var labelPairs []string
 			for key, val := range alert.Metadata.Labels {
@@ -214,6 +214,7 @@ func displayAlertsText(alerts []types.ClusterAlert, verbose bool) {
 			table.AddRow([]string{
 				alert.GetName(),
 				alert.Spec.Severity.String(),
+				calculateTTL(alert.GetMetadata().Expires).String(),
 				fmt.Sprintf("%q", alert.Spec.Message),
 				alert.Spec.Created.Format(time.RFC822),
 				strings.Join(labelPairs, ", "),
@@ -221,12 +222,30 @@ func displayAlertsText(alerts []types.ClusterAlert, verbose bool) {
 		}
 		fmt.Println(table.AsBuffer().String())
 	} else {
-		table := asciitable.MakeTable([]string{"ID", "Severity", "Message"})
+		table := asciitable.MakeTable([]string{"ID", "Severity", "Expires In", "Message"})
 		for _, alert := range alerts {
-			table.AddRow([]string{alert.GetName(), alert.Spec.Severity.String(), fmt.Sprintf("%q", alert.Spec.Message)})
+			table.AddRow([]string{
+				alert.GetName(),
+				alert.Spec.Severity.String(),
+				calculateTTL(alert.GetMetadata().Expires).String(),
+				fmt.Sprintf("%q", alert.Spec.Message),
+			})
 		}
 		fmt.Println(table.AsBuffer().String())
 	}
+}
+
+// calculateTTL returns the remaining TTL of the alert.
+func calculateTTL(expiration *time.Time) time.Duration {
+	if expiration == nil {
+		return time.Duration(0)
+	}
+	remainingDuration := time.Until(*expiration)
+	if remainingDuration < 0 {
+		return time.Duration(0)
+	}
+
+	return remainingDuration.Round(time.Minute)
 }
 
 func displayAlertsJSON(alerts []types.ClusterAlert) error {
@@ -238,7 +257,7 @@ func displayAlertsJSON(alerts []types.ClusterAlert) error {
 	return nil
 }
 
-func (c *AlertCommand) Create(ctx context.Context, client auth.ClientI) error {
+func (c *AlertCommand) Create(ctx context.Context, client *authclient.Client) error {
 	labels, err := libclient.ParseLabelSpec(c.labels)
 	if err != nil {
 		return trace.Wrap(err)

@@ -19,6 +19,7 @@ package reverseproxy
 import (
 	"crypto/tls"
 	"net/http"
+	"net/http/httputil"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -97,6 +98,7 @@ func TestRewriter(t *testing.T) {
 			hostReq:    "teleport.dev:3543",
 			remoteAddr: "1.2.3.4:1234",
 			expected: http.Header{
+				XForwardedFor:    []string{"1.2.3.4"},
 				XForwardedHost:   []string{"teleport.dev:3543"},
 				XForwardedPort:   []string{"3543"},
 				XForwardedProto:  []string{"https"},
@@ -114,6 +116,7 @@ func TestRewriter(t *testing.T) {
 			hostReq:    "teleport.dev:3543",
 			remoteAddr: "1.2.3.4:1234",
 			expected: http.Header{
+				XForwardedFor:    []string{"1.2.3.4"},
 				XForwardedHost:   []string{"teleport.dev:3543"},
 				XForwardedPort:   []string{"3543"},
 				XForwardedProto:  []string{"http"},
@@ -130,6 +133,7 @@ func TestRewriter(t *testing.T) {
 			hostReq:    "teleport.dev",
 			remoteAddr: "1.2.3.4:1234",
 			expected: http.Header{
+				XForwardedFor:    []string{"1.2.3.4"},
 				XForwardedHost:   []string{"teleport.dev"},
 				XForwardedPort:   []string{"80"},
 				XForwardedProto:  []string{"http"},
@@ -138,9 +142,11 @@ func TestRewriter(t *testing.T) {
 			},
 		},
 	}
+
 	rewriter := NewHeaderRewriter()
 	// set hostname to make sure it's the same in all tests.
 	rewriter.Hostname = hostname
+
 	for _, test := range testCases {
 		test := test
 		t.Run(test.desc, func(t *testing.T) {
@@ -154,8 +160,20 @@ func TestRewriter(t *testing.T) {
 			if test.tlsReq {
 				req.TLS = &tls.ConnectionState{}
 			}
-			rewriter.Rewrite(req)
-			require.Equal(t, test.expected, req.Header)
+
+			// replicate net/http/httputil.ReverseProxy stripping
+			// forwarding headers from the outbound request
+			outReq := req.Clone(req.Context())
+			outReq.Header.Del("Forwarded")
+			outReq.Header.Del(XForwardedFor)
+			outReq.Header.Del(XForwardedHost)
+			outReq.Header.Del(XForwardedProto)
+
+			rewriter.Rewrite(&httputil.ProxyRequest{
+				In:  req,
+				Out: outReq,
+			})
+			require.Equal(t, test.expected, outReq.Header)
 		})
 	}
 }

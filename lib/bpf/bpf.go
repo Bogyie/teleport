@@ -35,6 +35,7 @@ import (
 	"github.com/gravitational/trace"
 	"github.com/gravitational/ttlmap"
 
+	ossteleport "github.com/gravitational/teleport"
 	"github.com/gravitational/teleport/api/constants"
 	apievents "github.com/gravitational/teleport/api/types/events"
 	controlgroup "github.com/gravitational/teleport/lib/cgroup"
@@ -115,7 +116,7 @@ type Service struct {
 }
 
 // New creates a BPF service.
-func New(config *servicecfg.BPFConfig, restrictedSession *servicecfg.RestrictedSessionConfig) (BPF, error) {
+func New(config *servicecfg.BPFConfig, restrictedSession *servicecfg.RestrictedSessionConfig) (bpf BPF, err error) {
 	if err := config.CheckAndSetDefaults(); err != nil {
 		return nil, trace.Wrap(err)
 	}
@@ -131,19 +132,6 @@ func New(config *servicecfg.BPFConfig, restrictedSession *servicecfg.RestrictedS
 		return &NOP{}, nil
 	}
 
-	// Check if the host can run BPF programs.
-	if err := IsHostCompatible(); err != nil {
-		return nil, trace.Wrap(err)
-	}
-
-	// Create a cgroup controller to add/remote cgroups.
-	cgroup, err := controlgroup.New(&controlgroup.Config{
-		MountPath: config.CgroupPath,
-	})
-	if err != nil {
-		return nil, trace.Wrap(err)
-	}
-
 	closeContext, closeFunc := context.WithCancel(context.Background())
 
 	s := &Service{
@@ -153,9 +141,23 @@ func New(config *servicecfg.BPFConfig, restrictedSession *servicecfg.RestrictedS
 
 		closeContext: closeContext,
 		closeFunc:    closeFunc,
-
-		cgroup: cgroup,
 	}
+
+	// Create a cgroup controller to add/remote cgroups.
+	s.cgroup, err = controlgroup.New(&controlgroup.Config{
+		MountPath: config.CgroupPath,
+		RootPath:  config.RootPath,
+	})
+	if err != nil {
+		return nil, trace.Wrap(err)
+	}
+	defer func() {
+		if err != nil {
+			if err := s.cgroup.Close(true); err != nil {
+				log.WithError(err).Warn("Failed to close cgroup")
+			}
+		}
+	}()
 
 	// Create args cache used by the exec BPF program.
 	s.argsCache, err = ttlmap.New(ArgsCacheSize)
@@ -302,6 +304,10 @@ func (s *Service) CloseSession(ctx *SessionContext) error {
 	return trace.NewAggregate(errs...)
 }
 
+func (s *Service) Enabled() bool {
+	return true
+}
+
 // processAccessEvents pulls events off the perf ring buffer, parses them, and emits them to
 // the audit log.
 func (s *Service) processAccessEvents() {
@@ -391,6 +397,7 @@ func (s *Service) emitCommandEvent(eventBytes []byte) {
 				Code: events.SessionCommandCode,
 			},
 			ServerMetadata: apievents.ServerMetadata{
+				ServerVersion:   ossteleport.Version,
 				ServerID:        ctx.ServerID,
 				ServerHostname:  ctx.ServerHostname,
 				ServerNamespace: ctx.Namespace,
@@ -449,6 +456,7 @@ func (s *Service) emitDiskEvent(eventBytes []byte) {
 			Code: events.SessionDiskCode,
 		},
 		ServerMetadata: apievents.ServerMetadata{
+			ServerVersion:   ossteleport.Version,
 			ServerID:        ctx.ServerID,
 			ServerHostname:  ctx.ServerHostname,
 			ServerNamespace: ctx.Namespace,
@@ -503,6 +511,7 @@ func (s *Service) emit4NetworkEvent(eventBytes []byte) {
 			Code: events.SessionNetworkCode,
 		},
 		ServerMetadata: apievents.ServerMetadata{
+			ServerVersion:   ossteleport.Version,
 			ServerID:        ctx.ServerID,
 			ServerHostname:  ctx.ServerHostname,
 			ServerNamespace: ctx.Namespace,
@@ -559,6 +568,7 @@ func (s *Service) emit6NetworkEvent(eventBytes []byte) {
 			Code: events.SessionNetworkCode,
 		},
 		ServerMetadata: apievents.ServerMetadata{
+			ServerVersion:   ossteleport.Version,
 			ServerID:        ctx.ServerID,
 			ServerHostname:  ctx.ServerHostname,
 			ServerNamespace: ctx.Namespace,

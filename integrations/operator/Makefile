@@ -120,6 +120,10 @@ test: export KUBEBUILDER_ASSETS=$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p
 test:
 	go test ./... -coverprofile cover.out
 
+.PHONY: echo-kubebuilder-assets
+echo-kubebuilder-assets:
+	@echo KUBEBUILDER_ASSETS=$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)
+
 .PHONY: crdgen-test
 crdgen-test: ## Run crdgen tests.
 	make -C crdgen test
@@ -128,7 +132,8 @@ crdgen-test: ## Run crdgen tests.
 
 .PHONY: build
 build: generate fmt vet ## Build manager binary.
-	go build -o bin/manager main.go namespace.go
+	go build -trimpath -o bin/manager main.go namespace.go
+
 
 .PHONY: run
 run: manifests generate fmt vet ## Run a controller from your host.
@@ -159,7 +164,7 @@ CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
 
 ## Tool Versions
 KUSTOMIZE_VERSION ?= v3.8.7
-CONTROLLER_TOOLS_VERSION ?= v0.9.0
+CONTROLLER_TOOLS_VERSION ?= v0.14.0
 
 .PHONY: controller-gen
 controller-gen: $(CONTROLLER_GEN) ## Download controller-gen locally if necessary.

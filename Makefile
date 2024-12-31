@@ -11,7 +11,7 @@
 #   Stable releases:   "1.0.0"
 #   Pre-releases:      "1.0.0-alpha.1", "1.0.0-beta.2", "1.0.0-rc.3"
 #   Master/dev branch: "1.0.0-dev"
-VERSION=14.3.3
+VERSION=14.3.34
 
 DOCKER_IMAGE ?= teleport
 
@@ -41,12 +41,16 @@ CGOFLAG ?= CGO_ENABLED=1
 # should be an absolute directory as it is used by e/Makefile too, from the e/ directory.
 RELEASE_DIR := $(CURDIR)/$(BUILDDIR)/artifacts
 
+GO_LDFLAGS ?= -w -s $(KUBECTL_SETVERSION)
+
 # When TELEPORT_DEBUG is true, set flags to produce
 # debugger-friendly builds.
 ifeq ("$(TELEPORT_DEBUG)","true")
 BUILDFLAGS ?= $(ADDFLAGS) -gcflags=all="-N -l"
+BUILDFLAGS_TBOT ?= $(ADDFLAGS) -gcflags=all="-N -l"
 else
-BUILDFLAGS ?= $(ADDFLAGS) -ldflags '-w -s $(KUBECTL_SETVERSION)' -trimpath
+BUILDFLAGS ?= $(ADDFLAGS) -ldflags '$(GO_LDFLAGS)' -trimpath
+BUILDFLAGS_TBOT ?= $(ADDFLAGS) -ldflags '$(GO_LDFLAGS)' -trimpath
 endif
 
 GO_ENV_OS := $(shell go env GOOS)
@@ -139,6 +143,9 @@ export C_ARCH
 # Eagerly enable if we detect the package, we want to test as much as possible.
 ifeq ("$(shell pkg-config libfido2 2>/dev/null; echo $$?)", "0")
 LIBFIDO2_TEST_TAG := libfido2
+ifeq ($(FIDO2),)
+FIDO2 ?= dynamic
+endif
 endif
 
 # Build tsh against libfido2?
@@ -162,12 +169,12 @@ TOUCHID_MESSAGE := with-Touch-ID
 TOUCHID_TAG := touchid
 endif
 
-# Enable PIV for testing?
-# Eagerly enable if we detect the dynamic libpcsclite library, we want to test as much as possible.
-ifeq ("$(shell pkg-config libpcsclite 2>/dev/null; echo $$?)", "0")
-# This test tag should not be used for builds/releases, only tests.
-PIV_TEST_TAG := piv
-endif
+# Enable PIV test packages for testing.
+# This test tag should never be used for builds/releases, only tests.
+PIV_TEST_TAG := pivtest
+
+# enable PIV package for linting.
+PIV_LINT_TAG := piv
 
 # Build teleport/api with PIV? This requires the libpcsclite library for linux.
 #
@@ -246,9 +253,16 @@ CC=arm-linux-gnueabihf-gcc
 endif
 
 # Add -debugtramp=2 to work around 24 bit CALL/JMP instruction offset.
-BUILDFLAGS = $(ADDFLAGS) -ldflags '-w -s -debugtramp=2 $(KUBECTL_SETVERSION)' -trimpath
+# Add "-extldflags -Wl,--long-plt" to avoid ld assertion failure on large binaries
+GO_LDFLAGS += -extldflags=-Wl,--long-plt -debugtramp=2
 endif
 endif # OS == linux
+
+ifeq ("$(OS)-$(ARCH)","darwin-arm64")
+# Temporary link flags due to changes in Apple's linker
+# https://github.com/golang/go/issues/67854
+GO_LDFLAGS += -extldflags=-ld_classic
+endif
 
 # Windows requires extra parameters to cross-compile with CGO.
 ifeq ("$(OS)","windows")
@@ -258,6 +272,22 @@ $(error "Building for windows requires ARCH=amd64")
 endif
 CGOFLAG = CGO_ENABLED=1 CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++
 BUILDFLAGS = $(ADDFLAGS) -ldflags '-w -s $(KUBECTL_SETVERSION)' -trimpath -buildmode=exe
+BUILDFLAGS_TBOT = $(ADDFLAGS) -ldflags '-w -s $(KUBECTL_SETVERSION)' -trimpath
+endif
+
+ifeq ("$(OS)","darwin")
+# Set the minimum version for macOS builds for Go, Rust and Xcode builds.
+# Note the minimum version for Apple silicon (ARM64) is 11.0 and will be automatically
+# clamped to the value for builds of that architecture
+MINIMUM_SUPPORTED_MACOS_VERSION = 10.15
+MACOSX_VERSION_MIN_FLAG = -mmacosx-version-min=$(MINIMUM_SUPPORTED_MACOS_VERSION)
+
+# Go
+CGOFLAG = CGO_ENABLED=1 CGO_CFLAGS=$(MACOSX_VERSION_MIN_FLAG)
+
+# Xcode and rust and Go linking
+MACOSX_DEPLOYMENT_TARGET = $(MINIMUM_SUPPORTED_MACOS_VERSION)
+export MACOSX_DEPLOYMENT_TARGET
 endif
 
 CGOFLAG_TSH ?= $(CGOFLAG)
@@ -296,17 +326,26 @@ $(BUILDDIR)/tctl:
 $(BUILDDIR)/teleport: ensure-webassets bpf-bytecode rdpclient
 	GOOS=$(OS) GOARCH=$(ARCH) $(CGOFLAG) go build -tags "webassets_embed $(PAM_TAG) $(FIPS_TAG) $(BPF_TAG) $(WEBASSETS_TAG) $(RDPCLIENT_TAG) $(PIV_BUILD_TAG)" -o $(BUILDDIR)/teleport $(BUILDFLAGS) ./tool/teleport
 
-# NOTE: Any changes to the `tsh` build here must be copied to `windows.go` in Dronegen until
-# 		we can use this Makefile for native Windows builds.
+# NOTE: Any changes to the `tsh` build here must be copied to `build.assets/windows/build.ps1`
+# until we can use this Makefile for native Windows builds.
 .PHONY: $(BUILDDIR)/tsh
 $(BUILDDIR)/tsh: KUBECTL_VERSION ?= $(shell go run ./build.assets/kubectl-version/main.go)
 $(BUILDDIR)/tsh: KUBECTL_SETVERSION ?= -X k8s.io/component-base/version.gitVersion=$(KUBECTL_VERSION)
 $(BUILDDIR)/tsh:
+	@if [[ -z "$(LIBFIDO2_BUILD_TAG)" ]]; then \
+		echo 'Warning: Building tsh without libfido2. Install libfido2 to have access to MFA.' >&2; \
+	fi
 	GOOS=$(OS) GOARCH=$(ARCH) $(CGOFLAG_TSH) go build -tags "$(FIPS_TAG) $(LIBFIDO2_BUILD_TAG) $(TOUCHID_TAG) $(PIV_BUILD_TAG)" -o $(BUILDDIR)/tsh $(BUILDFLAGS) ./tool/tsh
 
 .PHONY: $(BUILDDIR)/tbot
+$(BUILDDIR)/tbot: CGO_ENABLED ?= 0
 $(BUILDDIR)/tbot:
-	GOOS=$(OS) GOARCH=$(ARCH) $(CGOFLAG) go build -tags "$(FIPS_TAG)" -o $(BUILDDIR)/tbot $(BUILDFLAGS) ./tool/tbot
+# The -buildmode=pie flag requires external cgo linking.
+ifeq ("$(CGO_ENABLED)", "1")
+	GOOS=$(OS) GOARCH=$(ARCH) CGO_ENABLED=1 go build -tags "$(FIPS_TAG)" -o $(BUILDDIR)/tbot $(BUILDFLAGS_TBOT) -buildmode=pie ./tool/tbot
+else
+	GOOS=$(OS) GOARCH=$(ARCH) CGO_ENABLED=0 go build -tags "$(FIPS_TAG)" -o $(BUILDDIR)/tbot $(BUILDFLAGS_TBOT) ./tool/tbot
+endif
 
 #
 # BPF support (IF ENABLED)
@@ -348,17 +387,10 @@ else
 bpf-bytecode:
 endif
 
+.PHONY: rdpclient
+rdpclient:
 ifeq ("$(with_rdpclient)", "yes")
-.PHONY: rdpclient
-rdpclient:
-ifneq ("$(FIPS)","")
-	cargo build -p rdp-client --features=fips --release $(CARGO_TARGET)
-else
-	cargo build -p rdp-client --release $(CARGO_TARGET)
-endif
-else
-.PHONY: rdpclient
-rdpclient:
+	cargo build -p rdp-client $(if $(FIPS),--features=fips) --release --locked $(CARGO_TARGET)
 endif
 
 # Build libfido2 and dependencies for MacOS. Uses exported C_ARCH variable defined earlier.
@@ -419,6 +451,7 @@ endif
 .PHONY: clean-ui
 clean-ui:
 	rm -rf webassets/*
+	rm -rf web/packages/teleterm/build
 	find . -type d -name node_modules -prune -exec rm -rf {} \;
 
 #
@@ -427,7 +460,7 @@ clean-ui:
 
 # RELEASE_DIR is where release artifact files are put, such as tarballs, packages, etc.
 $(RELEASE_DIR):
-	mkdir $@
+	mkdir -p $@
 
 .PHONY:
 export
@@ -474,6 +507,11 @@ build-archive: | $(RELEASE_DIR)
 	echo $(GITTAG) > teleport/VERSION
 	tar $(TAR_FLAGS) -c teleport | gzip -n > $(RELEASE).tar.gz
 	cp $(RELEASE).tar.gz $(RELEASE_DIR)
+	# linux-amd64 generates a centos7-compatible archive. Make a copy with the -centos7 label,
+	# for the releases page. We should probably drop that at some point.
+	$(if $(filter linux-amd64,$(OS)-$(ARCH)), \
+		cp $(RELEASE).tar.gz $(RELEASE_DIR)/$(subst amd64,amd64-centos7,$(RELEASE)).tar.gz \
+	)
 	rm -rf teleport
 	@echo "---> Created $(RELEASE).tar.gz."
 
@@ -499,7 +537,6 @@ release-darwin-unsigned: full build-archive
 
 .PHONY: release-darwin
 ifneq ($(ARCH),universal)
-release-darwin: ABSOLUTE_BINARY_PATHS:=$(addprefix $(CURDIR)/,$(BINARIES))
 release-darwin: release-darwin-unsigned
 	$(NOTARIZE_BINARIES)
 	$(MAKE) build-archive
@@ -588,9 +625,6 @@ release-windows: release-windows-unsigned
 # It is used only for MacOS releases. Windows releases do not use this
 # Makefile. Linux uses the `teleterm` target in build.assets/Makefile.
 #
-# Only export the CSC_NAME (developer key ID) when the recipe is run, so
-# that we do not shell out and run the `security` command if not necessary.
-#
 # Either CONNECT_TSH_BIN_PATH or CONNECT_TSH_APP_PATH environment variable
 # should be defined for the `yarn package-term` command to succeed. CI sets
 # this appropriately depending on whether a push build is running, or a
@@ -600,7 +634,6 @@ release-windows: release-windows-unsigned
 
 .PHONY: release-connect
 release-connect: | $(RELEASE_DIR)
-	$(eval export CSC_NAME)
 	yarn install --frozen-lockfile
 	yarn build-term
 	yarn package-term -c.extraMetadata.version=$(VERSION) --$(ELECTRON_BUILDER_ARCH)
@@ -669,6 +702,10 @@ RERUN := $(TOOLINGDIR)/bin/rerun
 $(RERUN): $(wildcard $(TOOLINGDIR)/cmd/rerun/*.go)
 	cd $(TOOLINGDIR) && go build -o "$@" ./cmd/rerun
 
+RELEASE_NOTES_GEN := $(TOOLINGDIR)/bin/release-notes
+$(RELEASE_NOTES_GEN): $(wildcard $(TOOLINGDIR)/cmd/release-notes/*.go)
+	cd $(TOOLINGDIR) && go build -o "$@" ./cmd/release-notes
+
 .PHONY: tooling
 tooling: ensure-gotestsum $(DIFF_TEST)
 
@@ -712,14 +749,14 @@ test-go: test-go-prepare test-go-unit test-go-libfido2 test-go-touch-id test-go-
 
 # Runs test prepare steps
 .PHONY: test-go-prepare
-test-go-prepare: ensure-webassets bpf-bytecode rdpclient $(TEST_LOG_DIR) ensure-gotestsum $(VERSRC)
+test-go-prepare: ensure-webassets bpf-bytecode $(TEST_LOG_DIR) ensure-gotestsum $(VERSRC)
 
 # Runs base unit tests
 .PHONY: test-go-unit
 test-go-unit: FLAGS ?= -race -shuffle on
 test-go-unit: SUBJECT ?= $(shell go list ./... | grep -v -E 'teleport/(e2e|integration|tool/tsh|integrations/operator|integrations/access|integrations/lib)')
 test-go-unit:
-	$(CGOFLAG) go test -cover -json -tags "$(PAM_TAG) $(FIPS_TAG) $(BPF_TAG) $(RDPCLIENT_TAG) $(TOUCHID_TAG) $(PIV_TEST_TAG)" $(PACKAGES) $(SUBJECT) $(FLAGS) $(ADDFLAGS) \
+	$(CGOFLAG) go test -cover -json -tags "$(PAM_TAG) $(FIPS_TAG) $(BPF_TAG) $(TOUCHID_TAG) $(PIV_TEST_TAG)" $(PACKAGES) $(SUBJECT) $(FLAGS) $(ADDFLAGS) \
 		| tee $(TEST_LOG_DIR)/unit.json \
 		| gotestsum --raw-command -- cat
 
@@ -756,6 +793,25 @@ ifneq ("$(TOUCHID_TAG)", "")
 		| gotestsum --raw-command -- cat
 endif
 
+# Runs benchmarks once to make sure they pass.
+# This is intended to run in CI during unit testing to make sure benchmarks don't break.
+# To limit noise and improve speed this will only run on packages that have benchmarks.
+# Race detection is not enabled because it significantly slows down benchmarks.
+# todo: Use gotestsum when it is compatible with benchmark output. Currently will consider all benchmarks failed.
+.PHONY: test-go-bench
+test-go-bench: PACKAGES = $(shell grep --exclude-dir api --include "*_test.go" -lr testing.B .  | xargs dirname | xargs go list | sort -u)
+test-go-bench: BENCHMARK_SKIP_PATTERN = "^BenchmarkRoot"
+test-go-bench: | $(TEST_LOG_DIR)
+	go test -run ^$$ -bench . -skip $(BENCHMARK_SKIP_PATTERN) -benchtime 1x $(PACKAGES) \
+		| tee $(TEST_LOG_DIR)/bench.txt
+
+test-go-bench-root: PACKAGES = $(shell grep --exclude-dir api --include "*_test.go" -lr BenchmarkRoot .  | xargs dirname | xargs go list | sort -u)
+test-go-bench-root: BENCHMARK_PATTERN = "^BenchmarkRoot"
+test-go-bench-root: BENCHMARK_SKIP_PATTERN = ""
+test-go-bench-root: | $(TEST_LOG_DIR)
+	go test -run ^$$ -bench $(BENCHMARK_PATTERN) -skip $(BENCHMARK_SKIP_PATTERN) -benchtime 1x $(PACKAGES) \
+		| tee $(TEST_LOG_DIR)/bench.txt
+
 # Runs ci tsh tests
 .PHONY: test-go-tsh
 test-go-tsh: FLAGS ?= -race -shuffle on
@@ -769,7 +825,7 @@ test-go-tsh:
 .PHONY: test-go-chaos
 test-go-chaos: CHAOS_FOLDERS = $(shell find . -type f -name '*chaos*.go' | xargs dirname | uniq)
 test-go-chaos:
-	$(CGOFLAG) go test -cover -json -tags "$(PAM_TAG) $(FIPS_TAG) $(BPF_TAG) $(RDPCLIENT_TAG)" -test.run=TestChaos $(CHAOS_FOLDERS) \
+	$(CGOFLAG) go test -cover -json -tags "$(PAM_TAG) $(FIPS_TAG) $(BPF_TAG)" -test.run=TestChaos $(CHAOS_FOLDERS) \
 		| tee $(TEST_LOG_DIR)/chaos.json \
 		| gotestsum --raw-command -- cat
 
@@ -782,7 +838,7 @@ test-go-root: ensure-webassets bpf-bytecode rdpclient $(TEST_LOG_DIR) ensure-got
 test-go-root: FLAGS ?= -race -shuffle on
 test-go-root: PACKAGES = $(shell go list $(ADDFLAGS) ./... | grep -v -e e2e -e integration -e integrations/operator)
 test-go-root: $(VERSRC)
-	$(CGOFLAG) go test -json -run "$(UNIT_ROOT_REGEX)" -tags "$(PAM_TAG) $(FIPS_TAG) $(BPF_TAG) $(RDPCLIENT_TAG)" $(PACKAGES) $(FLAGS) $(ADDFLAGS) \
+	$(CGOFLAG) go test -json -run "$(UNIT_ROOT_REGEX)" -tags "$(PAM_TAG) $(FIPS_TAG) $(BPF_TAG)" $(PACKAGES) $(FLAGS) $(ADDFLAGS) \
 		| tee $(TEST_LOG_DIR)/unit-root.json \
 		| gotestsum --raw-command -- cat
 
@@ -849,7 +905,7 @@ FLAKY_TOP_N ?= 20
 FLAKY_SUMMARY_FILE ?= /tmp/flaky-report.txt
 test-go-flaky: FLAGS ?= -race -shuffle on
 test-go-flaky: SUBJECT ?= $(shell go list ./... | grep -v -e e2e -e integration -e tool/tsh -e integrations/operator -e integrations/access -e integrations/lib )
-test-go-flaky: GO_BUILD_TAGS ?= $(PAM_TAG) $(FIPS_TAG) $(BPF_TAG) $(RDPCLIENT_TAG) $(TOUCHID_TAG) $(PIV_TEST_TAG)
+test-go-flaky: GO_BUILD_TAGS ?= $(PAM_TAG) $(FIPS_TAG) $(BPF_TAG) $(TOUCHID_TAG) $(PIV_TEST_TAG)
 test-go-flaky: RENDER_FLAGS ?= -report-by flakiness -summary-file $(FLAKY_SUMMARY_FILE) -top $(FLAKY_TOP_N)
 test-go-flaky: test-go-prepare $(RENDER_TESTS) $(RERUN)
 	$(CGOFLAG) $(RERUN) -n $(FLAKY_RUNS) -t $(FLAKY_TIMEOUT) \
@@ -876,7 +932,7 @@ endif
 test-sh:
 	@if ! type bats 2>&1 >/dev/null; then \
 		echo "Not running 'test-sh' target as 'bats' is not installed."; \
-		if [ "$${DRONE}" = "true" ]; then echo "This is a failure when running in CI." && exit 1; fi; \
+		if [ "$${CI}" = "true" ]; then echo "This is a failure when running in CI." && exit 1; fi; \
 		exit 0; \
 	fi; \
 	bats $(BATSFLAGS) ./assets/aws/files/tests
@@ -900,7 +956,7 @@ integration: FLAGS ?= -v -race
 integration: PACKAGES = $(shell go list ./... | grep 'integration\([^s]\|$$\)' | grep -v integrations/lib/testing/integration )
 integration:  $(TEST_LOG_DIR) ensure-gotestsum
 	@echo KUBECONFIG is: $(KUBECONFIG), TEST_KUBE: $(TEST_KUBE)
-	$(CGOFLAG) go test -timeout 30m -json -tags "$(PAM_TAG) $(FIPS_TAG) $(BPF_TAG) $(RDPCLIENT_TAG)" $(PACKAGES) $(FLAGS) \
+	$(CGOFLAG) go test -timeout 30m -json -tags "$(PAM_TAG) $(FIPS_TAG) $(BPF_TAG)" $(PACKAGES) $(FLAGS) \
 		| tee $(TEST_LOG_DIR)/integration.json \
 		| gotestsum --raw-command --format=testname -- cat
 
@@ -1045,7 +1101,7 @@ lint-sh:
 lint-helm:
 	@if ! type yamllint 2>&1 >/dev/null; then \
 		echo "Not running 'lint-helm' target as 'yamllint' is not installed."; \
-		if [ "$${DRONE}" = "true" ]; then echo "This is a failure when running in CI." && exit 1; fi; \
+		if [ "$${CI}" = "true" ]; then echo "This is a failure when running in CI." && exit 1; fi; \
 		exit 0; \
 	fi; \
 	for CHART in $$(find examples/chart -mindepth 1 -maxdepth 1 -type d); do \
@@ -1119,13 +1175,22 @@ version: $(VERSRC)
 $(VERSRC): Makefile
 	VERSION=$(VERSION) $(MAKE) -f version.mk setver
 
-# make tag - prints a tag to use with git for the current version
-# 	To put a new release on Github:
-# 		- bump VERSION variable
-# 		- run make setver
-# 		- commit changes to git
-# 		- build binaries with 'make release'
-# 		- run `make tag` and use its output to 'git tag' and 'git push --tags'
+# Pushes GITTAG and api/GITTAG to GitHub.
+#
+# Before running `make update-tag`, do:
+#
+# 1. Commit your changes
+# 2. Bump VERSION variable (eg, "vMAJOR.(MINOR+1).0-dev-$USER.1")
+# 3. Run `make update-version`
+# 4. Commit version changes to git
+# 5. Make sure it all builds (`make release` or equivalent)
+# 6. Run `make update-tag` to tag repos with $(VERSION)
+# 7. Run `make tag-build` to build the tag on GitHub Actions
+# 8. Run `make tag-publish` after `make-build` tag has completed to
+#    publish the built artifacts.
+#
+# GHA tag builds: https://github.com/gravitational/teleport.e/actions/workflows/tag-build.yaml
+# GHA tag publish: https://github.com/gravitational/teleport.e/actions/workflows/tag-publish.yaml
 .PHONY: update-tag
 update-tag: TAG_REMOTE ?= origin
 update-tag:
@@ -1135,6 +1200,63 @@ update-tag:
 	git tag api/$(GITTAG)
 	(cd e && git tag $(GITTAG) && git push origin $(GITTAG))
 	git push $(TAG_REMOTE) $(GITTAG) && git push $(TAG_REMOTE) api/$(GITTAG)
+
+# find-any evaluates to non-empty (true) if any of the strings in $(1) are contained in $(2)
+# e.g.
+#   $(call find-any,-cloud -dev,1.2.3-dev.1) == true
+#   $(call find-any,-cloud -dev,1.2.3-cloud.1) == true
+#   $(call find-any,-cloud -dev,1.2.3) == false
+find-any = $(strip $(foreach str,$(1),$(findstring $(str),$(2))))
+
+# IS_CLOUD_SEMVER is non-empty if $(VERSION) contains a cloud-only pre-release tag,
+# and is empty if not.
+CLOUD_VERSIONS = -cloud. -dev.cloud.
+IS_CLOUD_SEMVER = $(call find-any,$(CLOUD_VERSIONS),$(VERSION))
+
+# IS_PROD_SEMVER is non-empty if $(VERSION) does not contains a pre-release component, or
+# if it does, it is -cloud.
+PROD_VERSIONS = -cloud.
+IS_PROD_SEMVER = $(if $(findstring -,$(VERSION)),$(call find-any,$(PROD_VERSIONS),$(VERSION)),true)
+
+# Builds a tag build on GitHub Actions.
+# Starts a tag publish run using e/.github/workflows/tag-build.yaml
+# for the tag v$(VERSION).
+# If the $(VERSION) variable contains a cloud pre-release component, -cloud. or
+# -dev.cloud., then the tag-build workflow is run with `cloud-only=true`. This can be
+# specified explicitly with `make tag-build CLOUD_ONLY=<true|false>`.
+.PHONY: tag-build
+tag-build: CLOUD_ONLY = $(if $(IS_CLOUD_SEMVER),true,false)
+tag-build: ENVIRONMENT = $(if $(IS_PROD_SEMVER),build-prod,build-stage)
+tag-build:
+	@which gh >/dev/null 2>&1 || { echo 'gh command needed. https://github.com/cli/cli'; exit 1; }
+	gh workflow run tag-build.yaml \
+		--repo gravitational/teleport.e \
+		--ref "v$(VERSION)" \
+		-f "oss-teleport-repo=$(shell gh repo view --json nameWithOwner --jq .nameWithOwner)" \
+		-f "oss-teleport-ref=v$(VERSION)" \
+		-f "cloud-only=$(CLOUD_ONLY)" \
+		-f "environment=$(ENVIRONMENT)"
+	@echo See runs at: https://github.com/gravitational/teleport.e/actions/workflows/tag-build.yaml
+
+# Publishes a tag build.
+# Starts a tag publish run using e/.github/workflows/tag-publish.yaml
+# for the tag v$(VERSION).
+# If the $(VERSION) variable contains a cloud pre-release component, -cloud. or
+# -dev.cloud., then the tag-publish workflow is run with `cloud-only=true`. This can be
+# specified explicitly with `make tag-publish CLOUD_ONLY=<true|false>`.
+.PHONY: tag-publish
+tag-publish: CLOUD_ONLY = $(if $(IS_CLOUD_SEMVER),true,false)
+tag-publish: ENVIRONMENT = $(if $(IS_PROD_SEMVER),publish-prod,publish-stage)
+tag-publish:
+	@which gh >/dev/null 2>&1 || { echo 'gh command needed. https://github.com/cli/cli'; exit 1; }
+	gh workflow run tag-publish.yaml \
+		--repo gravitational/teleport.e \
+		--ref "v$(VERSION)" \
+		-f "oss-teleport-repo=$(shell gh repo view --json nameWithOwner --jq .nameWithOwner)" \
+		-f "oss-teleport-ref=v$(VERSION)" \
+		-f "cloud-only=$(CLOUD_ONLY)" \
+		-f "environment=$(ENVIRONMENT)"
+	@echo See runs at: https://github.com/gravitational/teleport.e/actions/workflows/tag-publish.yaml
 
 .PHONY: test-package
 test-package: remove-temp-files
@@ -1198,6 +1320,10 @@ enter/centos7:
 enter/grpcbox:
 	make -C build.assets enter/grpcbox
 
+.PHONY:enter/node
+enter/node:
+	make -C build.assets enter/node
+
 BUF := buf
 
 # protos/all runs build, lint and format on all protos.
@@ -1216,7 +1342,7 @@ protos/format: buf/installed
 .PHONY: protos/lint
 protos/lint: buf/installed
 	$(BUF) lint
-	$(BUF) lint --config=api/proto/buf-legacy.yaml api/proto
+	$(BUF) lint --config=buf-legacy.yaml api/proto
 
 .PHONY: protos/breaking
 protos/breaking: BASE=origin/master
@@ -1234,6 +1360,23 @@ lint-breaking: protos/breaking
 buf/installed:
 	@if ! type -p $(BUF) >/dev/null; then \
 		echo 'Buf is required to build/format/lint protos. Follow https://docs.buf.build/installation.'; \
+		exit 1; \
+	fi
+
+GODERIVE := $(TOOLINGDIR)/bin/goderive
+# derive will generate derived functions for our API.
+# we need to build goderive first otherwise it will not be able to resolve dependencies
+# in the api/types/discoveryconfig package
+.PHONY: derive
+derive:
+	cd $(TOOLINGDIR) && go build  -o $(GODERIVE) ./cmd/goderive/main.go
+	$(GODERIVE) ./api/types ./api/types/discoveryconfig
+
+# derive-up-to-date checks if the generated derived functions are up to date.
+.PHONY: derive-up-to-date
+derive-up-to-date: must-start-clean/host derive
+	@if ! $(GIT) diff --quiet; then \
+		echo 'Please run make derive.'; \
 		exit 1; \
 	fi
 
@@ -1341,7 +1484,6 @@ endif
 # build .pkg
 .PHONY: pkg
 pkg: | $(RELEASE_DIR)
-	$(eval export DEVELOPER_ID_APPLICATION DEVELOPER_ID_INSTALLER)
 	mkdir -p $(BUILDDIR)/
 	cp ./build.assets/build-package.sh ./build.assets/build-common.sh $(BUILDDIR)/
 	chmod +x $(BUILDDIR)/build-package.sh
@@ -1354,7 +1496,6 @@ pkg: | $(RELEASE_DIR)
 # build tsh client-only .pkg
 .PHONY: pkg-tsh
 pkg-tsh: | $(RELEASE_DIR)
-	$(eval export DEVELOPER_ID_APPLICATION DEVELOPER_ID_INSTALLER)
 	./build.assets/build-pkg-tsh.sh -t oss -v $(VERSION) -b $(TSH_BUNDLEID) -a $(ARCH) $(TARBALL_PATH_SECTION)
 	mkdir -p $(BUILDDIR)/
 	mv tsh*.pkg* $(BUILDDIR)/
@@ -1396,30 +1537,18 @@ test-compat:
 
 .PHONY: ensure-webassets
 ensure-webassets:
-	@if [[ "${WEBASSETS_SKIP_BUILD}" -eq 1 ]]; then mkdir -p webassets/teleport && mkdir -p webassets/teleport/app && cp web/packages/build/index.ejs webassets/teleport/index.html; \
+	@if [[ "${WEBASSETS_SKIP_BUILD}" -eq 1 ]]; then mkdir -p webassets/teleport && mkdir -p webassets/teleport/app && cp web/packages/teleport/index.html webassets/teleport/index.html; \
 	else MAKE="$(MAKE)" "$(MAKE_DIR)/build.assets/build-webassets-if-changed.sh" OSS webassets/oss-sha build-ui web; fi
 
 .PHONY: ensure-webassets-e
 ensure-webassets-e:
-	@if [[ "${WEBASSETS_SKIP_BUILD}" -eq 1 ]]; then mkdir -p webassets/teleport && mkdir -p webassets/e/teleport/app && cp web/packages/build/index.ejs webassets/e/teleport/index.html; \
+	@if [[ "${WEBASSETS_SKIP_BUILD}" -eq 1 ]]; then mkdir -p webassets/teleport && mkdir -p webassets/e/teleport/app && cp web/packages/teleport/index.html webassets/e/teleport/index.html; \
 	else MAKE="$(MAKE)" "$(MAKE_DIR)/build.assets/build-webassets-if-changed.sh" Enterprise webassets/e/e-sha build-ui-e web e/web; fi
 
 .PHONY: init-submodules-e
 init-submodules-e:
 	git submodule init e
 	git submodule update
-
-# dronegen generates .drone.yml config
-#
-#    Usage:
-#    - tsh login --proxy=platform.teleport.sh
-#    - tsh apps login drone
-#    - set $DRONE_TOKEN and $DRONE_SERVER (http://localhost:8080)
-#    - tsh proxy app --port=8080 drone
-#    - make dronegen
-.PHONY: dronegen
-dronegen:
-	go run ./dronegen
 
 # backport will automatically create backports for a given PR as long as you have the "gh" tool
 # installed locally. To backport, type "make backport PR=1234 TO=branch/1,branch/2".
@@ -1457,7 +1586,33 @@ rustup-install-target-toolchain:
 # changelog generates PR changelog between the provided base tag and the tip of
 # the specified branch.
 #
-# usage: BASE_BRANCH=branch/v13 BASE_TAG=13.2.0 make changelog
+# usage: make changelog
+# usage: make changelog BASE_BRANCH=branch/v13 BASE_TAG=v13.2.0
+# usage: BASE_BRANCH=branch/v13 BASE_TAG=v13.2.0 make changelog
+#
+# BASE_BRANCH and BASE_TAG will be automatically determined if not specified.
+CHANGELOG = github.com/gravitational/shared-workflows/tools/changelog@latest
 .PHONY: changelog
 changelog:
-	@python3 ./build.assets/changelog.py BASE_BRANCH=$(BASE_BRANCH) BASE_TAG=$(BASE_TAG)
+	@go run $(CHANGELOG) --base-branch="$(BASE_BRANCH)" --base-tag="$(BASE_TAG)" ./
+
+# create-github-release will generate release notes from the CHANGELOG.md and will
+# create release notes from them.
+#
+# usage: make create-github-release
+# usage: make create-github-release LATEST=true
+#
+# If it detects that the first version in CHANGELOG.md
+# does not match version set it will fail to create a release. If tag doesn't exist it
+# will also fail to create a release.
+#
+# For more information on release notes generation see ./build.assets/tooling/cmd/release-notes
+.PHONY: create-github-release
+create-github-release: LATEST = false
+create-github-release: GITHUB_RELEASE_LABELS = ""
+create-github-release: $(RELEASE_NOTES_GEN)
+	@NOTES=$$($(RELEASE_NOTES_GEN) --labels=$(GITHUB_RELEASE_LABELS) $(VERSION) CHANGELOG.md) && gh release create v$(VERSION) \
+	-t "Teleport $(VERSION)" \
+	--latest=$(LATEST) \
+	--verify-tag \
+	-F - <<< "$$NOTES"

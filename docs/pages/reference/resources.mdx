@@ -1,11 +1,12 @@
 ---
-title: Teleport Resource Reference
+title: Teleport Resources
+h1: Teleport Resource Reference
 description: Reference documentation for Teleport resources
 ---
 
 This reference guide lists dynamic resources you can manage with Teleport. For
 more information on dynamic resources, see our guide to [Using Dynamic
-Resources](../management/dynamic-resources.mdx).
+Resources](../admin-guides/infrastructure-as-code/infrastructure-as-code.mdx).
 
 Examples of applying dynamic resources with `tctl`:
 
@@ -50,12 +51,12 @@ Here's the list of resources currently exposed via [`tctl`](./cli/tctl.mdx):
 | - | - |
 | [user](#user) | A user record in the internal Teleport user DB. |
 | [role](#role) | A role assumed by interactive and non-interactive users. |
-| connector | Authentication connectors for [Single Sign-On](../access-controls/sso.mdx) (SSO) for SAML, OIDC and GitHub. |
-| node | A registered SSH node. The same record is displayed via `tctl nodes ls` |
+| connector | Authentication connectors for [Single Sign-On](../admin-guides/access-controls/sso/sso.mdx) (SSO) for SAML, OIDC and GitHub. |
+| node | A registered SSH node. The same record is displayed via `tctl nodes ls`. |
 | windows_desktop | A registered Windows desktop. |
-| cluster | A trusted cluster. See [here](../management/admin/trustedclusters.mdx) for more details on connecting clusters together. |
-| [login_rule](#login-rules) | A Login Rule, see the [Login Rules guide](../access-controls/login-rules.mdx) for more info. |
-| [device](#device) | A Teleport Trusted Device, see the [Device Trust guide](../access-controls/device-trust/guide.mdx) for more info. |
+| cluster | A trusted cluster. See [here](../admin-guides/management/admin/trustedclusters.mdx) for more details on connecting clusters together. |
+| [login_rule](#login-rules) | A Login Rule, see the [Login Rules guide](../admin-guides/access-controls/login-rules/login-rules.mdx) for more info. |
+| [device](#device) | A Teleport Trusted Device, see the [Device Trust guide](../admin-guides/access-controls/device-trust/guide.mdx) for more info. |
 | [ui_config](#ui-config) | Configuration for the Web UI served by the Proxy Service |
 | [cluster_auth_preference](#cluster-auth-preferences) | Configuration for the cluster's auth preferences. |
 
@@ -102,6 +103,38 @@ Interactive and non-interactive users (bots) assume one or many roles.
 Roles govern access to databases, SSH servers, Kubernetes clusters, web services and applications and Windows Desktops.
 
 (!docs/pages/includes/role-spec.mdx!)
+
+### Role versions
+
+Versions 5, 6 and 7 of the Teleport role resource have different behaviors when
+accessing Kubernetes resources.
+{/*lint ignore messaging*/}
+Roles not [granting Kubernetes access](../enroll-resources/kubernetes-access/introduction.mdx) are
+equivalent in the three versions.
+
+Roles v5 and v6 can only restrict actions on pods (e.g. executing in them).
+Role v7 supports restricting all common resource kinds (
+see [the `kubernetes_resource` documentation](../enroll-resources/kubernetes-access/controls.mdx#kubernetes_resources)
+for a complete list).
+
+When no `kubernetes_resource` is set:
+- Roles v5 and v7 grant all access by default
+- Roles v6 blocks pod execution by default, this was reverted by roles v7 to improve the user experience.
+
+{/* This table is cursed. Our current docs engine doesn't support HTML tables
+(due to SSR and the rehydration process). We have dto do everything inlined in
+markdown. Some HTML character codes are used to render specific chars like {}
+or to avoid line breaks in the middle fo the YAML. Whitespaces before br tags
+are required.*/}
+
+| Allow rule                                                                                                                                                                                                                                                                | Role v5                                                                                                           | Role v6                                                                                                           | Role v7                                                                                                                                                                                               |
+|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| <pre>kubernetes_groups: <br/>  - "system:masters" <br/>kubernetes_labels: &#123;&#125; <br/>kubernetes_resources:&nbsp;[]<br/></pre>                                                                                                                                      | ❌ no access                                                                                                       | ❌ no access                                                                                                       | ❌ no access                                                                                                                                                                                           |
+| <pre>kubernetes_groups: <br/>  - "system:masters" <br/>kubernetes_labels: <br/>  env: ["dev"] <br/>kubernetes_resources:&nbsp;[]<br/></pre>                                                                                                                               | ✅ full access to `dev` clusters                                                                                   | ❌ cannot exec in pods <br/> ✅ can access other <br/>resources like `secrets`                                      | ✅ full access to `dev` clusters                                                                                                                                                                       |
+| <pre>kubernetes_groups: <br/>  - "system:masters" <br/>kubernetes_labels: <br/>  env: ["dev"] <br/>kubernetes_resources: <br/>  - name: "&ast;" <br/>    kind: pod <br/>    namespace: "foo"</pre>                                                                        | ✅ can exec in pods in `foo` <br/>✅ can access `secrets` in all namespaces. <br/>❌ cannot exec in other namespaces | ✅ can exec in pods in `foo` <br/>✅ can access `secrets` in all namespaces. <br/>❌ cannot exec in other namespaces | ✅ can exec in pods in `foo` <br/>❌ cannot access `secrets` in all namespaces <br/>❌ cannot exec in other namespaces                                                                                   |
+| <pre>kubernetes_groups: <br/>  - "system:masters" <br/>kubernetes_labels: <br/>  env: ["dev"] <br/>kubernetes_resources: <br/>  - name: "&ast;" <br/>    kind: pod <br/>    namespace: "foo" <br/>  - name: "&ast;" <br/>    kind: secret <br/>    namespace: "foo"</pre> | ⚠️ not supported                                                                                                  | ⚠️ not supported                                                                                                  | ✅ can exec in pods in `foo` <br/>✅ can access `secrets` in `foo` <br/>❌ cannot exec in other namespaces <br/>❌ cannot access `secrets` in other namespaces <br/>❌ cannot access `configmaps` in `foo` |
+| <pre>kubernetes_groups: <br/>  - "system:masters" <br/>kubernetes_labels: <br/>  env: ["dev"] <br/>kubernetes_resources: <br/>  - kind: "namespace" <br/>    name: "foo"</pre>                                                                                            | ⚠️ not supported                                                                                                  | ⚠️ not supported                                                                                                  | ✅ full access in namespace `foo` <br/>❌ cannot access other namespaces                                                                                                                                |
+
 
 ## Windows desktop
 
@@ -252,3 +285,5 @@ spec:
 
 version: v2
 ```
+
+

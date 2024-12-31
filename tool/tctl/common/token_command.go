@@ -35,7 +35,7 @@ import (
 	"github.com/gravitational/teleport"
 	"github.com/gravitational/teleport/api/types"
 	"github.com/gravitational/teleport/lib/asciitable"
-	"github.com/gravitational/teleport/lib/auth"
+	"github.com/gravitational/teleport/lib/auth/authclient"
 	libclient "github.com/gravitational/teleport/lib/client"
 	"github.com/gravitational/teleport/lib/defaults"
 	"github.com/gravitational/teleport/lib/service/servicecfg"
@@ -59,6 +59,8 @@ Use this token to add an MDM service to Teleport.
 // TokensCommand implements `tctl tokens` group of commands
 type TokensCommand struct {
 	config *servicecfg.Config
+
+	withSecrets bool
 
 	// format is the output format, e.g. text or json
 	format string
@@ -134,6 +136,7 @@ func (c *TokensCommand) Initialize(app *kingpin.Application, config *servicecfg.
 	// "tctl tokens ls"
 	c.tokenList = tokens.Command("ls", "List node and user invitation tokens.")
 	c.tokenList.Flag("format", "Output format, 'text', 'json' or 'yaml'").EnumVar(&c.format, formats...)
+	c.tokenList.Flag("with-secrets", "Do not redact join tokens").BoolVar(&c.withSecrets)
 
 	if c.stdout == nil {
 		c.stdout = os.Stdout
@@ -141,7 +144,7 @@ func (c *TokensCommand) Initialize(app *kingpin.Application, config *servicecfg.
 }
 
 // TryRun takes the CLI command as an argument (like "nodes ls") and executes it.
-func (c *TokensCommand) TryRun(ctx context.Context, cmd string, client auth.ClientI) (match bool, err error) {
+func (c *TokensCommand) TryRun(ctx context.Context, cmd string, client *authclient.Client) (match bool, err error) {
 	switch cmd {
 	case c.tokenAdd.FullCommand():
 		err = c.Add(ctx, client)
@@ -156,7 +159,7 @@ func (c *TokensCommand) TryRun(ctx context.Context, cmd string, client auth.Clie
 }
 
 // Add is called to execute "tokens add ..." command.
-func (c *TokensCommand) Add(ctx context.Context, client auth.ClientI) error {
+func (c *TokensCommand) Add(ctx context.Context, client *authclient.Client) error {
 	// Parse string to see if it's a type of role that Teleport supports.
 	roles, err := types.ParseTeleportRoles(c.tokenType)
 	if err != nil {
@@ -171,7 +174,7 @@ func (c *TokensCommand) Add(ctx context.Context, client auth.ClientI) error {
 
 	token := c.value
 	if c.value == "" {
-		token, err = utils.CryptoRandomHex(auth.TokenLenBytes)
+		token, err = utils.CryptoRandomHex(defaults.TokenLenBytes)
 		if err != nil {
 			return trace.Wrap(err, "generating token value")
 		}
@@ -357,7 +360,7 @@ func (c *TokensCommand) Add(ctx context.Context, client auth.ClientI) error {
 }
 
 // Del is called to execute "tokens del ..." command.
-func (c *TokensCommand) Del(ctx context.Context, client auth.ClientI) error {
+func (c *TokensCommand) Del(ctx context.Context, client *authclient.Client) error {
 	if c.value == "" {
 		return trace.Errorf("Need an argument: token")
 	}
@@ -369,7 +372,7 @@ func (c *TokensCommand) Del(ctx context.Context, client auth.ClientI) error {
 }
 
 // List is called to execute "tokens ls" command.
-func (c *TokensCommand) List(ctx context.Context, client auth.ClientI) error {
+func (c *TokensCommand) List(ctx context.Context, client *authclient.Client) error {
 	tokens, err := client.GetTokens(ctx)
 	if err != nil {
 		return trace.Wrap(err)
@@ -381,6 +384,11 @@ func (c *TokensCommand) List(ctx context.Context, client auth.ClientI) error {
 
 	// Sort by expire time.
 	sort.Slice(tokens, func(i, j int) bool { return tokens[i].Expiry().Unix() < tokens[j].Expiry().Unix() })
+
+	nameFunc := (types.ProvisionToken).GetSafeName
+	if c.withSecrets {
+		nameFunc = (types.ProvisionToken).GetName
+	}
 
 	switch c.format {
 	case teleport.JSON:
@@ -395,7 +403,7 @@ func (c *TokensCommand) List(ctx context.Context, client auth.ClientI) error {
 		}
 	case teleport.Text:
 		for _, token := range tokens {
-			fmt.Fprintln(c.stdout, token.GetName())
+			fmt.Fprintln(c.stdout, nameFunc(token))
 		}
 	default:
 		tokensView := func() string {
@@ -403,12 +411,12 @@ func (c *TokensCommand) List(ctx context.Context, client auth.ClientI) error {
 			now := time.Now()
 			for _, t := range tokens {
 				expiry := "never"
-				if !t.Expiry().IsZero() {
+				if !t.Expiry().IsZero() && t.Expiry().Unix() != 0 {
 					exptime := t.Expiry().Format(time.RFC822)
 					expdur := t.Expiry().Sub(now).Round(time.Second)
 					expiry = fmt.Sprintf("%s (%s)", exptime, expdur.String())
 				}
-				table.AddRow([]string{t.GetName(), t.GetRoles().String(), printMetadataLabels(t.GetMetadata().Labels), expiry})
+				table.AddRow([]string{nameFunc(t), t.GetRoles().String(), printMetadataLabels(t.GetMetadata().Labels), expiry})
 			}
 			return table.AsBuffer().String()
 		}
