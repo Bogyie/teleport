@@ -19,6 +19,7 @@ package vnet
 import (
 	"context"
 	"io"
+	"os"
 	"syscall"
 	"time"
 	"unsafe"
@@ -123,11 +124,22 @@ func authenticateUserProcess(ctx context.Context, clt *userProcessClient) error 
 		return trace.Wrap(err, "authenticating user process")
 	})
 	g.Go(func() error {
-		clientExe, err := pipe.waitForClient(ctx)
-		if err != nil {
+		if err := pipe.waitForClient(ctx); err != nil {
 			return trace.Wrap(err, "waiting for client to connect to named pipe")
 		}
-		log.DebugContext(ctx, "Got connection on named pipe", "exe", clientExe)
+		clientExePath, err := pipe.clientExePath(ctx)
+		if err != nil {
+			return trace.Wrap(err, "getting pipe client exe path")
+		}
+		log.DebugContext(ctx, "Got pipe connection from client", "exe", clientExePath)
+		thisExePath, err := os.Executable()
+		if err != nil {
+			return trace.Wrap(err, "getting executable path for this service")
+		}
+		if thisExePath != clientExePath {
+			return trace.AccessDenied("user process is not running the same executable as this service, user process exe: %s, this process exe: %s",
+				clientExePath, thisExePath)
+		}
 		return nil
 	})
 	if err := g.Wait(); err != nil {
@@ -189,15 +201,18 @@ func createNamedPipe(ctx context.Context) (*winpipe, error) {
 	}, nil
 }
 
-func (p *winpipe) waitForClient(ctx context.Context) (string, error) {
+func (p *winpipe) waitForClient(ctx context.Context) error {
 	evt, err := windows.WaitForSingleObject(p.eventHandle, 500 /*milliseconds*/)
 	if err != nil {
-		return "", trace.Wrap(err, "waiting for connection on named pipe")
+		return trace.Wrap(err, "waiting for connection on named pipe")
 	}
 	if evt != windows.WAIT_OBJECT_0 {
-		return "", trace.Errorf("failed to wait for connection on named pipe, error code: %d", evt)
+		return trace.Errorf("failed to wait for connection on named pipe, error code: %d", evt)
 	}
-	log.DebugContext(ctx, "Got connection on named pipe")
+	return nil
+}
+
+func (p *winpipe) clientExePath(ctx context.Context) (string, error) {
 	var pid uint32
 	if err := windows.GetNamedPipeClientProcessId(p.pipeHandle, &pid); err != nil {
 		return "", trace.Wrap(err, "getting named pipe client process ID")
